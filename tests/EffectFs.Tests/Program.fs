@@ -15,6 +15,16 @@ module Assert =
         equal true value
 
 module Tests =
+    type AsyncDisposableFlag() =
+        let disposed = ref false
+
+        member _.Disposed = disposed
+
+        interface IAsyncDisposable with
+            member _.DisposeAsync() =
+                disposed.Value <- true
+                ValueTask()
+
     let run (name: string) (test: unit -> unit) : bool =
         try
             test ()
@@ -131,6 +141,31 @@ module Tests =
 
         Assert.equal (Ok 42) result
 
+    let taskResultCompatibilityRoundTrips () : unit =
+        let workflow : Effect<unit, string, int> =
+            Task.FromResult(Ok 42)
+            |> Effect.fromTaskResultValue
+
+        let result =
+            workflow
+            |> Effect.execute ()
+            |> Async.RunSynchronously
+
+        Assert.equal (Ok 42) result
+
+    let asyncResultCompatModuleProvidesMigrationPath () : unit =
+        let workflow : Effect<unit, string, int> =
+            async { return Ok 21 }
+            |> AsyncResultCompat.ofAsyncResult
+            |> AsyncResultCompat.map ((*) 2)
+
+        let result =
+            workflow
+            |> AsyncResultCompat.toAsyncResult ()
+            |> Async.RunSynchronously
+
+        Assert.equal (Ok 42) result
+
     let logWritesThroughEnvironmentDependency () : unit =
         let messages = ResizeArray<string>()
 
@@ -168,6 +203,53 @@ module Tests =
 
         Assert.equal true started.Value
         Assert.equal (Ok 42) result
+
+    let executeWithCancellationPassesTokenToTaskFactory () : unit =
+        let seen = ref CancellationToken.None
+        use cts = new CancellationTokenSource()
+
+        let workflow : Effect<unit, string, int> =
+            Effect.fromTask(fun cancellationToken ->
+                seen.Value <- cancellationToken
+                Task.FromResult 42)
+
+        let result =
+            workflow
+            |> Effect.executeWithCancellation () cts.Token
+            |> Async.RunSynchronously
+
+        Assert.equal (Ok 42) result
+        Assert.equal cts.Token seen.Value
+
+    let ensureNotCanceledTurnsCanceledTokenIntoTypedError () : unit =
+        use cts = new CancellationTokenSource()
+        cts.Cancel()
+
+        let result =
+            Effect.ensureNotCanceled "canceled"
+            |> Effect.executeWithCancellation () cts.Token
+            |> Async.RunSynchronously
+
+        Assert.equal (Error "canceled") result
+
+    let catchCancellationTurnsTaskCancellationIntoTypedError () : unit =
+        use cts = new CancellationTokenSource()
+        cts.Cancel()
+
+        let workflow : Effect<unit, string, int> =
+            Effect.fromTask(fun cancellationToken ->
+                task {
+                    do! Task.Delay(50, cancellationToken)
+                    return 42
+                })
+            |> Effect.catchCancellation (fun _ -> "canceled")
+
+        let result =
+            workflow
+            |> Effect.executeWithCancellation () cts.Token
+            |> Async.RunSynchronously
+
+        Assert.equal (Error "canceled") result
 
     let timeoutTurnsSlowWorkIntoTypedError () : unit =
         let workflow : Effect<unit, string, int> =
@@ -225,6 +307,39 @@ module Tests =
         Assert.equal (Ok 8) result
         Assert.true' disposed.Value
 
+    let bracketAsyncReleasesResourcesOnSuccess () : unit =
+        let disposed = ref false
+
+        let workflow : Effect<unit, string, int> =
+            Effect.bracketAsync
+                (Effect.succeed "resource")
+                (fun _ _ ->
+                    disposed.Value <- true
+                    Task.CompletedTask)
+                (fun resource -> Effect.succeed resource.Length)
+
+        let result =
+            workflow
+            |> Effect.execute ()
+            |> Async.RunSynchronously
+
+        Assert.equal (Ok 8) result
+        Assert.true' disposed.Value
+
+    let usingAsyncDisposesResourcesOnSuccess () : unit =
+        let resource = AsyncDisposableFlag()
+
+        let workflow : Effect<unit, string, int> =
+            Effect.usingAsync resource (fun _ -> Effect.succeed 42)
+
+        let result =
+            workflow
+            |> Effect.execute ()
+            |> Async.RunSynchronously
+
+        Assert.equal (Ok 42) result
+        Assert.true' resource.Disposed.Value
+
 [<EntryPoint>]
 let main _ =
     let results =
@@ -236,10 +351,17 @@ let main _ =
           Tests.run "provide supplies environment explicitly" Tests.provideSuppliesEnvironmentExplicitly
           Tests.run "withEnvironment projects larger dependency context" Tests.withEnvironmentProjectsLargerDependencyContext
           Tests.run "Async Result compatibility round trips" Tests.asyncResultCompatibilityRoundTrips
+          Tests.run "Task Result compatibility round trips" Tests.taskResultCompatibilityRoundTrips
+          Tests.run "AsyncResultCompat provides migration path" Tests.asyncResultCompatModuleProvidesMigrationPath
           Tests.run "log writes through environment dependency" Tests.logWritesThroughEnvironmentDependency
           Tests.run "task interop remains cold until execution" Tests.taskInteropRemainsColdUntilExecution
+          Tests.run "executeWithCancellation passes token to task factory" Tests.executeWithCancellationPassesTokenToTaskFactory
+          Tests.run "ensureNotCanceled turns canceled token into typed error" Tests.ensureNotCanceledTurnsCanceledTokenIntoTypedError
+          Tests.run "catchCancellation turns task cancellation into typed error" Tests.catchCancellationTurnsTaskCancellationIntoTypedError
           Tests.run "timeout turns slow work into typed error" Tests.timeoutTurnsSlowWorkIntoTypedError
           Tests.run "retry repeats failures until success" Tests.retryRepeatsFailuresUntilSuccess
-          Tests.run "bracket releases resources on success" Tests.bracketReleasesResourcesOnSuccess ]
+          Tests.run "bracket releases resources on success" Tests.bracketReleasesResourcesOnSuccess
+          Tests.run "bracketAsync releases resources on success" Tests.bracketAsyncReleasesResourcesOnSuccess
+          Tests.run "usingAsync disposes resources on success" Tests.usingAsyncDisposesResourcesOnSuccess ]
 
     if List.forall id results then 0 else 1

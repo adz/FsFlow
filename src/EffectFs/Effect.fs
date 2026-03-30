@@ -68,6 +68,14 @@ module Effect =
     let fromAsyncResult (operation: Async<Result<'value, 'error>>) : Effect<'env, 'error, 'value> =
         Effect(fun _ _ -> operation)
 
+    let fromTaskResult
+        (factory: CancellationToken -> Task<Result<'value, 'error>>)
+        : Effect<'env, 'error, 'value> =
+        Effect(fun _ cancellationToken ->
+            async {
+                return! factory cancellationToken |> Async.AwaitTask
+            })
+
     let fromTask (factory: CancellationToken -> Task<'value>) : Effect<'env, 'error, 'value> =
         Effect(fun _ cancellationToken ->
             async {
@@ -80,6 +88,9 @@ module Effect =
 
     let fromTaskValue (task: Task<'value>) : Effect<'env, 'error, 'value> =
         fromTask (fun _ -> task)
+
+    let fromTaskResultValue (task: Task<Result<'value, 'error>>) : Effect<'env, 'error, 'value> =
+        fromTaskResult (fun _ -> task)
 
     let fromTaskUnit (task: Task) : Effect<'env, 'error, unit> =
         Effect(fun _ _ ->
@@ -155,6 +166,18 @@ module Effect =
                     return Error(handler error)
             })
 
+    let catchCancellation
+        (handler: OperationCanceledException -> 'error)
+        (effect: Effect<'env, 'error, 'value>)
+        : Effect<'env, 'error, 'value> =
+        Effect(fun environment cancellationToken ->
+            async {
+                try
+                    return! run environment cancellationToken effect
+                with :? OperationCanceledException as error ->
+                    return Error(handler error)
+            })
+
     let provide (environment: 'env) (effect: Effect<'env, 'error, 'value>) : Effect<unit, 'error, 'value> =
         Effect(fun () cancellationToken -> run environment cancellationToken effect)
 
@@ -172,6 +195,15 @@ module Effect =
             async {
                 do! Task.Delay(delay, cancellationToken) |> Async.AwaitTask
                 return Ok ()
+            })
+
+    let ensureNotCanceled (canceledError: 'error) : Effect<'env, 'error, unit> =
+        Effect(fun _ cancellationToken ->
+            async {
+                if cancellationToken.IsCancellationRequested then
+                    return Error canceledError
+                else
+                    return Ok ()
             })
 
     let log
@@ -229,6 +261,36 @@ module Effect =
                 |> tryFinally (fun () -> release resource))
             acquire
 
+    let bracketAsync
+        (acquire: Effect<'env, 'error, 'resource>)
+        (release: 'resource -> CancellationToken -> Task)
+        (useResource: 'resource -> Effect<'env, 'error, 'value>)
+        : Effect<'env, 'error, 'value> =
+        bind
+            (fun resource ->
+                Effect(fun environment cancellationToken ->
+                    async {
+                        let! result =
+                            run environment cancellationToken (useResource resource)
+                            |> Async.Catch
+
+                        do! release resource cancellationToken |> Async.AwaitTask
+
+                        match result with
+                        | Choice1Of2 value -> return value
+                        | Choice2Of2 error -> return raise error
+                    }))
+            acquire
+
+    let usingAsync
+        (resource: 'resource)
+        (useResource: 'resource -> Effect<'env, 'error, 'value>)
+        : Effect<'env, 'error, 'value> when 'resource :> IAsyncDisposable =
+        bracketAsync
+            (succeed resource)
+            (fun acquired _ -> acquired.DisposeAsync().AsTask())
+            useResource
+
     let timeout
         (after: TimeSpan)
         (timeoutError: 'error)
@@ -282,6 +344,13 @@ module Effect =
     let execute (environment: 'env) (effect: Effect<'env, 'error, 'value>) : Async<Result<'value, 'error>> =
         run environment CancellationToken.None effect
 
+    let executeWithCancellation
+        (environment: 'env)
+        (cancellationToken: CancellationToken)
+        (effect: Effect<'env, 'error, 'value>)
+        : Async<Result<'value, 'error>> =
+        run environment cancellationToken effect
+
     let toAsyncResult (environment: 'env) (effect: Effect<'env, 'error, 'value>) : Async<Result<'value, 'error>> =
         execute environment effect
 
@@ -300,6 +369,9 @@ type EffectBuilder() =
 
     member _.ReturnFrom(operation: Async<Result<'value, 'error>>) : Effect<'env, 'error, 'value> =
         Effect.fromAsyncResult operation
+
+    member _.ReturnFrom(task: Task<Result<'value, 'error>>) : Effect<'env, 'error, 'value> =
+        Effect.fromTaskResultValue task
 
     member _.ReturnFrom(task: Task<'value>) : Effect<'env, 'error, 'value> =
         Effect.fromTaskValue task
@@ -334,6 +406,13 @@ type EffectBuilder() =
             binder: 'value -> Effect<'env, 'error, 'next>
         ) : Effect<'env, 'error, 'next> =
         Effect.bind binder (Effect.fromAsyncResult operation)
+
+    member _.Bind
+        (
+            task: Task<Result<'value, 'error>>,
+            binder: 'value -> Effect<'env, 'error, 'next>
+        ) : Effect<'env, 'error, 'next> =
+        Effect.bind binder (Effect.fromTaskResultValue task)
 
     member _.Bind
         (
