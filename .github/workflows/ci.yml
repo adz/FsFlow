@@ -25,13 +25,13 @@ jobs:
         run: dotnet restore
 
       - name: Run test harness
-        run: dotnet run --project tests/EffectFs.Tests/EffectFs.Tests.fsproj --nologo
+        run: dotnet run --project tests/EffectfulFlow.Tests/EffectfulFlow.Tests.fsproj --nologo
 
       - name: Run main example
-        run: dotnet run --project examples/EffectFs.Examples/EffectFs.Examples.fsproj --nologo
+        run: dotnet run --project examples/EffectfulFlow.Examples/EffectfulFlow.Examples.fsproj --nologo
 
       - name: Run maintenance example
-        run: dotnet run --project examples/EffectFs.MaintenanceExamples/EffectFs.MaintenanceExamples.fsproj --nologo
+        run: dotnet run --project examples/EffectfulFlow.MaintenanceExamples/EffectfulFlow.MaintenanceExamples.fsproj --nologo
 
       - name: Publish and run NativeAOT probe
         run: bash scripts/run-aot-probe.sh

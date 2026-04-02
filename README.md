@@ -1,5 +1,9 @@
 # EffectfulFlow
 
+[![ci](https://github.com/adz/EffectfulFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/adz/EffectfulFlow/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/EffectfulFlow.svg)](https://www.nuget.org/packages/EffectfulFlow)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 EffectfulFlow is a small experimental (for now!) F# library built around composable flows:
 
 - explicit environment requirements
