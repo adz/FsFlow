@@ -1,5 +1,10 @@
 # EffectfulFlow
 
+Simple to use F# flow {} computation expression for unifying Dependencies (Reader), 
+Error Handling (Result), and Async/Task.
+
+The modern way to build F# application use cases.
+
 [![ci](https://github.com/adz/EffectfulFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/adz/EffectfulFlow/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/EffectfulFlow.svg)](https://www.nuget.org/packages/EffectfulFlow)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
