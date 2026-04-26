@@ -1,12 +1,12 @@
-# EffectfulFlow
+# FlowKit
 
 Simple to use F# flow {} computation expression for unifying Dependencies (Reader), 
 Error Handling (Result), and Async/Task.
 
 The modern way to build F# application use cases.
 
-[![ci](https://github.com/adz/EffectfulFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/adz/EffectfulFlow/actions/workflows/ci.yml)
-[![NuGet](https://img.shields.io/nuget/v/EffectfulFlow.svg)](https://www.nuget.org/packages/EffectfulFlow)
+[![ci](https://github.com/adz/FlowKit/actions/workflows/ci.yml/badge.svg)](https://github.com/adz/FlowKit/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/FlowKit.svg)](https://www.nuget.org/packages/FlowKit)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 When one F# use case starts mixing `Result`, `async {}`, `.NET Task`, and dependency injection,
@@ -28,7 +28,7 @@ AppEnv -> Async<Result<'value, 'error>>
 
 plus helper modules, adapters, and wrapper-specific boilerplate.
 
-EffectfulFlow is a minimal, idiomatic way to represent that shape directly in F#.
+FlowKit is a minimal, idiomatic way to represent that shape directly in F#.
 
 It gives that use case one shape:
 
@@ -84,7 +84,7 @@ This is the same application flow without the plumbing taking over the happy pat
 
 ## What It Actually Is
 
-EffectfulFlow is a small, focused F# library built around composable flows:
+FlowKit is a small, focused F# library built around composable flows:
 
 - explicit environment requirements
 - typed failures via Result
@@ -105,7 +105,7 @@ Cancellation stays explicit at the runtime boundary and in cold task signatures,
 
 ## What It Is Not
 
-EffectfulFlow is not trying to become a new runtime platform.
+FlowKit is not trying to become a new runtime platform.
 
 - it does not reimplement `Async` or `Task`
 - it does not introduce its own concurrency system
@@ -119,7 +119,7 @@ The library is intentionally narrow:
 - less wrapper and adapter noise around the happy path
 
 Reader-style composition can feel imported in F# when it arrives as a larger FP stack.
-EffectfulFlow keeps the same practical benefits in plain F# terms:
+FlowKit keeps the same practical benefits in plain F# terms:
 
 - one computation expression
 - plain functions
@@ -175,7 +175,7 @@ This full example shows the intended shape in one place:
 
 ## Where To Use It
 
-Use EffectfulFlow at the effectful application boundary:
+Use FlowKit at the effectful application boundary:
 
 - handlers
 - use cases
@@ -192,7 +192,7 @@ Keep domain code plain. Use `flow {}` by default in the application layer.
 
 ## Supported Architectural Styles
 
-EffectfulFlow supports three valid architectural styles:
+FlowKit supports three valid architectural styles:
 
 - Booted App Environment
 - Explicit Dependencies + Context
@@ -207,9 +207,9 @@ Choose the style that fits your codebase and team:
 
 Read [`docs/ARCHITECTURAL_STYLES.md`](docs/ARCHITECTURAL_STYLES.md) for examples and trade-offs.
 
-## When EffectfulFlow Fits Well
+## When FlowKit Fits Well
 
-EffectfulFlow is a good fit when:
+FlowKit is a good fit when:
 
 - a workflow needs 2 to 5 dependencies
 - validation, IO, and error translation all belong in one use case
@@ -217,7 +217,7 @@ EffectfulFlow is a good fit when:
 - you want expected failures in the type rather than scattered exception handling
 - retry, timeout, and cleanup belong close to the business flow
 
-EffectfulFlow is usually not worth it when:
+FlowKit is usually not worth it when:
 
 - the code is mostly pure
 - plain `Result` already reads well
@@ -228,14 +228,14 @@ EffectfulFlow is usually not worth it when:
 1. [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md)
 2. [`docs/TINY_EXAMPLES.md`](docs/TINY_EXAMPLES.md)
 3. [`docs/ARCHITECTURAL_STYLES.md`](docs/ARCHITECTURAL_STYLES.md)
-4. [`docs/WHY_EFFECTFULFLOW.md`](docs/WHY_EFFECTFULFLOW.md)
+4. [`docs/WHY_FLOWKIT.md`](docs/WHY_FLOWKIT.md)
 5. [`docs/TASK_ASYNC_INTEROP.md`](docs/TASK_ASYNC_INTEROP.md)
 6. [`docs/FSTOOLKIT_MIGRATION.md`](docs/FSTOOLKIT_MIGRATION.md)
 7. [`docs/ENV_SLICING.md`](docs/ENV_SLICING.md)
 8. [`docs/SEMANTICS.md`](docs/SEMANTICS.md)
 9. [`examples/README.md`](examples/README.md)
 10. [`docs/TROUBLESHOOTING_TYPES.md`](docs/TROUBLESHOOTING_TYPES.md)
-11. [`src/EffectfulFlow/Flow.fs`](src/EffectfulFlow/Flow.fs)
+11. [`src/FlowKit/Flow.fs`](src/FlowKit/Flow.fs)
 
 ## Compatibility
 
@@ -247,7 +247,7 @@ The design is `.NET`-first. Cancellation is explicit in the `Flow` execution mod
 This means we don't have a Fable story (yet).
 
 ### Existing Shapes
-EffectfulFlow builds on existing F# and .NET primitives rather than replacing them.
+FlowKit builds on existing F# and .NET primitives rather than replacing them.
 If a direct `Result`, `Async<'T>`, or `Task<'T>` boundary is already the clearest shape,
 use that shape directly.
 
@@ -263,19 +263,19 @@ Run the examples:
 
 ```bash
 # Longer main example
-dotnet run --project examples/EffectfulFlow.Examples/EffectfulFlow.Examples.fsproj
+dotnet run --project examples/FlowKit.Examples/FlowKit.Examples.fsproj
 
 # Maintenance example:
-dotnet run --project examples/EffectfulFlow.MaintenanceExamples/EffectfulFlow.MaintenanceExamples.fsproj
+dotnet run --project examples/FlowKit.MaintenanceExamples/FlowKit.MaintenanceExamples.fsproj
 
 # Minimal playground example:
-dotnet run --project examples/EffectfulFlow.Playground/EffectfulFlow.Playground.fsproj
+dotnet run --project examples/FlowKit.Playground/FlowKit.Playground.fsproj
 ```
 
 Run the test suite:
 
 ```bash
-dotnet run --project tests/EffectfulFlow.Tests/EffectfulFlow.Tests.fsproj
+dotnet run --project tests/FlowKit.Tests/FlowKit.Tests.fsproj
 ```
 
 Run the NativeAOT probe:

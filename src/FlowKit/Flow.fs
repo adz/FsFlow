@@ -1,4 +1,4 @@
-namespace EffectfulFlow
+namespace FlowKit
 
 open System
 open System.Threading

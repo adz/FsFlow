@@ -1,9 +1,9 @@
-namespace EffectfulFlow.Tests
+namespace FlowKit.Tests
 
 open System
 open System.Threading
 open System.Threading.Tasks
-open EffectfulFlow
+open FlowKit
 open Xunit
 open Swensen.Unquote
 

@@ -2,7 +2,7 @@
 
 Read this page when you want to choose how `Flow` should fit into your application architecture without forcing one app shape on every codebase.
 
-EffectfulFlow supports three valid architectural styles.
+FlowKit supports three valid architectural styles.
 
 > One core workflow abstraction. Three valid architectural styles. Choose based on app shape and team preferences.
 
@@ -163,5 +163,5 @@ stays explicit at execution time.
 
 Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the core workflow model,
 [`docs/ENV_SLICING.md`](./ENV_SLICING.md) for smaller environment projections, and
-[`docs/WHY_EFFECTFULFLOW.md`](./WHY_EFFECTFULFLOW.md) for the trade-offs against manual
+[`docs/WHY_FLOWKIT.md`](./WHY_FLOWKIT.md) for the trade-offs against manual
 threading and wrapper-based shapes.

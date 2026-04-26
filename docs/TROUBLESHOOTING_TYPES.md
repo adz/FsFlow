@@ -199,4 +199,4 @@ Most fixes are one of:
 
 ## Next
 
-Read [`examples/EffectfulFlow.MaintenanceExamples/Program.fs`](../examples/EffectfulFlow.MaintenanceExamples/Program.fs) for runnable versions of these shapes, then [`docs/SEMANTICS.md`](./SEMANTICS.md) for exact runtime behavior.
+Read [`examples/FlowKit.MaintenanceExamples/Program.fs`](../examples/FlowKit.MaintenanceExamples/Program.fs) for runnable versions of these shapes, then [`docs/SEMANTICS.md`](./SEMANTICS.md) for exact runtime behavior.

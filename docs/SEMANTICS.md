@@ -1,9 +1,9 @@
 # Semantics
 
-This page describes how EffectfulFlow behaves around failure, exceptions, cancellation,
+This page describes how FlowKit behaves around failure, exceptions, cancellation,
 timeout, and cleanup.
 
-EffectfulFlow does not replace the underlying async or task machinery.
+FlowKit does not replace the underlying async or task machinery.
 It composes existing `Result`, `Async`, and `.NET Task` behavior behind one workflow type,
 while keeping execution explicit through `Flow.run`.
 
@@ -99,4 +99,4 @@ The test suite currently verifies:
 
 ## Next
 
-Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the basic flow model, or [`src/EffectfulFlow/Flow.fs`](../src/EffectfulFlow/Flow.fs) for the full API surface.
+Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the basic flow model, or [`src/FlowKit/Flow.fs`](../src/FlowKit/Flow.fs) for the full API surface.

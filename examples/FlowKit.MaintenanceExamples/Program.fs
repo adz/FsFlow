@@ -1,7 +1,7 @@
 open System
 open System.Threading
 open System.Threading.Tasks
-open EffectfulFlow
+open FlowKit
 
 let run label workflow =
     let result =

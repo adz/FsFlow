@@ -1,7 +1,7 @@
 open System
 open System.Threading
 open System.Threading.Tasks
-open EffectfulFlow
+open FlowKit
 
 type AppConfig =
     { ApiBaseUrl: string

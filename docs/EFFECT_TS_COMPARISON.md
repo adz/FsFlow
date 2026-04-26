@@ -1,9 +1,9 @@
-# EffectfulFlow And Effect-TS
+# FlowKit And Effect-TS
 
-This page places EffectfulFlow in relation to Effect-TS without pretending they solve the
+This page places FlowKit in relation to Effect-TS without pretending they solve the
 same problem at the same scale.
 
-EffectfulFlow presents its core abstraction as a composable `Flow`, but it is still not trying to recreate the full Effect-TS ecosystem in F#.
+FlowKit presents its core abstraction as a composable `Flow`, but it is still not trying to recreate the full Effect-TS ecosystem in F#.
 
 ## What Carries Over
 
@@ -16,16 +16,16 @@ These ideas are shared:
 
 ## What Is Different
 
-EffectfulFlow is aimed at ordinary F# application code:
+FlowKit is aimed at ordinary F# application code:
 
 - `flow {}` instead of generator-based syntax
 - first-class interop with `Result`, `Async`, and `.NET Task`
 - explicit environment reads such as `Flow.read _.Gateway`
 - a much smaller surface focused on application flows rather than a broader runtime platform
 
-## What Effect-TS Still Has That EffectfulFlow Does Not
+## What Effect-TS Still Has That FlowKit Does Not
 
-Effect-TS is much broader and more mature. EffectfulFlow does not try to match:
+Effect-TS is much broader and more mature. FlowKit does not try to match:
 
 - a richer service and context system
 - structured concurrency runtime features
@@ -45,7 +45,7 @@ The useful questions are:
 
 ## Practical Takeaway
 
-Use EffectfulFlow if you want a small F#-native library for composable flows with explicit dependencies, typed failures, explicit cancellation, and direct `.NET` interop.
+Use FlowKit if you want a small F#-native library for composable flows with explicit dependencies, typed failures, explicit cancellation, and direct `.NET` interop.
 
 Do not evaluate it as a feature-peer to Effect-TS. Evaluate it against the F# code you would otherwise write.
 

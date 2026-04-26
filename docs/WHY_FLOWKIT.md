@@ -1,8 +1,8 @@
-# Why EffectfulFlow
+# Why FlowKit
 
 Read this page when you want to decide whether `Flow` is a better fit than manual environment threading, `Async<Result<_,_>>`, or `Task<Result<_,_>>` for ordinary F# application code.
 
-EffectfulFlow is aimed at a specific F# problem:
+FlowKit is aimed at a specific F# problem:
 
 - a use case needs dependencies
 - validation already returns `Result`
@@ -24,7 +24,7 @@ Those shapes work, but they tend to spread the same concerns across several laye
 - helper modules for mapping and binding
 - extra noise around the happy path
 
-EffectfulFlow gives that combined shape one explicit representation:
+FlowKit gives that combined shape one explicit representation:
 
 ```fsharp
 Flow<'env, 'error, 'value>

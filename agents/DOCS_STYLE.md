@@ -1,6 +1,6 @@
 # Documentation Style Guide
 
-This guide establishes the voice and structure for EffectfulFlow documentation.
+This guide establishes the voice and structure for FlowKit documentation.
 
 ## Audience
 
