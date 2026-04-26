@@ -221,14 +221,16 @@ EffectfulFlow is usually not worth it when:
 ## Learn The Library In This Order
 
 1. [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md)
-2. [`docs/ARCHITECTURAL_STYLES.md`](docs/ARCHITECTURAL_STYLES.md)
-3. [`docs/WHY_EFFECTFULFLOW.md`](docs/WHY_EFFECTFULFLOW.md)
-4. [`docs/TASK_ASYNC_INTEROP.md`](docs/TASK_ASYNC_INTEROP.md)
-5. [`docs/ENV_SLICING.md`](docs/ENV_SLICING.md)
-6. [`docs/SEMANTICS.md`](docs/SEMANTICS.md)
-7. [`examples/README.md`](examples/README.md)
-8. [`docs/TROUBLESHOOTING_TYPES.md`](docs/TROUBLESHOOTING_TYPES.md)
-9. [`src/EffectfulFlow/Flow.fs`](src/EffectfulFlow/Flow.fs)
+2. [`docs/TINY_EXAMPLES.md`](docs/TINY_EXAMPLES.md)
+3. [`docs/ARCHITECTURAL_STYLES.md`](docs/ARCHITECTURAL_STYLES.md)
+4. [`docs/WHY_EFFECTFULFLOW.md`](docs/WHY_EFFECTFULFLOW.md)
+5. [`docs/TASK_ASYNC_INTEROP.md`](docs/TASK_ASYNC_INTEROP.md)
+6. [`docs/FSTOOLKIT_MIGRATION.md`](docs/FSTOOLKIT_MIGRATION.md)
+7. [`docs/ENV_SLICING.md`](docs/ENV_SLICING.md)
+8. [`docs/SEMANTICS.md`](docs/SEMANTICS.md)
+9. [`examples/README.md`](examples/README.md)
+10. [`docs/TROUBLESHOOTING_TYPES.md`](docs/TROUBLESHOOTING_TYPES.md)
+11. [`src/EffectfulFlow/Flow.fs`](src/EffectfulFlow/Flow.fs)
 
 ## Compatibility
 

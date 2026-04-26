@@ -385,6 +385,7 @@ module Flow =
         /// Lifts a cold task factory that returns a result into a flow.
         /// </summary>
         /// <param name="factory">The cold task factory.</param>
+        /// <remarks>The factory is called at flow execution time with the runtime cancellation token.</remarks>
         /// <example>
         /// <code>
         /// let flow = Flow.Task.fromColdResult (fun ct -> httpClient.GetAsync(url, ct) |> taskResult)
@@ -403,6 +404,7 @@ module Flow =
         /// Lifts an already started (hot) task that returns a result into a flow.
         /// </summary>
         /// <param name="task">The hot task.</param>
+        /// <remarks>The task has already been created before the flow runs, so Flow does not control when it starts.</remarks>
         let fromHotResult
             (task: Task<Result<'value, 'error>>)
             : Flow<'env, 'error, 'value> =
@@ -412,6 +414,7 @@ module Flow =
         /// Lifts a cold task factory into a flow.
         /// </summary>
         /// <param name="factory">The cold task factory.</param>
+        /// <remarks>The factory is called at flow execution time with the runtime cancellation token.</remarks>
         let fromCold
             (factory: ColdTask<'value>)
             : Flow<'env, 'error, 'value> =
@@ -425,6 +428,7 @@ module Flow =
         /// Lifts an already started (hot) task into a flow.
         /// </summary>
         /// <param name="task">The hot task.</param>
+        /// <remarks>The task has already been created before the flow runs, so Flow does not control when it starts.</remarks>
         let fromHot (task: Task<'value>) : Flow<'env, 'error, 'value> =
             fromCold (fun _ -> task)
 
@@ -432,6 +436,7 @@ module Flow =
         /// Lifts a cold task factory (unit returning) into a flow.
         /// </summary>
         /// <param name="factory">The cold task factory.</param>
+        /// <remarks>The factory is called at flow execution time with the runtime cancellation token.</remarks>
         let fromColdUnit
             (factory: CancellationToken -> Task)
             : Flow<'env, 'error, unit> =
@@ -445,6 +450,7 @@ module Flow =
         /// Lifts an already started (hot) task (unit returning) into a flow.
         /// </summary>
         /// <param name="task">The hot task.</param>
+        /// <remarks>The task has already been created before the flow runs, so Flow does not control when it starts.</remarks>
         let fromHotUnit (task: Task) : Flow<'env, 'error, unit> =
             fromColdUnit (fun _ -> task)
 
@@ -456,6 +462,7 @@ module Flow =
         /// <summary>
         /// Reads the current cancellation token from the flow.
         /// </summary>
+        /// <remarks>This observes the runtime token; it does not translate cancellation into a typed error by itself.</remarks>
         let cancellationToken<'env, 'error> : Flow<'env, 'error, CancellationToken> =
             Flow(fun _ cancellationToken -> async.Return(Ok cancellationToken))
 
@@ -464,6 +471,7 @@ module Flow =
         /// </summary>
         /// <param name="handler">The function to convert the exception.</param>
         /// <param name="flow">The source flow.</param>
+        /// <remarks>This translates cancellation exceptions raised during execution. It does not pre-check the token.</remarks>
         let catchCancellation
             (handler: OperationCanceledException -> 'error)
             (flow: Flow<'env, 'error, 'value>)
@@ -480,6 +488,7 @@ module Flow =
         /// Checks if cancellation has been requested and returns a typed error if it has.
         /// </summary>
         /// <param name="canceledError">The error to return if canceled.</param>
+        /// <remarks>This observes the current token state and returns a typed error immediately instead of waiting for an exception.</remarks>
         let ensureNotCanceled (canceledError: 'error) : Flow<'env, 'error, unit> =
             Flow(fun _ cancellationToken ->
                 async {
@@ -493,6 +502,7 @@ module Flow =
         /// Suspends the flow for the specified duration, observing cancellation.
         /// </summary>
         /// <param name="delay">The duration to sleep.</param>
+        /// <remarks>If the runtime token is canceled, the underlying task raises cancellation which can be translated with <see cref="catchCancellation"/>.</remarks>
         let sleep (delay: TimeSpan) : Flow<'env, 'error, unit> =
             Task.fromColdUnit (fun cancellationToken -> Task.Delay(delay, cancellationToken))
 
@@ -573,7 +583,7 @@ module Flow =
         /// <param name="after">The duration after which to timeout.</param>
         /// <param name="timeoutError">The error to return on timeout.</param>
         /// <param name="flow">The flow to wrap.</param>
-        /// <remarks>This helper uses <see cref="Async.StartChild"/> which does not automatically cancel the underlying work on timeout.</remarks>
+        /// <remarks>This helper translates timeout into a typed error. It does not automatically cancel the underlying work on timeout.</remarks>
         let timeout
             (after: TimeSpan)
             (timeoutError: 'error)

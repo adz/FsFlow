@@ -64,6 +64,13 @@ The playground example in [`examples/EffectfulFlow.Playground/Program.fs`](./Eff
 - projected environment reads through `Flow.read`
 - one `.NET` boundary through `Flow.Task.fromCold`
 
+## Smallest Docs-First Examples
+
+If you want the smallest possible snippets rather than runnable projects, read:
+
+- [`docs/TINY_EXAMPLES.md`](../docs/TINY_EXAMPLES.md)
+- [`docs/FSTOOLKIT_MIGRATION.md`](../docs/FSTOOLKIT_MIGRATION.md)
+
 ## Next
 
 If you want the smallest introduction, read [`docs/GETTING_STARTED.md`](../docs/GETTING_STARTED.md).

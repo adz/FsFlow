@@ -416,6 +416,27 @@ module Tests =
         test <@ disposed.Value = true @>
 
     [<Fact>]
+    let ``useWithAcquireRelease releases resources on cancellation`` () =
+        let disposed = ref false
+        use cts = new CancellationTokenSource()
+        cts.Cancel()
+
+        let workflow : Flow<unit, string, int> =
+            Flow.Runtime.useWithAcquireRelease
+                (Flow.succeed "resource")
+                (fun _ _ ->
+                    disposed.Value <- true
+                    Task.CompletedTask)
+                (fun _ ->
+                    Flow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+                    |> Flow.map (fun () -> 42))
+            |> Flow.Runtime.catchCancellation (fun _ -> "canceled")
+
+        let result = execute () cts.Token workflow
+        test <@ result = Error "canceled" @>
+        test <@ disposed.Value = true @>
+
+    [<Fact>]
     let ``flow use disposes IDisposable resources`` () =
         let resource = new DisposableFlag()
 

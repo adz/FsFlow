@@ -23,6 +23,8 @@ Use `Flow.catch` to convert exceptions into typed errors.
 - while building delayed work
 - during async execution
 - during task execution lifted through `Flow.Task`
+- before an awaited async or task boundary produces a value
+- after the workflow has already entered async execution
 
 It does not turn ordinary typed failures into exceptions or vice versa unless you ask it to.
 
@@ -34,6 +36,15 @@ Cancellation is explicit in the execution model:
 - `Flow.Runtime.cancellationToken` reads that token inside the flow
 - `Flow.Runtime.ensureNotCanceled` checks whether the token is already canceled and returns a typed failure if so
 - `Flow.Runtime.catchCancellation` translates `OperationCanceledException` into a typed error
+
+`Flow.Runtime.catchCancellation` handles cancellation thrown while the workflow is already running:
+
+- from `Flow.Runtime.sleep`
+- from cold task factories that observe the runtime token
+- from task or async work that raises `OperationCanceledException`
+
+`Flow.Runtime.ensureNotCanceled` does not catch exceptions.
+It checks the token up front and returns a typed error immediately if cancellation has already been requested.
 
 If a task or async operation ignores cancellation, Flow does not invent cancellation behavior for it.
 
@@ -83,6 +94,7 @@ The test suite currently verifies:
 - timeout behavior
 - retry attempt counting
 - sync and async disposal through builder `use` / `use!`
+- explicit release on cancellation through `useWithAcquireRelease`
 - exception capture across synchronous and asynchronous boundaries
 
 ## Next
