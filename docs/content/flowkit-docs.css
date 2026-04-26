@@ -1,0 +1,22 @@
+.navbar-brand {
+    gap: 0.5rem;
+}
+
+.navbar-brand picture {
+    display: flex;
+    align-items: center;
+}
+
+.flowkit-navbar-logo {
+    display: block;
+    height: 28px;
+    width: auto;
+    margin: 0;
+    border-radius: 0;
+}
+
+@media (max-width: 768px) {
+    .flowkit-navbar-logo {
+        height: 24px;
+    }
+}

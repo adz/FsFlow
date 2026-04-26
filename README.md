@@ -1,6 +1,9 @@
 # FlowKit
 
-![FlowKit logo](docs/content/logo.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/content/img/flowkit-logo-dark.svg">
+  <img alt="flow{kit}" src="docs/content/img/flowkit-logo-light.svg" height="72">
+</picture>
 
 Simple to use F# flow {} computation expression for unifying Dependencies (Reader), 
 Error Handling (Result), and Async/Task.
