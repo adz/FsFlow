@@ -786,6 +786,21 @@ let probe : Flow<unit, string, int> =
         test <@ valueTaskReturnFromResultResult = Ok 42 @>
 
     [<Fact>]
+    let ``TaskFlow keeps a Task-backed execution backbone even when lifting ValueTask inputs`` () =
+        let workflow : TaskFlow<int, string, int> =
+            taskFlow {
+                let! env = TaskFlow.env
+                let! value = ValueTask<int>(env + 1)
+                return value * 2
+            }
+
+        let runningTask = TaskFlow.run 20 CancellationToken.None workflow
+        let result = runningTask.GetAwaiter().GetResult()
+
+        test <@ runningTask.GetType() = typeof<Task<Result<int, string>>> @>
+        test <@ result = Ok 42 @>
+
+    [<Fact>]
     let ``taskFlow directly binds and returns ColdTask values`` () =
         let seen = ref CancellationToken.None
         use cts = new CancellationTokenSource()

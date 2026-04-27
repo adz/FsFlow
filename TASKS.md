@@ -24,7 +24,7 @@ The current answer is not mainly "the core idea is bad." The current answer is t
 14. [x] Support direct binding and return-from for `ColdTask<'value>` and `ColdTask<Result<'value,'error>>` in the `.NET`-oriented builders.
 15. [x] Support `Option<'value>` and `ValueOption<'value>` as short-circuiting inputs, with implicit binding only when the workflow error type is `unit`.
 16. [x] Provide explicit helpers to adapt `Option<'value>` and `ValueOption<'value>` into workflows with custom error values.
-17. [ ] Decide whether `TaskFlow` should internally remain `Task`-backed or whether any part of the execution backbone should be `ValueTask`-based.
+17. [x] Decide whether `TaskFlow` should internally remain `Task`-backed or whether any part of the execution backbone should be `ValueTask`-based.
 18. [ ] Evaluate the correctness and DX risks of a `ValueTask`-based backbone, including single-await constraints, storage and reuse pitfalls, and interaction with workflow composition.
 19. [ ] Confirm that no separate `valueTaskFlow` abstraction should exist unless benchmarks and ergonomics clearly justify the added conceptual split.
 20. [ ] Benchmark candidate `.NET` representations so the `Task` versus `ValueTask` backbone decision is based on measured outcomes rather than intuition.

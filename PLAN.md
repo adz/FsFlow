@@ -127,16 +127,19 @@ The practical packaging consequence is:
 
 `ValueTask` should be treated as a first-class input in `.NET` builders.
 
-Open question:
+Decision for task 17:
 
-- should `TaskFlow` remain internally `Task`-backed
-- or should some part of the backbone become `ValueTask`-based
+- `TaskFlow` should remain internally `Task`-backed for its execution backbone
+- `ValueTask` should remain a first-class boundary and interop shape, not the stored execution representation
+- `TaskFlow.run` and the underlying representation should continue to normalize execution to `Task<Result<'value, 'error>>`
 
-Current view:
+Rationale:
 
-- do not create a separate `valueTaskFlow` unless benchmarking and ergonomics clearly justify it
-- separate workflow types by semantics, not by transport optimization alone
-- be careful not to make `ValueTask` the default backbone unless the benefits are demonstrated and the single-await/storage pitfalls are acceptable
+- `TaskFlow` is a cold, restartable workflow type, and its implementation stores and reuses composed operations across helper layers
+- `ValueTask` is awkward as a reusable stored backbone because it carries single-await and consumption hazards that do not fit restartable workflow composition
+- the current builder already accepts `ValueTask` inputs and converts them to `Task` at the boundary, so callers still get broad interop without pushing `ValueTask` pitfalls into the core representation
+- the shared combinator design is simpler and more uniform when `TaskFlow` composes one owned `Task<Result<_,_>>` shape
+- no benchmark evidence currently justifies paying the correctness and maintenance cost of a `ValueTask`-based backbone
 
 Important distinction:
 
