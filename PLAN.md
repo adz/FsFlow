@@ -155,6 +155,15 @@ Task 18 evaluation notes:
 - using `ValueTask` internally would also create DX traps because apparently innocuous code refactors could turn a valid one-shot await into invalid reuse without any type-level warning
 - no evidence currently suggests that paying those correctness and ergonomics costs would be worth it for `TaskFlow`
 
+Task 19 decision:
+
+- there should be no separate `valueTaskFlow` abstraction for now
+- `ValueTask` support should remain part of `TaskFlow` and `ColdTask` interop rather than becoming a fourth workflow family
+- the conceptual split would be expensive because users would need to learn when to choose `taskFlow {}` versus `valueTaskFlow {}` even though both represent the same cold, restartable effect model
+- the implementation split would also duplicate builder surface, combinator expectations, docs, tests, and migration guidance for a distinction that is currently just an execution-shape preference
+- the current API already gives the main ergonomic benefit that matters: callers can bind and return `ValueTask` directly in `taskFlow {}` without committing the workflow representation itself to `ValueTask`
+- introducing `valueTaskFlow` should only be reconsidered if task 20 benchmarks show a durable, meaningful gain and that gain survives the added complexity in API shape, documentation burden, and user decision-making
+
 ## Option And ValueOption
 
 `Option<'value>` and `ValueOption<'value>` should be short-circuiting inputs.
