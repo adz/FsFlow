@@ -211,6 +211,16 @@ type TaskFlowBuilder() =
     member _.ReturnFrom(flow: TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         flow
 
+    member _.ReturnFrom(operation: Async<'value>) : TaskFlow<'env, 'error, 'value> =
+        operation
+        |> AsyncFlow.fromAsync
+        |> TaskFlow.fromAsyncFlow
+
+    member _.ReturnFrom(operation: Async<Result<'value, 'error>>) : TaskFlow<'env, 'error, 'value> =
+        operation
+        |> AsyncFlow.fromAsyncResult
+        |> TaskFlow.fromAsyncFlow
+
     member _.ReturnFrom(flow: AsyncFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow.fromAsyncFlow flow
 
@@ -236,6 +246,26 @@ type TaskFlowBuilder() =
             binder: 'value -> TaskFlow<'env, 'error, 'next>
         ) : TaskFlow<'env, 'error, 'next> =
         flow
+        |> TaskFlow.fromAsyncFlow
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            operation: Async<'value>,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        operation
+        |> AsyncFlow.fromAsync
+        |> TaskFlow.fromAsyncFlow
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            operation: Async<Result<'value, 'error>>,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        operation
+        |> AsyncFlow.fromAsyncResult
         |> TaskFlow.fromAsyncFlow
         |> TaskFlow.bind binder
 

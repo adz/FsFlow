@@ -29,6 +29,27 @@ module Tests =
         |> Array.distinct
         |> Array.sort
 
+    let private hasAsyncResultReturnFromOverload (builderType: Type) =
+        builderType.GetMethods()
+        |> Array.exists (fun methodInfo ->
+            if not methodInfo.IsPublic || methodInfo.IsSpecialName || methodInfo.Name <> "ReturnFrom" then
+                false
+            else
+                let parameters = methodInfo.GetParameters()
+
+                if parameters.Length <> 1 || not parameters[0].ParameterType.IsGenericType then
+                    false
+                else
+                    let asyncType = parameters[0].ParameterType
+
+                    if asyncType.GetGenericTypeDefinition() <> typedefof<Async<_>> then
+                        false
+                    else
+                        let asyncValueType = asyncType.GetGenericArguments()[0]
+
+                        asyncValueType.IsGenericType
+                        && asyncValueType.GetGenericTypeDefinition() = typedefof<Result<_, _>>)
+
     let private runFsiScript (scriptContents: string) =
         let scriptPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.fsx")
         File.WriteAllText(scriptPath, scriptContents)
@@ -402,6 +423,33 @@ let probe : Flow<unit, string, int> =
         test <@ result = Ok 42 @>
 
     [<Fact>]
+    let ``asyncFlow directly binds and returns Async and Async Result values`` () =
+        let workflow : AsyncFlow<int, string, int> =
+            asyncFlow {
+                let! env = AsyncFlow.env
+                let! baseValue = async { return env + 1 }
+                let! adjustedValue = async { return Ok(baseValue * 2) }
+                return adjustedValue + 2
+            }
+
+        let asyncReturnFrom : AsyncFlow<unit, string, int> =
+            asyncFlow { return! async { return 42 } }
+
+        let workflowResult =
+            workflow
+            |> AsyncFlow.run 19
+            |> Async.RunSynchronously
+
+        let asyncReturnFromResult =
+            asyncReturnFrom
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        test <@ workflowResult = Ok 42 @>
+        test <@ asyncReturnFromResult = Ok 42 @>
+        test <@ hasAsyncResultReturnFromOverload typeof<AsyncFlowBuilder> @>
+
+    [<Fact>]
     let ``taskFlow lives in FsFlow.Net and composes async flows`` () =
         let workflow : TaskFlow<int, string, int> =
             taskFlow {
@@ -417,6 +465,31 @@ let probe : Flow<unit, string, int> =
 
         test <@ typeof<TaskFlowBuilder>.Namespace = "FsFlow.Net" @>
         test <@ result = Ok 42 @>
+
+    [<Fact>]
+    let ``taskFlow directly binds and returns Async and Async Result values`` () =
+        let workflow : TaskFlow<int, string, int> =
+            taskFlow {
+                let! env = TaskFlow.env
+                let! baseValue = async { return env + 1 }
+                let! adjustedValue = async { return Ok(baseValue * 2) }
+                return adjustedValue + 2
+            }
+
+        let asyncReturnFrom : TaskFlow<unit, string, int> =
+            taskFlow { return! async { return 42 } }
+
+        let run flow environment =
+            flow
+            |> TaskFlow.run environment CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let workflowResult = run workflow 19
+        let asyncReturnFromResult = run asyncReturnFrom ()
+
+        test <@ workflowResult = Ok 42 @>
+        test <@ asyncReturnFromResult = Ok 42 @>
+        test <@ hasAsyncResultReturnFromOverload typeof<TaskFlowBuilder> @>
 
 module Program =
     [<EntryPoint>]

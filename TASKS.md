@@ -18,7 +18,7 @@ The current answer is not mainly "the core idea is bad." The current answer is t
 8. [x] Remove the separate `ColdTaskResult` concept and treat `ColdTask<Result<'value,'error>>` as the typed-failure cold-task shape.
 9. [x] Design the `ColdTask` helper surface for constructing and adapting values from delayed task factories, started `Task<'value>` values where needed, and `ValueTask<'value>` factories or values where needed.
 10. [x] Document the semantic difference between lifting hot `Task`/`ValueTask` values versus lifting `ColdTask<'value>`, including rerun behavior, cancellation-token propagation, and when `ColdTask` is the preferred interop shape.
-11. [ ] Support direct binding and return-from for `Async<'value>` and `Async<Result<'value,'error>>` in the async/task-oriented builders.
+11. [x] Support direct binding and return-from for `Async<'value>` and `Async<Result<'value,'error>>` in the async/task-oriented builders.
 12. [ ] Support direct binding and return-from for `Task`, `Task<'value>`, and `Task<Result<'value,'error>>` in the `.NET`-oriented builders.
 13. [ ] Support direct binding and return-from for `ValueTask`, `ValueTask<'value>`, and `ValueTask<Result<'value,'error>>` in the `.NET`-oriented builders.
 14. [ ] Support direct binding and return-from for `ColdTask<'value>` and `ColdTask<Result<'value,'error>>` in the `.NET`-oriented builders.

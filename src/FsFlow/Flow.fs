@@ -439,6 +439,12 @@ type AsyncFlowBuilder() =
     member _.ReturnFrom(flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         flow
 
+    member _.ReturnFrom(operation: Async<'value>) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.fromAsync operation
+
+    member _.ReturnFrom(operation: Async<Result<'value, 'error>>) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.fromAsyncResult operation
+
     member _.ReturnFrom(flow: Flow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow.fromFlow flow
 
@@ -462,6 +468,24 @@ type AsyncFlowBuilder() =
         ) : AsyncFlow<'env, 'error, 'next> =
         flow
         |> AsyncFlow.fromFlow
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            operation: Async<'value>,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        operation
+        |> AsyncFlow.fromAsync
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            operation: Async<Result<'value, 'error>>,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        operation
+        |> AsyncFlow.fromAsyncResult
         |> AsyncFlow.bind binder
 
     member _.Bind
