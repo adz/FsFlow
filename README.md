@@ -61,6 +61,13 @@ The families stay aligned on purpose:
 - `AsyncFlow` can lift `Flow`
 - `TaskFlow` can lift both `Flow` and `AsyncFlow`
 
+For task interop, treat started `Task` and `ValueTask` inputs as hot values:
+
+- rerunning the workflow re-awaits the same started work
+- the workflow cancellation token does not get injected into that already-started work
+
+Use `ColdTask<'value>` when task work should start at workflow execution time, rerun from scratch, and observe the runtime cancellation token.
+
 ## Before And After
 
 Before:

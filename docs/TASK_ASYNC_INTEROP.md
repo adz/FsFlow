@@ -133,8 +133,52 @@ let workflow : TaskFlow<unit, string, string> =
     }
 ```
 
-Read [`docs/SEMANTICS.md`](./SEMANTICS.md) when you need the exact rerun and cancellation behavior of hot
-versus cold task inputs.
+## Hot `Task` And `ValueTask` Versus `ColdTask`
+
+Binding a started `Task<'value>` or `ValueTask<'value>` is not the same as binding a `ColdTask<'value>`.
+
+Started task inputs are hot:
+
+- the work may already be running before the workflow starts
+- rerunning the workflow re-awaits the same started work
+- the workflow cancellation token cannot be pushed into that work after the fact
+
+`ColdTask` inputs are cold:
+
+- the work starts when the workflow runs
+- rerunning the workflow starts the work again from scratch
+- the current workflow cancellation token is passed into the `ColdTask` factory
+
+Use a direct `Task` or `ValueTask` bind when you intentionally want to reuse existing started work.
+Use `ColdTask` when the task helper is part of the workflow effect and should stay delayed, restartable, and cancellation-aware.
+
+Example with a started task:
+
+```fsharp
+let started = Task.FromResult 42
+
+let workflow : TaskFlow<unit, string, int> =
+    taskFlow {
+        let! value = started
+        return value
+    }
+```
+
+Example with delayed task work:
+
+```fsharp
+let loadValue : ColdTask<int> =
+    ColdTask(fun cancellationToken ->
+        Task.FromResult 42)
+
+let workflow : TaskFlow<unit, string, int> =
+    taskFlow {
+        let! value = loadValue
+        return value
+    }
+```
+
+Read [`docs/SEMANTICS.md`](./SEMANTICS.md) when you need the exact rerun and cancellation behavior.
 
 ## Choosing Quickly
 
@@ -143,7 +187,7 @@ Use:
 - `Flow` when the workflow is sync
 - `AsyncFlow` when the workflow is `Async`-first
 - `TaskFlow` when the workflow is `Task`-first
-- `ColdTask<'value>` when a task helper should stay delayed and cancellable at run time
+- `ColdTask<'value>` when a task helper should stay delayed, rerunnable, and cancellable at run time
 
 If you are unsure between `AsyncFlow` and `TaskFlow`, choose the one that matches the boundary you
 need to return and run today.

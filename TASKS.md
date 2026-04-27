@@ -29,7 +29,7 @@ The current answer is not mainly "the core idea is bad." The current answer is t
 19. [x] Confirm that no separate `valueTaskFlow` abstraction should exist unless benchmarks and ergonomics clearly justify the added conceptual split.
 20. [x] Benchmark candidate `.NET` representations so the `Task` versus `ValueTask` backbone decision is based on measured outcomes rather than intuition.
 21. [x] Update user-facing docs to explain the new workflow family clearly, including when to choose `Flow`, `AsyncFlow`, or `TaskFlow`.
-22. [ ] Update user-facing docs to explain the implications of lifting hot `Task` and `ValueTask` inputs versus cold `ColdTask` inputs.
+22. [x] Update user-facing docs to explain the implications of lifting hot `Task` and `ValueTask` inputs versus cold `ColdTask` inputs.
 23. [ ] Review the core combinator surface for missing high-value helpers such as `tapError`, `orElse`, `zip`, `map2`, or similar low-ceremony composition tools.
 24. [ ] Measure basic overhead against equivalent `Async<Result<_,_>>` workflows and publish the result.
 25. [ ] Decide whether the direct `Async<Result<_,_>>` migration story needs more helpers beyond the current `Flow.fromAsyncResult` and `Flow.toAsyncResult` shape after the redesign lands.

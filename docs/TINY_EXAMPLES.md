@@ -80,6 +80,8 @@ let result =
     |> Async.RunSynchronously
 ```
 
+Use a direct `Task` bind when you already have started work and reusing that same work on rerun is acceptable.
+
 ## Bind A `ColdTask`
 
 ```fsharp
@@ -93,7 +95,7 @@ let workflow : TaskFlow<unit, string, string> =
     }
 ```
 
-Use `ColdTask<'value>` when work should start only when the task-oriented workflow runs.
+Use `ColdTask<'value>` when work should start only when the task-oriented workflow runs, should rerun from scratch on each execution, or should observe the workflow cancellation token.
 
 ## Next
 

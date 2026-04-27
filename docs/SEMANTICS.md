@@ -77,7 +77,45 @@ That distinction matters because reruns behave differently:
 - rerunning a workflow that binds a started `Task` or `ValueTask` re-awaits the same started work
 - rerunning a workflow that binds a `ColdTask` calls the factory again
 
-`ColdTask` is the right shape when task work should start at workflow execution time.
+It also affects cancellation:
+
+- a started `Task` or `ValueTask` is already running before the workflow executes
+- the current workflow `CancellationToken` cannot be injected into that already-started work
+- a `ColdTask` starts when the workflow runs, so the current workflow `CancellationToken` can be passed in
+
+Use a hot task input only when reusing the same already-started work is the behavior you want.
+Use `ColdTask` when the effect should start at workflow execution time, rerun from scratch, or observe the runtime cancellation token.
+
+Example with a started task:
+
+```fsharp
+let started = Task.FromResult 42
+
+let workflow : TaskFlow<unit, string, int> =
+    taskFlow {
+        let! value = started
+        return value
+    }
+```
+
+Each run re-awaits `started`.
+It does not create a new task.
+
+Example with a `ColdTask`:
+
+```fsharp
+let readValue : ColdTask<int> =
+    ColdTask(fun cancellationToken ->
+        Task.FromResult 42)
+
+let workflow : TaskFlow<unit, string, int> =
+    taskFlow {
+        let! value = readValue
+        return value
+    }
+```
+
+Each run calls the `ColdTask` factory again and passes in the current workflow cancellation token.
 
 ## Family Direction
 
