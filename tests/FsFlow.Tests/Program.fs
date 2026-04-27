@@ -516,6 +516,43 @@ let probe : Flow<unit, string, int> =
         test <@ hasAsyncResultReturnFromOverload typeof<TaskFlowBuilder> @>
 
     [<Fact>]
+    let ``taskFlow directly binds and returns ValueTask and result-bearing ValueTask values`` () =
+        let resultValueTask (value: int) : ValueTask<Result<int, string>> = ValueTask<Result<int, string>>(Ok value)
+
+        let workflow : TaskFlow<int, string, int> =
+            taskFlow {
+                let! env = TaskFlow.env
+                do! ValueTask()
+                let! baseValue = ValueTask<int>(env + 1)
+                let! adjustedValue = resultValueTask (baseValue * 2)
+                return adjustedValue + 2
+            }
+
+        let valueTaskReturnFrom : TaskFlow<unit, string, unit> =
+            taskFlow { return! ValueTask() }
+
+        let valueTaskReturnFromValue : TaskFlow<unit, string, int> =
+            taskFlow { return! ValueTask<int>(42) }
+
+        let valueTaskReturnFromResult : TaskFlow<unit, string, int> =
+            taskFlow { return! resultValueTask 42 }
+
+        let run flow environment =
+            flow
+            |> TaskFlow.run environment CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let workflowResult = run workflow 19
+        let valueTaskReturnFromUnitResult = run valueTaskReturnFrom ()
+        let valueTaskReturnFromValueResult = run valueTaskReturnFromValue ()
+        let valueTaskReturnFromResultResult = run valueTaskReturnFromResult ()
+
+        test <@ workflowResult = Ok 42 @>
+        test <@ valueTaskReturnFromUnitResult = Ok() @>
+        test <@ valueTaskReturnFromValueResult = Ok 42 @>
+        test <@ valueTaskReturnFromResultResult = Ok 42 @>
+
+    [<Fact>]
     let ``asyncFlow directly binds and returns Task values when FsFlow.Net is referenced`` () =
         let resultTask (value: int) : Task<Result<int, string>> = Task.FromResult(Ok value)
 
@@ -552,6 +589,53 @@ let probe : Flow<unit, string, int> =
         test <@ workflowResult = Ok 42 @>
         test <@ taskReturnFromUnitResult = Ok() @>
         test <@ taskReturnFromResultResult = Ok 42 @>
+
+    [<Fact>]
+    let ``asyncFlow directly binds and returns ValueTask values when FsFlow.Net is referenced`` () =
+        let resultValueTask (value: int) : ValueTask<Result<int, string>> = ValueTask<Result<int, string>>(Ok value)
+
+        let workflow : AsyncFlow<int, string, int> =
+            asyncFlow {
+                let! env = AsyncFlow.env
+                do! ValueTask()
+                let! baseValue = ValueTask<int>(env + 1)
+                let! adjustedValue = resultValueTask (baseValue * 2)
+                return adjustedValue + 2
+            }
+
+        let valueTaskReturnFrom : AsyncFlow<unit, string, unit> =
+            asyncFlow { return! ValueTask() }
+
+        let valueTaskReturnFromValue : AsyncFlow<unit, string, int> =
+            asyncFlow { return! ValueTask<int>(42) }
+
+        let valueTaskReturnFromResult : AsyncFlow<unit, string, int> =
+            asyncFlow { return! resultValueTask 42 }
+
+        let workflowResult =
+            workflow
+            |> AsyncFlow.run 19
+            |> Async.RunSynchronously
+
+        let valueTaskReturnFromUnitResult =
+            valueTaskReturnFrom
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let valueTaskReturnFromValueResult =
+            valueTaskReturnFromValue
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let valueTaskReturnFromResultResult =
+            valueTaskReturnFromResult
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        test <@ workflowResult = Ok 42 @>
+        test <@ valueTaskReturnFromUnitResult = Ok() @>
+        test <@ valueTaskReturnFromValueResult = Ok 42 @>
+        test <@ valueTaskReturnFromResultResult = Ok 42 @>
 
 module Program =
     [<EntryPoint>]
