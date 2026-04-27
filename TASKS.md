@@ -28,22 +28,11 @@ The current answer is not mainly "the core idea is bad." The current answer is t
 18. [ ] Evaluate the correctness and DX risks of a `ValueTask`-based backbone, including single-await constraints, storage and reuse pitfalls, and interaction with workflow composition.
 19. [ ] Confirm that no separate `valueTaskFlow` abstraction should exist unless benchmarks and ergonomics clearly justify the added conceptual split.
 20. [ ] Benchmark candidate `.NET` representations so the `Task` versus `ValueTask` backbone decision is based on measured outcomes rather than intuition.
-21. [ ] Review whether `Flow.value` should remain as a convenience alias or be removed in favor of the canonical `Flow.succeed` name.
-22. [ ] Rewrite all user-facing docs so they speak to the library user only, not to the repo author, reviewer, or an implied chat partner.
-23. [ ] Update user-facing docs to explain the new workflow family clearly, including when to choose `Flow`, `AsyncFlow`, or `TaskFlow`.
-24. [ ] Update user-facing docs to explain the implications of lifting hot `Task` and `ValueTask` inputs versus cold `ColdTask` inputs.
-25. [ ] Review the core combinator surface for missing high-value helpers such as `tapError`, `orElse`, `zip`, `map2`, or similar low-ceremony composition tools.
-26. [ ] Revisit the environment story for larger applications if `localEnv` becomes repetitive plumbing under the redesigned workflow family.
-27. [ ] Measure basic overhead against equivalent `Async<Result<_,_>>` workflows and publish the result.
-28. [ ] Decide whether the direct `Async<Result<_,_>>` migration story needs more helpers beyond the current `Flow.fromAsyncResult` and `Flow.toAsyncResult` shape after the redesign lands.
-29. [ ] Push `main` so the new CI, release, and Pages workflows exist on GitHub.
-30. [ ] In GitHub repository settings, ensure Pages is configured to deploy from GitHub Actions.
-31. [ ] Verify the `CI` workflow passes on `main`, including the docs job.
-32. [ ] Verify the Pages deployment succeeds and the published docs site renders correctly.
-33. [ ] Create and push tag `v0.2.0`.
-34. [ ] Check that the release workflow attaches both `.nupkg` and `.snupkg` artifacts to the GitHub Release.
-35. [ ] Push the `0.2.0` package to NuGet manually.
-36. [ ] Confirm the NuGet package page renders the packed `README.md` correctly.
+21. [ ] Update user-facing docs to explain the new workflow family clearly, including when to choose `Flow`, `AsyncFlow`, or `TaskFlow`.
+22. [ ] Update user-facing docs to explain the implications of lifting hot `Task` and `ValueTask` inputs versus cold `ColdTask` inputs.
+23. [ ] Review the core combinator surface for missing high-value helpers such as `tapError`, `orElse`, `zip`, `map2`, or similar low-ceremony composition tools.
+24. [ ] Measure basic overhead against equivalent `Async<Result<_,_>>` workflows and publish the result.
+25. [ ] Decide whether the direct `Async<Result<_,_>>` migration story needs more helpers beyond the current `Flow.fromAsyncResult` and `Flow.toAsyncResult` shape after the redesign lands.
 
 ## Done Means
 
