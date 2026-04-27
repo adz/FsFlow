@@ -210,6 +210,18 @@ module Flow =
                 |> map (fun () -> value))
             flow
 
+    let tapError
+        (binder: 'error -> Flow<'env, 'error, unit>)
+        (flow: Flow<'env, 'error, 'value>)
+        : Flow<'env, 'error, 'value> =
+        Flow(fun environment ->
+            match run environment flow with
+            | Ok value -> Ok value
+            | Error error ->
+                match binder error |> run environment with
+                | Ok () -> Error error
+                | Error nextError -> Error nextError)
+
     let mapError
         (mapper: 'error -> 'nextError)
         (flow: Flow<'env, 'error, 'value>)
@@ -230,6 +242,33 @@ module Flow =
                 run environment flow
             with error ->
                 Error(handler error))
+
+    let orElse
+        (fallback: Flow<'env, 'error, 'value>)
+        (flow: Flow<'env, 'error, 'value>)
+        : Flow<'env, 'error, 'value> =
+        Flow(fun environment ->
+            match run environment flow with
+            | Ok value -> Ok value
+            | Error _ -> run environment fallback)
+
+    let zip
+        (left: Flow<'env, 'error, 'left>)
+        (right: Flow<'env, 'error, 'right>)
+        : Flow<'env, 'error, 'left * 'right> =
+        bind
+            (fun leftValue ->
+                right
+                |> map (fun rightValue -> leftValue, rightValue))
+            left
+
+    let map2
+        (mapper: 'left -> 'right -> 'value)
+        (left: Flow<'env, 'error, 'left>)
+        (right: Flow<'env, 'error, 'right>)
+        : Flow<'env, 'error, 'value> =
+        zip left right
+        |> map (fun (leftValue, rightValue) -> mapper leftValue rightValue)
 
     let localEnv
         (mapping: 'outerEnvironment -> 'innerEnvironment)
@@ -337,6 +376,24 @@ module AsyncFlow =
                 |> map (fun () -> value))
             flow
 
+    let tapError
+        (binder: 'error -> AsyncFlow<'env, 'error, unit>)
+        (flow: AsyncFlow<'env, 'error, 'value>)
+        : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow(fun environment ->
+            async {
+                let! result = run environment flow
+
+                match result with
+                | Ok value -> return Ok value
+                | Error error ->
+                    let! tapResult = binder error |> run environment
+
+                    match tapResult with
+                    | Ok () -> return Error error
+                    | Error nextError -> return Error nextError
+            })
+
     let mapError
         (mapper: 'error -> 'nextError)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -363,6 +420,37 @@ module AsyncFlow =
                 with error ->
                     return Error(handler error)
             })
+
+    let orElse
+        (fallback: AsyncFlow<'env, 'error, 'value>)
+        (flow: AsyncFlow<'env, 'error, 'value>)
+        : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow(fun environment ->
+            async {
+                let! result = run environment flow
+
+                match result with
+                | Ok value -> return Ok value
+                | Error _ -> return! run environment fallback
+            })
+
+    let zip
+        (left: AsyncFlow<'env, 'error, 'left>)
+        (right: AsyncFlow<'env, 'error, 'right>)
+        : AsyncFlow<'env, 'error, 'left * 'right> =
+        bind
+            (fun leftValue ->
+                right
+                |> map (fun rightValue -> leftValue, rightValue))
+            left
+
+    let map2
+        (mapper: 'left -> 'right -> 'value)
+        (left: AsyncFlow<'env, 'error, 'left>)
+        (right: AsyncFlow<'env, 'error, 'right>)
+        : AsyncFlow<'env, 'error, 'value> =
+        zip left right
+        |> map (fun (leftValue, rightValue) -> mapper leftValue rightValue)
 
     let localEnv
         (mapping: 'outerEnvironment -> 'innerEnvironment)

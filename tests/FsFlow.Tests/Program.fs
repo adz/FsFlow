@@ -210,6 +210,100 @@ module Tests =
         test <@ asyncResult = Ok 19 @>
 
     [<Fact>]
+    let ``Flow composition helpers cover error tapping fallback and pairing`` () =
+        let tappedErrors = ResizeArray<string>()
+
+        let tapPreservesOriginalError =
+            Flow.fail "primary"
+            |> Flow.tapError (fun error ->
+                tappedErrors.Add error
+                Flow.succeed ())
+            |> Flow.run ()
+
+        let tapSkipsSuccess =
+            Flow.succeed 42
+            |> Flow.tapError (fun error ->
+                tappedErrors.Add $"unexpected:{error}"
+                Flow.succeed ())
+            |> Flow.run ()
+
+        let recovered =
+            Flow.fail "missing"
+            |> Flow.orElse (Flow.read (fun env -> env + 1))
+            |> Flow.run 41
+
+        let bypassesFallback =
+            Flow.succeed 10
+            |> Flow.orElse (Flow.succeed 99)
+            |> Flow.run ()
+
+        let zipped =
+            Flow.zip (Flow.read (fun env -> env + 1)) (Flow.read (fun env -> env * 2))
+            |> Flow.run 5
+
+        let mapped =
+            Flow.map2 (+) (Flow.read (fun env -> env + 1)) (Flow.read (fun env -> env * 2))
+            |> Flow.run 5
+
+        test <@ tapPreservesOriginalError = Error "primary" @>
+        test <@ tapSkipsSuccess = Ok 42 @>
+        test <@ List.ofSeq tappedErrors = [ "primary" ] @>
+        test <@ recovered = Ok 42 @>
+        test <@ bypassesFallback = Ok 10 @>
+        test <@ zipped = Ok(6, 10) @>
+        test <@ mapped = Ok 16 @>
+
+    [<Fact>]
+    let ``AsyncFlow composition helpers cover error tapping fallback and pairing`` () =
+        let tappedErrors = ResizeArray<string>()
+
+        let tapPreservesOriginalError =
+            AsyncFlow.fail "primary"
+            |> AsyncFlow.tapError (fun error ->
+                tappedErrors.Add error
+                AsyncFlow.succeed ())
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let tapSkipsSuccess =
+            AsyncFlow.succeed 42
+            |> AsyncFlow.tapError (fun error ->
+                tappedErrors.Add $"unexpected:{error}"
+                AsyncFlow.succeed ())
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let recovered =
+            AsyncFlow.fail "missing"
+            |> AsyncFlow.orElse (AsyncFlow.read (fun env -> env + 1))
+            |> AsyncFlow.run 41
+            |> Async.RunSynchronously
+
+        let bypassesFallback =
+            AsyncFlow.succeed 10
+            |> AsyncFlow.orElse (AsyncFlow.succeed 99)
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let zipped =
+            AsyncFlow.zip (AsyncFlow.read (fun env -> env + 1)) (AsyncFlow.read (fun env -> env * 2))
+            |> AsyncFlow.run 5
+            |> Async.RunSynchronously
+
+        let mapped =
+            AsyncFlow.map2 (+) (AsyncFlow.read (fun env -> env + 1)) (AsyncFlow.read (fun env -> env * 2))
+            |> AsyncFlow.run 5
+            |> Async.RunSynchronously
+
+        test <@ tapPreservesOriginalError = Error "primary" @>
+        test <@ tapSkipsSuccess = Ok 42 @>
+        test <@ List.ofSeq tappedErrors = [ "primary" ] @>
+        test <@ recovered = Ok 42 @>
+        test <@ bypassesFallback = Ok 10 @>
+        test <@ zipped = Ok(6, 10) @>
+        test <@ mapped = Ok 16 @>
+
+    [<Fact>]
     let ``ColdTask carries the runtime cancellation token into TaskFlow`` () =
         let seen = ref CancellationToken.None
         use cts = new CancellationTokenSource()
@@ -416,6 +510,56 @@ let probe : TaskFlow<unit, string, int> =
             |> fun task -> task.GetAwaiter().GetResult()
 
         test <@ result = Ok 19 @>
+
+    [<Fact>]
+    let ``TaskFlow composition helpers cover error tapping fallback and pairing`` () =
+        let tappedErrors = ResizeArray<string>()
+
+        let tapPreservesOriginalError =
+            TaskFlow.fail "primary"
+            |> TaskFlow.tapError (fun error ->
+                tappedErrors.Add error
+                TaskFlow.succeed ())
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let tapSkipsSuccess =
+            TaskFlow.succeed 42
+            |> TaskFlow.tapError (fun error ->
+                tappedErrors.Add $"unexpected:{error}"
+                TaskFlow.succeed ())
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let recovered =
+            TaskFlow.fail "missing"
+            |> TaskFlow.orElse (TaskFlow.read (fun env -> env + 1))
+            |> TaskFlow.run 41 CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let bypassesFallback =
+            TaskFlow.succeed 10
+            |> TaskFlow.orElse (TaskFlow.succeed 99)
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let zipped =
+            TaskFlow.zip (TaskFlow.read (fun env -> env + 1)) (TaskFlow.read (fun env -> env * 2))
+            |> TaskFlow.run 5 CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let mapped =
+            TaskFlow.map2 (+) (TaskFlow.read (fun env -> env + 1)) (TaskFlow.read (fun env -> env * 2))
+            |> TaskFlow.run 5 CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        test <@ tapPreservesOriginalError = Error "primary" @>
+        test <@ tapSkipsSuccess = Ok 42 @>
+        test <@ List.ofSeq tappedErrors = [ "primary" ] @>
+        test <@ recovered = Ok 42 @>
+        test <@ bypassesFallback = Ok 10 @>
+        test <@ zipped = Ok(6, 10) @>
+        test <@ mapped = Ok 16 @>
 
     [<Fact>]
     let ``flow computation expression is sync only`` () =

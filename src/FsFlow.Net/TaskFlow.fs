@@ -166,6 +166,24 @@ module TaskFlow =
                 |> map (fun () -> value))
             flow
 
+    let tapError
+        (binder: 'error -> TaskFlow<'env, 'error, unit>)
+        (flow: TaskFlow<'env, 'error, 'value>)
+        : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                let! result = run environment cancellationToken flow
+
+                match result with
+                | Ok value -> return Ok value
+                | Error error ->
+                    let! tapResult = binder error |> run environment cancellationToken
+
+                    match tapResult with
+                    | Ok () -> return Error error
+                    | Error nextError -> return Error nextError
+            })
+
     let mapError
         (mapper: 'error -> 'nextError)
         (flow: TaskFlow<'env, 'error, 'value>)
@@ -192,6 +210,37 @@ module TaskFlow =
                 with error ->
                     return Error(handler error)
             })
+
+    let orElse
+        (fallback: TaskFlow<'env, 'error, 'value>)
+        (flow: TaskFlow<'env, 'error, 'value>)
+        : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                let! result = run environment cancellationToken flow
+
+                match result with
+                | Ok value -> return Ok value
+                | Error _ -> return! run environment cancellationToken fallback
+            })
+
+    let zip
+        (left: TaskFlow<'env, 'error, 'left>)
+        (right: TaskFlow<'env, 'error, 'right>)
+        : TaskFlow<'env, 'error, 'left * 'right> =
+        bind
+            (fun leftValue ->
+                right
+                |> map (fun rightValue -> leftValue, rightValue))
+            left
+
+    let map2
+        (mapper: 'left -> 'right -> 'value)
+        (left: TaskFlow<'env, 'error, 'left>)
+        (right: TaskFlow<'env, 'error, 'right>)
+        : TaskFlow<'env, 'error, 'value> =
+        zip left right
+        |> map (fun (leftValue, rightValue) -> mapper leftValue rightValue)
 
     let localEnv
         (mapping: 'outerEnvironment -> 'innerEnvironment)

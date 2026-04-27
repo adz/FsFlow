@@ -97,6 +97,17 @@ let workflow : TaskFlow<unit, string, string> =
 
 Use `ColdTask<'value>` when work should start only when the task-oriented workflow runs, should rerun from scratch on each execution, or should observe the workflow cancellation token.
 
+## Combine Two Small Flows
+
+```fsharp
+let combined : Flow<int, string, int> =
+    Flow.map2 (+)
+        (Flow.read (fun env -> env + 1))
+        (Flow.read (fun env -> env * 2))
+```
+
+Use `zip` when you want both values as a tuple, or `map2` when you want to combine them immediately without opening a computation expression.
+
 ## Next
 
 Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the full workflow-family overview,

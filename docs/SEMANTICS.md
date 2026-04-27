@@ -13,6 +13,8 @@ The core `FsFlow` package keeps only sync and `Async` concepts in its public sur
 - `fail` produces the typed `Error`
 - `map` only transforms successful values
 - `mapError` only transforms typed failures
+- `tapError` runs only on typed failure and preserves the original error when the tap succeeds
+- `orElse` switches to a fallback workflow when the first workflow returns a typed failure
 
 ## Cold By Default
 
@@ -58,6 +60,16 @@ Each family reads dependencies explicitly:
 - `localEnv` runs a smaller workflow inside a larger environment
 
 The environment semantics are aligned across all three families.
+
+## Pairing And Small Composition
+
+Each family also exposes low-ceremony helpers for common composition shapes:
+
+- `zip` runs two workflows in sequence and returns a tuple
+- `map2` runs two workflows in sequence and combines both successful values with a mapper
+- both helpers short-circuit on the first typed failure
+
+These helpers are useful when a full computation expression would add more ceremony than value.
 
 ## Task Temperature
 
