@@ -10,6 +10,9 @@
     <Project Path="examples/FsFlow.MaintenanceExamples/FsFlow.MaintenanceExamples.fsproj" />
     <Project Path="examples/FsFlow.Playground/FsFlow.Playground.fsproj" />
   </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/FsFlow.Benchmarks/FsFlow.Benchmarks.fsproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/FsFlow/FsFlow.fsproj" />
     <Project Path="src/FsFlow.Net/FsFlow.Net.fsproj" />

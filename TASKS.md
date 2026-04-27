@@ -27,7 +27,7 @@ The current answer is not mainly "the core idea is bad." The current answer is t
 17. [x] Decide whether `TaskFlow` should internally remain `Task`-backed or whether any part of the execution backbone should be `ValueTask`-based.
 18. [x] Evaluate the correctness and DX risks of a `ValueTask`-based backbone, including single-await constraints, storage and reuse pitfalls, and interaction with workflow composition.
 19. [x] Confirm that no separate `valueTaskFlow` abstraction should exist unless benchmarks and ergonomics clearly justify the added conceptual split.
-20. [ ] Benchmark candidate `.NET` representations so the `Task` versus `ValueTask` backbone decision is based on measured outcomes rather than intuition.
+20. [x] Benchmark candidate `.NET` representations so the `Task` versus `ValueTask` backbone decision is based on measured outcomes rather than intuition.
 21. [ ] Update user-facing docs to explain the new workflow family clearly, including when to choose `Flow`, `AsyncFlow`, or `TaskFlow`.
 22. [ ] Update user-facing docs to explain the implications of lifting hot `Task` and `ValueTask` inputs versus cold `ColdTask` inputs.
 23. [ ] Review the core combinator surface for missing high-value helpers such as `tapError`, `orElse`, `zip`, `map2`, or similar low-ceremony composition tools.

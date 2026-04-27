@@ -164,6 +164,44 @@ Task 19 decision:
 - the current API already gives the main ergonomic benefit that matters: callers can bind and return `ValueTask` directly in `taskFlow {}` without committing the workflow representation itself to `ValueTask`
 - introducing `valueTaskFlow` should only be reconsidered if task 20 benchmarks show a durable, meaningful gain and that gain survives the added complexity in API shape, documentation burden, and user decision-making
 
+Task 20 benchmark notes:
+
+- benchmark harness: `benchmarks/FsFlow.Benchmarks`
+- rerun command:
+  - `dotnet build benchmarks/FsFlow.Benchmarks/FsFlow.Benchmarks.fsproj -c Release`
+  - `dotnet run -c Release --project benchmarks/FsFlow.Benchmarks/FsFlow.Benchmarks.fsproj --no-build`
+- benchmark date: 2026-04-28
+- runtime used for the recorded run: `.NET 10.0.5`
+- measurement shape:
+  - 2,000,000 iterations per scenario
+  - median of 5 measured runs after warmup
+  - scenarios compare the current `TaskFlow` backbone with a local candidate cold workflow that stores `ValueTask<Result<_,_>>` and takes the synchronous fast path when the operation is already complete
+
+Recorded results from the benchmark harness:
+
+- `run/succeed`
+  - `TaskFlow`: `27.46 ns/op`, `80 B/op`
+  - candidate `ValueTask` backbone: `23.74 ns/op`, `0 B/op`
+- `map` chain
+  - `TaskFlow`: `301.19 ns/op`, `848 B/op`
+  - candidate `ValueTask` backbone: `48.48 ns/op`, `0 B/op`
+- `bind` chain
+  - `TaskFlow`: `475.12 ns/op`, `1392 B/op`
+  - candidate `ValueTask` backbone: `101.25 ns/op`, `192 B/op`
+- short computation-expression chain
+  - `TaskFlow`: `440.95 ns/op`, `1344 B/op`
+  - candidate `ValueTask` backbone: `107.08 ns/op`, `256 B/op`
+
+Interpretation:
+
+- the benchmark does show a real fast-path performance upside for a `ValueTask`-backed representation on already-completed operations
+- the gain is largest in composed synchronous-success cases, where `Task`-backed composition currently pays allocation costs for each layer
+- this does not overturn the current backbone choice by itself, because the benchmark measures execution overhead on a local prototype, not the restartability, storage, repeated-await safety, and public-surface complexity costs described in task 18
+- the practical conclusion is:
+  - the `Task` versus `ValueTask` decision is now informed by measurement rather than intuition
+  - `TaskFlow` should remain `Task`-backed for now because the correctness model still dominates
+  - future performance work should first target reducing completed-path overhead in the existing `Task`-backed combinators before reconsidering a stored `ValueTask` backbone
+
 ## Option And ValueOption
 
 `Option<'value>` and `ValueOption<'value>` should be short-circuiting inputs.
