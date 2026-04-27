@@ -75,7 +75,7 @@ Use cold task helpers when work should start at flow execution time.
 
 Use hot task helpers only when you already have a task value on purpose.
 
-`ColdTask<'value>` binds directly in `flow {}`. `ColdTaskResult<'value, 'error>` stays
+`ColdTask<'value>` binds directly in `flow {}`. `ColdTask<Result<'value, 'error>>` stays
 explicit through `Flow.Task.fromColdResult` so result-shaped cold task functions do not create
 ambiguous builder behavior.
 

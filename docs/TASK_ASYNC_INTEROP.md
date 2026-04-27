@@ -18,10 +18,9 @@ These shapes already have names:
 - `Async<'value>`
 - `Async<Result<'value, 'error>>`
 
-These shapes are named by FsFlow because F# does not give them a useful built-in name:
+This shape is named by FsFlow because F# does not give it a useful built-in name:
 
 - `ColdTask<'value>`
-- `ColdTaskResult<'value, 'error>`
 
 ## Which Shapes Bind Directly
 
@@ -39,7 +38,7 @@ Example:
 
 ```fsharp
 let readAll path : ColdTask<string> =
-    fun ct -> System.IO.File.ReadAllTextAsync(path, ct)
+    ColdTask(fun ct -> System.IO.File.ReadAllTextAsync(path, ct))
 
 let workflow : Flow<unit, string, string> =
     flow {
@@ -65,26 +64,24 @@ Example:
 
 ```fsharp
 let readAll path : ColdTask<string> =
-    fun ct -> System.IO.File.ReadAllTextAsync(path, ct)
+    ColdTask(fun ct -> System.IO.File.ReadAllTextAsync(path, ct))
 ```
 
-`ColdTaskResult<'value, 'error>` is:
+When the cold boundary also returns typed failures, use:
 
 ```fsharp
-CancellationToken -> Task<Result<'value, 'error>>
+ColdTask<Result<'value, 'error>>
 ```
-
-Use it when the cold boundary also returns typed failures.
 
 Example:
 
 ```fsharp
-let loadText path : ColdTaskResult<string, string> =
-    fun ct ->
+let loadText path : ColdTask<Result<string, string>> =
+    ColdTask(fun ct ->
         task {
             let! text = System.IO.File.ReadAllTextAsync(path, ct)
             return Ok text
-        }
+        })
 ```
 
 ## When To Stay Explicit
@@ -98,7 +95,7 @@ Use the explicit helpers when you want the boundary shape to stay visible:
 - `Flow.Task.fromColdUnit`
 - `Flow.Task.fromHotUnit`
 
-`ColdTaskResult<'value, 'error>` stays explicit on purpose:
+`ColdTask<Result<'value, 'error>>` stays explicit on purpose:
 
 ```fsharp
 let workflow : Flow<unit, string, string> =
@@ -156,7 +153,7 @@ already name those shapes directly.
 Use:
 
 - `ColdTask<'value>` when you define a new cancellation-aware task helper and want good DX in `flow {}`
-- `ColdTaskResult<'value, 'error>` when the cold helper also returns typed failures
+- `ColdTask<Result<'value, 'error>>` when the cold helper also returns typed failures
 - `Task<'value>` or `Task<Result<'value, 'error>>` when you already have a started task value
 - `Async<'value>` or `Async<Result<'value, 'error>>` when you are crossing an existing F# async boundary
 

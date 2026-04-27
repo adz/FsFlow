@@ -133,7 +133,7 @@ The same rule applies to:
 - `fromColdResult` / `fromHotResult`
 - `fromColdUnit` / `fromHotUnit`
 
-`ColdTaskResult<'value, 'error>` stays explicit through `fromColdResult`.
+Typed-failure cold task helpers use `ColdTask<Result<'value, 'error>>` through `fromColdResult`.
 
 ## Error: The Flow Requires A Different Environment Type
 

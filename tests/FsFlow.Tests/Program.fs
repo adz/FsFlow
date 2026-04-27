@@ -158,6 +158,26 @@ module Tests =
         test <@ seen.Value = cts.Token @>
 
     [<Fact>]
+    let ``ColdTask of Result is the typed failure cold task shape`` () =
+        let seen = ref CancellationToken.None
+        use cts = new CancellationTokenSource()
+
+        let workflow : TaskFlow<unit, string, int> =
+            TaskFlow.fromTaskResult(
+                ColdTask(fun cancellationToken ->
+                    seen.Value <- cancellationToken
+                    Task.FromResult(Ok 42))
+            )
+
+        let result =
+            workflow
+            |> TaskFlow.run () cts.Token
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        test <@ result = Ok 42 @>
+        test <@ seen.Value = cts.Token @>
+
+    [<Fact>]
     let ``TaskFlow.fromTask requires the nominal ColdTask wrapper`` () =
         let fsFlowAssemblyPath = typeof<FlowBuilder>.Assembly.Location
         let fsFlowNetAssemblyPath = typeof<TaskFlowBuilder>.Assembly.Location

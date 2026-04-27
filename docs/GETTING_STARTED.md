@@ -140,11 +140,11 @@ of creating the task up front.
 That is usually the better shape when you control the helper yourself. Cold tasks start at
 flow execution time, receive the runtime cancellation token, and compose more predictably.
 
-`ColdTask<'value>` is the named alias for `CancellationToken -> Task<'value>`:
+`ColdTask<'value>` is the nominal wrapper for delayed `CancellationToken -> Task<'value>` work:
 
 ```fsharp
 let coldTask : ColdTask<int> =
-    fun _ct -> Task.FromResult 42
+    ColdTask(fun _ct -> Task.FromResult 42)
 
 let workflow : Flow<unit, string, int> =
     flow {
@@ -178,8 +178,8 @@ for you:
 
 ```fsharp
 let readAll path : ColdTask<string> =
-    fun (ct: CancellationToken) ->
-        System.IO.File.ReadAllTextAsync(path, ct)
+    ColdTask(fun (ct: CancellationToken) ->
+        System.IO.File.ReadAllTextAsync(path, ct))
 
 let readConfigs leftPath rightPath : Flow<unit, string, string * string> =
     flow {
@@ -209,37 +209,37 @@ let readConfig path : Flow<unit, string, string> =
 This works, but it is more ceremony. Prefer the previous shape when you can keep the
 operation cold and let `Flow` provide the token at run time.
 
-## 9. Use `ColdTaskResult` For Cold Task Helpers With Typed Failures
+## 9. Use `ColdTask<Result<_,_>>` For Cold Task Helpers With Typed Failures
 
-If your cold helper returns `Result<'value, 'error>`, the matching alias is:
+If your cold helper returns `Result<'value, 'error>`, use:
 
 ```fsharp
-ColdTaskResult<'value, 'error>
+ColdTask<Result<'value, 'error>>
 ```
 
-which is just:
+That means the cold task produces a `Result` value:
 
 ```fsharp
-CancellationToken -> Task<Result<'value, 'error>>
+ColdTask(fun (ct: CancellationToken) -> task { ... })
 ```
 
 Use it with `Flow.Task.fromColdResult`:
 
 ```fsharp
-let loadText path : ColdTaskResult<string, string> =
-    fun ct ->
+let loadText path : ColdTask<Result<string, string>> =
+    ColdTask(fun ct ->
         task {
             let! text = System.IO.File.ReadAllTextAsync(path, ct)
             return Ok text
-        }
+        })
 
 let readConfig path : Flow<unit, string, string> =
     loadText path
     |> Flow.Task.fromColdResult
 ```
 
-This one stays explicit. Keeping `ColdTaskResult` explicit avoids builder ambiguity with
-`ColdTask<Result<'value, 'error>>`, which leads to worse compiler errors.
+This one stays explicit. Keeping result-shaped cold task helpers explicit avoids builder
+ambiguity and keeps compiler behavior clearer.
 
 ## 10. Combine Runtime Helpers In A Real Workflow
 

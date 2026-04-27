@@ -12,7 +12,7 @@
 
 - Initial public preview release of `FsFlow`
 - Core `Flow<'env, 'error, 'value>` abstraction for explicit environment requirements, typed failures, and cold execution
-- Direct `Result`, `Async`, `Task`, `ColdTask`, and `ColdTaskResult` interop inside one `flow {}` workflow
+- Direct `Result`, `Async`, `Task`, and `ColdTask` interop inside one `flow {}` workflow
 - Runtime helpers for cancellation, timeout, retry, logging, and scoped cleanup
 - User-facing guides for getting started, environment slicing, semantics, task and async interop, and supported architectural styles
 - Runnable example applications plus a NativeAOT probe
