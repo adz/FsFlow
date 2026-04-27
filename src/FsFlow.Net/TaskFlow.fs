@@ -135,3 +135,139 @@ module TaskFlow =
 
     let delay (factory: unit -> TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment cancellationToken -> factory () |> run environment cancellationToken)
+
+/// <summary>
+/// Computation expression builder for task-based <see cref="T:FsFlow.Net.TaskFlow`3" /> workflows.
+/// </summary>
+type TaskFlowBuilder() =
+    member _.Return(value: 'value) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.succeed value
+
+    member _.ReturnFrom(flow: TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
+        flow
+
+    member _.ReturnFrom(flow: AsyncFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.fromAsyncFlow flow
+
+    member _.ReturnFrom(flow: Flow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.fromFlow flow
+
+    member _.ReturnFrom(result: Result<'value, 'error>) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.fromResult result
+
+    member _.Zero() : TaskFlow<'env, 'error, unit> =
+        TaskFlow.succeed ()
+
+    member _.Bind
+        (
+            flow: TaskFlow<'env, 'error, 'value>,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        TaskFlow.bind binder flow
+
+    member _.Bind
+        (
+            flow: AsyncFlow<'env, 'error, 'value>,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        flow
+        |> TaskFlow.fromAsyncFlow
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            flow: Flow<'env, 'error, 'value>,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        flow
+        |> TaskFlow.fromFlow
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            result: Result<'value, 'error>,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        result
+        |> TaskFlow.fromResult
+        |> TaskFlow.bind binder
+
+    member _.Delay(factory: unit -> TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.delay factory
+
+    member _.Run(flow: TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
+        flow
+
+    member _.Combine
+        (
+            first: TaskFlow<'env, 'error, unit>,
+            second: TaskFlow<'env, 'error, 'value>
+        ) : TaskFlow<'env, 'error, 'value> =
+        first
+        |> TaskFlow.bind (fun () -> second)
+
+    member _.TryWith
+        (
+            flow: TaskFlow<'env, 'error, 'value>,
+            handler: exn -> TaskFlow<'env, 'error, 'value>
+        ) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                try
+                    return! TaskFlow.run environment cancellationToken flow
+                with error ->
+                    return! TaskFlow.run environment cancellationToken (handler error)
+            })
+
+    member _.TryFinally
+        (
+            flow: TaskFlow<'env, 'error, 'value>,
+            compensation: unit -> unit
+        ) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                try
+                    return! TaskFlow.run environment cancellationToken flow
+                finally
+                    compensation ()
+            })
+
+    member this.Using
+        (
+            resource: 'resource,
+            binder: 'resource -> TaskFlow<'env, 'error, 'value>
+        ) : TaskFlow<'env, 'error, 'value>
+        when 'resource :> IDisposable =
+        this.TryFinally(
+            binder resource,
+            fun () ->
+                if not (isNull (box resource)) then
+                    resource.Dispose()
+        )
+
+    member this.While
+        (
+            guard: unit -> bool,
+            body: TaskFlow<'env, 'error, unit>
+        ) : TaskFlow<'env, 'error, unit> =
+        if guard () then
+            this.Bind(body, fun () -> this.While(guard, body))
+        else
+            this.Zero()
+
+    member this.For
+        (
+            sequence: seq<'value>,
+            binder: 'value -> TaskFlow<'env, 'error, unit>
+        ) : TaskFlow<'env, 'error, unit> =
+        this.Using(
+            sequence.GetEnumerator(),
+            fun enumerator -> this.While(enumerator.MoveNext, this.Delay(fun () -> binder enumerator.Current))
+        )
+
+[<AutoOpen>]
+module Builders =
+    /// <summary>
+    /// The .NET <c>taskFlow { }</c> computation expression.
+    /// </summary>
+    let taskFlow = TaskFlowBuilder()

@@ -9,6 +9,24 @@ open Swensen.Unquote
 open Xunit
 
 module Tests =
+    let private publicInstanceMethodNames (targetType: Type) =
+        targetType.GetMethods()
+        |> Array.filter (fun methodInfo -> methodInfo.IsPublic && not methodInfo.IsSpecialName)
+        |> Array.map _.Name
+        |> Array.distinct
+        |> Array.sort
+
+    let private flowBuilderBindAndReturnFromArgumentNames () =
+        typeof<FlowBuilder>.GetMethods()
+        |> Array.filter (fun methodInfo ->
+            methodInfo.IsPublic
+            && not methodInfo.IsSpecialName
+            && (methodInfo.Name = "Bind" || methodInfo.Name = "ReturnFrom"))
+        |> Array.collect (fun methodInfo -> methodInfo.GetParameters())
+        |> Array.map (fun parameterInfo -> parameterInfo.ParameterType.Name)
+        |> Array.distinct
+        |> Array.sort
+
     [<Fact>]
     let ``Flow is sync result only`` () =
         let workflow : Flow<int, string, int> =
@@ -112,6 +130,57 @@ module Tests =
 
         test <@ runOnce () = Ok 1 @>
         test <@ runOnce () = Ok 2 @>
+
+    [<Fact>]
+    let ``flow computation expression is sync only`` () =
+        let workflow : Flow<int, string, int> =
+            flow {
+                let! env = Flow.env
+                let! doubled = Ok(env * 2)
+                return doubled
+            }
+
+        let publicMethods = publicInstanceMethodNames typeof<FlowBuilder>
+        let argumentTypeNames = flowBuilderBindAndReturnFromArgumentNames ()
+
+        test <@ Flow.run 21 workflow = Ok 42 @>
+        test <@ publicMethods |> Array.contains "Bind" @>
+        test <@ publicMethods |> Array.contains "ReturnFrom" @>
+        test <@ argumentTypeNames = [| "FSharpFunc`2"; "FSharpResult`2"; "Flow`3" |] @>
+
+    [<Fact>]
+    let ``asyncFlow lives in FsFlow and composes sync flows`` () =
+        let workflow : AsyncFlow<int, string, int> =
+            asyncFlow {
+                let! env = Flow.env
+                let! baseValue = AsyncFlow.succeed(env + 1)
+                return baseValue * 2
+            }
+
+        let result =
+            workflow
+            |> AsyncFlow.run 20
+            |> Async.RunSynchronously
+
+        test <@ typeof<AsyncFlowBuilder>.Namespace = "FsFlow" @>
+        test <@ result = Ok 42 @>
+
+    [<Fact>]
+    let ``taskFlow lives in FsFlow.Net and composes async flows`` () =
+        let workflow : TaskFlow<int, string, int> =
+            taskFlow {
+                let! env = Flow.env
+                let! baseValue = AsyncFlow.succeed(env + 1)
+                return baseValue * 2
+            }
+
+        let result =
+            workflow
+            |> TaskFlow.run 20 CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        test <@ typeof<TaskFlowBuilder>.Namespace = "FsFlow.Net" @>
+        test <@ result = Ok 42 @>
 
 module Program =
     [<EntryPoint>]

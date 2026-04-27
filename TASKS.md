@@ -10,7 +10,7 @@ The current answer is not mainly "the core idea is bad." The current answer is t
 
 1. [x] Define the core workflow representations for the redesign: `Flow<'env,'error,'value>` as sync/result-only, `AsyncFlow<'env,'error,'value>` as core `Async`-based, and `TaskFlow<'env,'error,'value>` as `.NET` task-based.
 2. [x] Define the package split so `FsFlow` contains only sync/async core concepts and `FsFlow.Net` contains all task-oriented concepts, task interop, and task-specific runtime helpers.
-3. [ ] Design the computation expression surface so `flow {}` is sync-only, `asyncFlow {}` lives in `FsFlow`, and `taskFlow {}` lives in `FsFlow.Net`.
+3. [x] Design the computation expression surface so `flow {}` is sync-only, `asyncFlow {}` lives in `FsFlow`, and `taskFlow {}` lives in `FsFlow.Net`.
 4. [ ] Confirm whether F# computation expression extension members are sufficient for `FsFlow.Net` to add task-oriented binds to `asyncFlow {}` only when `FsFlow.Net` is referenced.
 5. [ ] Design the shared internal combinator core so `map`, `bind`, `mapError`, environment projection, and related operations are not reimplemented ad hoc across `Flow`, `AsyncFlow`, and `TaskFlow`.
 6. [ ] Remove task-oriented bind support from sync `flow {}` so the sync builder stays honest to the new representation.

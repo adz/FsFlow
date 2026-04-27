@@ -268,3 +268,229 @@ module AsyncFlow =
 
     let delay (factory: unit -> AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun environment -> factory () |> run environment)
+
+/// <summary>
+/// Computation expression builder for synchronous <see cref="T:FsFlow.Flow`3" /> workflows.
+/// </summary>
+type FlowBuilder() =
+    member _.Return(value: 'value) : Flow<'env, 'error, 'value> =
+        Flow.succeed value
+
+    member _.ReturnFrom(flow: Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
+        flow
+
+    member _.ReturnFrom(result: Result<'value, 'error>) : Flow<'env, 'error, 'value> =
+        Flow.fromResult result
+
+    member _.Zero() : Flow<'env, 'error, unit> =
+        Flow.succeed ()
+
+    member _.Bind
+        (
+            flow: Flow<'env, 'error, 'value>,
+            binder: 'value -> Flow<'env, 'error, 'next>
+        ) : Flow<'env, 'error, 'next> =
+        Flow.bind binder flow
+
+    member _.Bind
+        (
+            result: Result<'value, 'error>,
+            binder: 'value -> Flow<'env, 'error, 'next>
+        ) : Flow<'env, 'error, 'next> =
+        result
+        |> Flow.fromResult
+        |> Flow.bind binder
+
+    member _.Delay(factory: unit -> Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
+        Flow.delay factory
+
+    member _.Run(flow: Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
+        flow
+
+    member _.Combine
+        (
+            first: Flow<'env, 'error, unit>,
+            second: Flow<'env, 'error, 'value>
+        ) : Flow<'env, 'error, 'value> =
+        first
+        |> Flow.bind (fun () -> second)
+
+    member _.TryWith
+        (
+            flow: Flow<'env, 'error, 'value>,
+            handler: exn -> Flow<'env, 'error, 'value>
+        ) : Flow<'env, 'error, 'value> =
+        Flow(fun environment ->
+            try
+                Flow.run environment flow
+            with error ->
+                Flow.run environment (handler error))
+
+    member _.TryFinally(flow: Flow<'env, 'error, 'value>, compensation: unit -> unit) : Flow<'env, 'error, 'value> =
+        Flow(fun environment ->
+            try
+                Flow.run environment flow
+            finally
+                compensation ())
+
+    member this.Using
+        (
+            resource: 'resource,
+            binder: 'resource -> Flow<'env, 'error, 'value>
+        ) : Flow<'env, 'error, 'value>
+        when 'resource :> IDisposable =
+        this.TryFinally(
+            binder resource,
+            fun () ->
+                if not (isNull (box resource)) then
+                    resource.Dispose()
+        )
+
+    member this.While
+        (
+            guard: unit -> bool,
+            body: Flow<'env, 'error, unit>
+        ) : Flow<'env, 'error, unit> =
+        if guard () then
+            this.Bind(body, fun () -> this.While(guard, body))
+        else
+            this.Zero()
+
+    member this.For
+        (
+            sequence: seq<'value>,
+            binder: 'value -> Flow<'env, 'error, unit>
+        ) : Flow<'env, 'error, unit> =
+        this.Using(
+            sequence.GetEnumerator(),
+            fun enumerator -> this.While(enumerator.MoveNext, this.Delay(fun () -> binder enumerator.Current))
+        )
+
+/// <summary>
+/// Computation expression builder for async <see cref="T:FsFlow.AsyncFlow`3" /> workflows.
+/// </summary>
+type AsyncFlowBuilder() =
+    member _.Return(value: 'value) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.succeed value
+
+    member _.ReturnFrom(flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
+        flow
+
+    member _.ReturnFrom(flow: Flow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.fromFlow flow
+
+    member _.ReturnFrom(result: Result<'value, 'error>) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.fromResult result
+
+    member _.Zero() : AsyncFlow<'env, 'error, unit> =
+        AsyncFlow.succeed ()
+
+    member _.Bind
+        (
+            flow: AsyncFlow<'env, 'error, 'value>,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        AsyncFlow.bind binder flow
+
+    member _.Bind
+        (
+            flow: Flow<'env, 'error, 'value>,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        flow
+        |> AsyncFlow.fromFlow
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            result: Result<'value, 'error>,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        result
+        |> AsyncFlow.fromResult
+        |> AsyncFlow.bind binder
+
+    member _.Delay(factory: unit -> AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.delay factory
+
+    member _.Run(flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
+        flow
+
+    member _.Combine
+        (
+            first: AsyncFlow<'env, 'error, unit>,
+            second: AsyncFlow<'env, 'error, 'value>
+        ) : AsyncFlow<'env, 'error, 'value> =
+        first
+        |> AsyncFlow.bind (fun () -> second)
+
+    member _.TryWith
+        (
+            flow: AsyncFlow<'env, 'error, 'value>,
+            handler: exn -> AsyncFlow<'env, 'error, 'value>
+        ) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow(fun environment ->
+            async {
+                try
+                    return! AsyncFlow.run environment flow
+                with error ->
+                    return! AsyncFlow.run environment (handler error)
+            })
+
+    member _.TryFinally
+        (
+            flow: AsyncFlow<'env, 'error, 'value>,
+            compensation: unit -> unit
+        ) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow(fun environment ->
+            async {
+                try
+                    return! AsyncFlow.run environment flow
+                finally
+                    compensation ()
+            })
+
+    member this.Using
+        (
+            resource: 'resource,
+            binder: 'resource -> AsyncFlow<'env, 'error, 'value>
+        ) : AsyncFlow<'env, 'error, 'value>
+        when 'resource :> IDisposable =
+        this.TryFinally(
+            binder resource,
+            fun () ->
+                if not (isNull (box resource)) then
+                    resource.Dispose()
+        )
+
+    member this.While
+        (
+            guard: unit -> bool,
+            body: AsyncFlow<'env, 'error, unit>
+        ) : AsyncFlow<'env, 'error, unit> =
+        if guard () then
+            this.Bind(body, fun () -> this.While(guard, body))
+        else
+            this.Zero()
+
+    member this.For
+        (
+            sequence: seq<'value>,
+            binder: 'value -> AsyncFlow<'env, 'error, unit>
+        ) : AsyncFlow<'env, 'error, unit> =
+        this.Using(
+            sequence.GetEnumerator(),
+            fun enumerator -> this.While(enumerator.MoveNext, this.Delay(fun () -> binder enumerator.Current))
+        )
+
+[<AutoOpen>]
+module Builders =
+    /// <summary>
+    /// The sync-only <c>flow { }</c> computation expression.
+    /// </summary>
+    let flow = FlowBuilder()
+
+    /// <summary>
+    /// The core <c>asyncFlow { }</c> computation expression.
+    /// </summary>
+    let asyncFlow = AsyncFlowBuilder()
