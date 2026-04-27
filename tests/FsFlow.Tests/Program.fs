@@ -508,6 +508,95 @@ let probe : TaskFlow<unit, string, int> =
         test <@ taskOutput.Contains("TaskFlow<unit,unit,int>") @>
 
     [<Fact>]
+    let ``explicit option adapters support custom workflow errors across modules`` () =
+        let syncSome =
+            Some 21
+            |> Flow.fromOption "missing value"
+            |> Flow.map ((*) 2)
+            |> Flow.run ()
+
+        let syncNone =
+            None
+            |> Flow.fromOption "missing value"
+            |> Flow.run ()
+
+        let syncValueSome =
+            ValueSome 21
+            |> Flow.fromValueOption "missing value"
+            |> Flow.map ((*) 2)
+            |> Flow.run ()
+
+        let syncValueNone =
+            ValueNone
+            |> Flow.fromValueOption "missing value"
+            |> Flow.run ()
+
+        let asyncSome =
+            Some 21
+            |> AsyncFlow.fromOption "missing value"
+            |> AsyncFlow.map ((*) 2)
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let asyncNone =
+            None
+            |> AsyncFlow.fromOption "missing value"
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let asyncValueSome =
+            ValueSome 21
+            |> AsyncFlow.fromValueOption "missing value"
+            |> AsyncFlow.map ((*) 2)
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let asyncValueNone =
+            ValueNone
+            |> AsyncFlow.fromValueOption "missing value"
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let taskSome =
+            Some 21
+            |> TaskFlow.fromOption "missing value"
+            |> TaskFlow.map ((*) 2)
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let taskNone =
+            None
+            |> TaskFlow.fromOption "missing value"
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let taskValueSome =
+            ValueSome 21
+            |> TaskFlow.fromValueOption "missing value"
+            |> TaskFlow.map ((*) 2)
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let taskValueNone =
+            ValueNone
+            |> TaskFlow.fromValueOption "missing value"
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        test <@ syncSome = Ok 42 @>
+        test <@ syncNone = Error "missing value" @>
+        test <@ syncValueSome = Ok 42 @>
+        test <@ syncValueNone = Error "missing value" @>
+        test <@ asyncSome = Ok 42 @>
+        test <@ asyncNone = Error "missing value" @>
+        test <@ asyncValueSome = Ok 42 @>
+        test <@ asyncValueNone = Error "missing value" @>
+        test <@ taskSome = Ok 42 @>
+        test <@ taskNone = Error "missing value" @>
+        test <@ taskValueSome = Ok 42 @>
+        test <@ taskValueNone = Error "missing value" @>
+
+    [<Fact>]
     let ``flow computation expression rejects task-oriented binds even with FsFlow.Net referenced`` () =
         let fsFlowAssemblyPath = typeof<FlowBuilder>.Assembly.Location
         let fsFlowNetAssemblyPath = typeof<TaskFlowBuilder>.Assembly.Location

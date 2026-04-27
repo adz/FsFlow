@@ -86,6 +86,16 @@ module TaskFlow =
     let fromResult (result: Result<'value, 'error>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun _ _ -> Task.FromResult result)
 
+    let fromOption (error: 'error) (value: 'value option) : TaskFlow<'env, 'error, 'value> =
+        value
+        |> FsFlow.OptionFlow.toResult error
+        |> fromResult
+
+    let fromValueOption (error: 'error) (value: 'value voption) : TaskFlow<'env, 'error, 'value> =
+        value
+        |> FsFlow.OptionFlow.toResultValueOption error
+        |> fromResult
+
     let fromFlow (flow: Flow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment _ -> Task.FromResult(Flow.run environment flow))
 

@@ -96,6 +96,16 @@ module internal OptionFlow =
         | ValueSome innerValue -> Ok innerValue
         | ValueNone -> Error()
 
+    let toResult (error: 'error) (value: 'value option) : Result<'value, 'error> =
+        match value with
+        | Some innerValue -> Ok innerValue
+        | None -> Error error
+
+    let toResultValueOption (error: 'error) (value: 'value voption) : Result<'value, 'error> =
+        match value with
+        | ValueSome innerValue -> Ok innerValue
+        | ValueNone -> Error error
+
 module internal InternalCombinatorCore =
     let mapWith
         (mapOutcome: (Result<'value, 'error> -> Result<'next, 'error>) -> 'operation -> 'nextOperation)
@@ -152,6 +162,16 @@ module Flow =
 
     let fromResult (result: Result<'value, 'error>) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> result)
+
+    let fromOption (error: 'error) (value: 'value option) : Flow<'env, 'error, 'value> =
+        value
+        |> OptionFlow.toResult error
+        |> fromResult
+
+    let fromValueOption (error: 'error) (value: 'value voption) : Flow<'env, 'error, 'value> =
+        value
+        |> OptionFlow.toResultValueOption error
+        |> fromResult
 
     let env<'env, 'error> : Flow<'env, 'error, 'env> =
         Flow(fun environment -> Ok environment)
@@ -243,6 +263,16 @@ module AsyncFlow =
 
     let fromResult (result: Result<'value, 'error>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun _ -> async.Return result)
+
+    let fromOption (error: 'error) (value: 'value option) : AsyncFlow<'env, 'error, 'value> =
+        value
+        |> OptionFlow.toResult error
+        |> fromResult
+
+    let fromValueOption (error: 'error) (value: 'value voption) : AsyncFlow<'env, 'error, 'value> =
+        value
+        |> OptionFlow.toResultValueOption error
+        |> fromResult
 
     let fromFlow (flow: Flow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun environment -> async.Return(Flow.run environment flow))
