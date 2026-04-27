@@ -3,67 +3,45 @@ open System.Threading
 open System.Threading.Tasks
 open FsFlow
 
-let run label workflow =
+let runFlow label env workflow =
+    let result = Flow.run env workflow
+    printfn "%s: %A" label result
+
+let runAsyncFlow label env workflow =
     let result =
         workflow
-        |> Flow.toAsync () CancellationToken.None
+        |> AsyncFlow.run env
         |> Async.RunSynchronously
 
     printfn "%s: %A" label result
 
-let asyncAsyncResultExample : Flow<unit, string, int> =
-    flow {
-        let! (next: Async<Result<int, string>>) =
-            async {
-                return async { return Ok 42 }
-            }
+let runTaskFlow label env workflow =
+    let result =
+        workflow
+        |> TaskFlow.run env CancellationToken.None
+        |> fun task -> task.GetAwaiter().GetResult()
 
-        let! (value: int) = next
-        return value
-    }
+    printfn "%s: %A" label result
 
-let resultOfAsyncExample : Flow<unit, string, int> =
-    flow {
-        let! (next: Async<int>) = Ok(async { return 42 })
-        let! value = next
-        return value
-    }
+let syncExample : Flow<int, string, int> =
+    Flow.read id
+    |> Flow.map ((+) 1)
 
-let nestedResultExample : Flow<unit, string, int> =
-    flow {
-        let! (next: Result<int, string>) = Ok(Ok 42)
-        let! value = next
-        return value
-    }
+let asyncExample : AsyncFlow<int, string, int> =
+    syncExample
+    |> AsyncFlow.fromFlow
+    |> AsyncFlow.bind (fun value ->
+        AsyncFlow.fromAsync(async { return value * 2 }))
 
-let coldTaskExample : Flow<unit, string, int> =
-    let started = ref false
-
-    Flow.Task.fromCold(fun (_: CancellationToken) ->
-        started.Value <- true
-        Task.FromResult 42)
-    |> Flow.tap (fun _ ->
-        flow {
-            printfn "cold task started at execution time: %b" started.Value
-            return ()
-        })
-
-let hotTaskValueExample () : Flow<unit, string, int> =
-    let started = ref false
-
-    let taskValue =
-        started.Value <- true
-        Task.FromResult 42
-
-    printfn "hot task started before flow execution: %b" started.Value
-    Flow.Task.fromHot taskValue
+let taskExample : TaskFlow<int, string, int> =
+    TaskFlow.fromTask(fun _ -> Task.FromResult 5)
+    |> TaskFlow.bind (fun suffix ->
+        TaskFlow.read id
+        |> TaskFlow.map (fun value -> value + suffix))
 
 [<EntryPoint>]
 let main _ =
-    printfn "Normalize nested wrappers one layer at a time."
-    run "Async<Async<Result<int,string>>>" asyncAsyncResultExample
-    run "Result<Async<int>,string>" resultOfAsyncExample
-    run "Result<Result<int,string>,string>" nestedResultExample
-    run "Cold Task" coldTaskExample
-    run "Hot Task Value" (hotTaskValueExample ())
+    runFlow "Flow" 20 syncExample
+    runAsyncFlow "AsyncFlow" 20 asyncExample
+    runTaskFlow "TaskFlow" 20 taskExample
     0

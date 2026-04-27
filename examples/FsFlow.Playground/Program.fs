@@ -5,45 +5,45 @@ open FsFlow
 
 type AppEnv =
     { Prefix: string
+      Name: string
       LoadSuffix: CancellationToken -> Task<string> }
 
-type AppError =
-    | MissingName
-    | SuffixFailed of string
+let greetingFlow : Flow<AppEnv, string, string> =
+    Flow.read (fun env -> $"{env.Prefix} {env.Name}")
 
-let validateName (name: string) =
-    if String.IsNullOrWhiteSpace name then
-        Error MissingName
-    else
-        Ok name
+let greetingAsyncFlow : AsyncFlow<AppEnv, string, string> =
+    greetingFlow
+    |> AsyncFlow.fromFlow
+    |> AsyncFlow.map (fun greeting -> greeting.ToUpperInvariant())
 
-let greet (name: string) : Flow<AppEnv, AppError, string> =
-    flow {
-        let! validName = validateName name
-        let! prefix = Flow.read _.Prefix
-        let! loadSuffix = Flow.read _.LoadSuffix
-
-        let! suffix =
-            loadSuffix
-            |> Flow.Task.fromCold
-            |> Flow.catch (fun error -> SuffixFailed error.Message)
-
-        return $"{prefix} {validName}{suffix}"
-    }
+let greetingTaskFlow : TaskFlow<AppEnv, string, string> =
+    TaskFlow.read _.LoadSuffix
+    |> TaskFlow.bind (fun loadSuffix ->
+        TaskFlow.fromTask(fun cancellationToken -> loadSuffix cancellationToken))
+    |> TaskFlow.map (fun suffix -> suffix)
 
 [<EntryPoint>]
 let main _ =
     let env =
         { Prefix = "Hello"
+          Name = "Ada"
           LoadSuffix = fun _ -> Task.FromResult "!" }
 
-    let run input =
-        greet input
-        |> Flow.toAsync env CancellationToken.None
-        |> Async.RunSynchronously
-        |> printfn "%s -> %A" input
+    let syncResult =
+        greetingFlow
+        |> Flow.run env
 
-    printfn "Playground:"
-    run "Ada"
-    run ""
+    let asyncResult =
+        greetingAsyncFlow
+        |> AsyncFlow.run env
+        |> Async.RunSynchronously
+
+    let taskResult =
+        greetingTaskFlow
+        |> TaskFlow.run env CancellationToken.None
+        |> fun task -> task.GetAwaiter().GetResult()
+
+    printfn "Flow: %A" syncResult
+    printfn "AsyncFlow: %A" asyncResult
+    printfn "TaskFlow suffix: %A" taskResult
     0
