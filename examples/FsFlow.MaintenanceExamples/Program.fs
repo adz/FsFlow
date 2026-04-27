@@ -2,6 +2,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open FsFlow
+open FsFlow.Net
 
 let runFlow label env workflow =
     let result = Flow.run env workflow

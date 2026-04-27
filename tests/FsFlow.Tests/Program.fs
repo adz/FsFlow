@@ -4,6 +4,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open FsFlow
+open FsFlow.Net
 open Swensen.Unquote
 open Xunit
 

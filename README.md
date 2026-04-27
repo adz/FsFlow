@@ -41,6 +41,11 @@ plus helper modules, adapters, and wrapper-specific boilerplate.
 
 FsFlow is a minimal, idiomatic way to represent that shape directly in F#.
 
+Package split:
+
+- `FsFlow` contains the sync and `Async` core: `Flow`, `AsyncFlow`, and their helper modules
+- `FsFlow.Net` adds the task-oriented layer: `TaskFlow`, task interop, and task-specific runtime helpers
+
 It gives that use case one shape:
 
 ```fsharp
@@ -98,9 +103,8 @@ FsFlow is a small, focused F# library built around composable flows:
 
 - explicit environment requirements
 - typed failures via Result
-- cancellation-aware execution without passing tokens through every step
-- direct `Async` and `.NET Task` interop
-- helpers for retry, timeout, logging, and scoped cleanup
+- direct `Async` interop in the core package
+- `.NET Task` interop in `FsFlow.Net`
 
 The point is to keep that code in one place, with one workflow type, while staying in ordinary F#:
 
@@ -246,6 +250,7 @@ FsFlow is usually not worth it when:
 9. [`examples/README.md`](examples/README.md)
 10. [`docs/TROUBLESHOOTING_TYPES.md`](docs/TROUBLESHOOTING_TYPES.md)
 11. [`src/FsFlow/Flow.fs`](src/FsFlow/Flow.fs)
+12. [`src/FsFlow.Net/TaskFlow.fs`](src/FsFlow.Net/TaskFlow.fs)
 
 ## Compatibility
 
@@ -253,8 +258,7 @@ FsFlow is usually not worth it when:
 NativeAOT is verified in this repo through a small publish-and-run probe application.
 
 ### .NET only - no Fable story
-The design is `.NET`-first. Cancellation is explicit in the `Flow` execution model, and task interop is part of the first-class public surface.
-This means we don't have a Fable story (yet).
+The core package keeps a sync and `Async`-only public contract. `.NET` task-oriented workflows live in `FsFlow.Net`.
 
 ### Existing Shapes
 FsFlow builds on existing F# and .NET primitives rather than replacing them.

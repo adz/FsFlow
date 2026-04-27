@@ -1,5 +1,8 @@
 # Task And Async Interop
 
+Task-oriented APIs described on this page belong in the `FsFlow.Net` package. The core `FsFlow`
+package keeps only sync and `Async` concepts.
+
 This page lays out the task and async boundary shapes that `flow {}` can bind directly and
 the ones that should stay explicit.
 

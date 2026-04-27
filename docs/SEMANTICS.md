@@ -1,5 +1,8 @@
 # Semantics
 
+Task-oriented semantics on this page refer to the `FsFlow.Net` package. The core `FsFlow`
+package keeps only sync and `Async` concepts in its public surface.
+
 This page describes how FsFlow behaves around failure, exceptions, cancellation,
 timeout, and cleanup.
 

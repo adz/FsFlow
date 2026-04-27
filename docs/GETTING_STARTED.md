@@ -1,5 +1,8 @@
 # Getting Started
 
+Task-oriented examples on this page require the `FsFlow.Net` package. The core `FsFlow` package
+contains `Flow` and `AsyncFlow` only.
+
 Read this page when you want the fastest path from plain `Result` code to an application-shaped `flow {}` workflow.
 
 Start with plain F# first, then introduce `Flow` only at the boundary where dependencies,

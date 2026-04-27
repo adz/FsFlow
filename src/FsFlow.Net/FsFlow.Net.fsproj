@@ -4,17 +4,15 @@
     <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAotCompatible Condition="'$(TargetFramework)' == 'net8.0'">true</IsAotCompatible>
-    <PackageId>FsFlow</PackageId>
+    <PackageId>FsFlow.Net</PackageId>
     <Version>0.2.0</Version>
     <Authors>Adam Davies</Authors>
-    <Description>F# application workflows for sync and Async code with explicit environment requirements and typed failures.</Description>
-    <PackageProjectUrl>https://adz.github.io/FsFlow/</PackageProjectUrl>
+    <Description>.NET task-oriented workflows, task interop, and task-specific runtime helpers for FsFlow.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/adz/FsFlow</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageReleaseNotes>Split task-oriented workflows into FsFlow.Net while keeping sync and Async core concepts in the FsFlow package.</PackageReleaseNotes>
-    <PackageTags>fsharp;workflow;async;result;application</PackageTags>
+    <PackageReleaseNotes>Split task-oriented workflows and interop into the FsFlow.Net package while keeping sync and Async core concepts in FsFlow.</PackageReleaseNotes>
+    <PackageTags>fsharp;workflow;async;task;result;application</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <FsDocsCollectionName>FsFlow</FsDocsCollectionName>
     <FsDocsLogoSource>content/img/fsflow-inline-light.svg</FsDocsLogoSource>
@@ -42,7 +40,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Flow.fs" />
+    <ProjectReference Include="..\FsFlow\FsFlow.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="TaskFlow.fs" />
   </ItemGroup>
 
 </Project>
