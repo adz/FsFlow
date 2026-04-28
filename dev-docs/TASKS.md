@@ -19,36 +19,8 @@ This backlog is driven by one question:
    - Rewrite the public surface comments to match it.
    - Ensure core combinators, bridges, and tricky edge cases have examples and precise wording.
    - Make the generated reference read like FsToolkit-level API docs or better.
-
-LLM progress:
-The API pages were light because they were hand-authored hub pages, not a source-doc extraction
-  pass. Docusaurus was only rendering the markdown we wrote in docs/reference/..., so the XML-style
-  summaries from code were not being transcluded automatically.
-
-  I’ve pushed the lifted summaries into the API docs now:
-
-  - docs/reference/fsflow/flow.md
-  - docs/reference/fsflow/asyncflow.md
-  - docs/reference/fsflow-net/taskflow.md
-  - docs/reference/fsflow/validate.md
-
-  What’s in there now:
-
-  - function-level summaries for the creation, composition, interop, and runtime helpers
-  - a Source-Lifted Notes section on each page
-  - the auto-lift matrix and the explicit-lift case in docs/TASK_ASYNC_INTEROP.md
-
-  I also synced the versioned docs snapshot and rebuilt the site, so the 0.3.0 docs reflect the
-  same changes.
-
-  If you want the next step, I can wire a real source-doc extraction pass so the API pages are
-  generated from the code comments instead of being maintained as lifted markdown by hand.
-
-
-› yes you should write a real source-doc extracton pass, and we should retain links to source in
-  the doc
-
-
+   - Wire a real source-doc extraction pass so the API pages are generated from code comments, with source links preserved.
+   - See `dev-docs/decisions/docs-source-extraction.md` for the current decision note.
 4. [ ] Expand executable documentation examples into docs-as-tests.
    - Keep example projects runnable during docs generation.
    - Capture evaluated output back into generated docs so the rendered page shows real results.
@@ -64,60 +36,11 @@ The API pages were light because they were hand-authored hub pages, not a source
    - Remove most tutorial-level content from the README and move it into docs pages.
    - Preserve the README as the NuGet-facing landing page.
    - Keep it motivating and concise, not exhaustive.
-
-7. [ ] consider yield to improve ergonomics on reader env
-
-
-
-› i was hoping to use yield to yield from the reader env
-
-
-• I’m checking the exact shape of what you’re asking before I answer: whether you want yield to be a synonym for return, or whether you want
-  yield to mean “pull from the reader environment without spelling read.” Those are different, and only one of them is a small change.
-
-• Yes. That is the one yield use that actually buys you something.
-
-  You can make yield mean “project from the reader environment” by overloading the builder:
-
-  type FlowBuilder with
-      member _.Yield(value: 'value) : Flow<'env, 'error, 'value> =
-          Flow.succeed value
-
-      member _.Yield(project: 'env -> 'value) : Flow<'env, 'error, 'value> =
-          Flow.read project
-
-      member _.YieldFrom(flow: Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
-          flow
-
-  Then this becomes valid:
-
-  let wf : Flow<{ Name: string }, string, string> =
-      flow {
-          yield _.Name
-      }
-
-  and it behaves like:
-
-  Flow.read _.Name
-
-  You can mirror the same idea for AsyncFlowBuilder and TaskFlowBuilder:
-
-  - Yield(project) maps to AsyncFlow.read project / TaskFlow.read project
-  - YieldFrom(flow) maps to return! flow
-
-  So the ergonomic pattern would be:
-
-  flow {
-      yield _.Prefix
-      yield! Flow.read _.Name
-  }
-
-  A couple of caveats:
-
-  - yield of a function value can become ambiguous, because functions are values too.
-  - This is nonstandard CE style in F#, so it may surprise some users.
-  - It helps most inside computation expressions; it does not replace Flow.read as the explicit API.
-
+7. [ ] Add reader-env `yield` ergonomics to the builder surface.
+   - Allow `yield _.Field` to project from the reader environment.
+   - Mirror the same pattern in async and task builders.
+   - Keep `Flow.read` as the explicit API and document the ambiguity around function-valued yields.
+   - See `dev-docs/decisions/reader-env-yield.md` for the current decision note.
 
 ## Deferred
 
