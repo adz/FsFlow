@@ -3,16 +3,16 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TASKS_FILE="${TASKS_FILE:-$ROOT_DIR/TASKS.md}"
+TASKS_FILE="${TASKS_FILE:-$ROOT_DIR/dev-docs/TASKS.md}"
 CODEX_BIN="${CODEX_BIN:-codex}"
 
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [--once] [-- <extra codex exec args>]
 
-Runs Codex in a loop against the next unchecked item in TASKS.md.
+Runs Codex in a loop against the next unchecked item in dev-docs/TASKS.md.
 After each Codex run, the script verifies that:
-  1. the task was checked off in TASKS.md
+  1. the task was checked off in dev-docs/TASKS.md
   2. a new git commit was created
   3. the working tree is clean before continuing
 
@@ -62,15 +62,15 @@ run_task() {
   printf 'Running task %s: %s\n' "$task_number" "$task_text"
 
   prompt=$(cat <<EOF
-Work only on task ${task_number} from TASKS.md in this repository:
+Work only on task ${task_number} from dev-docs/TASKS.md in this repository:
 
 ${task_number}. [ ] ${task_text}
 
 Repository rules to follow:
-- Read and follow AGENTS.md, PLAN.md, and TASKS.md.
+- Read and follow AGENTS.md, dev-docs/PLAN.md, and dev-docs/TASKS.md.
 - Complete this task end-to-end and do not start any later tasks.
 - Keep the repository's FsFlow architecture direction intact.
-- Update TASKS.md to mark this task complete only if it is actually complete.
+- Update dev-docs/TASKS.md to mark this task complete only if it is actually complete.
 - After completing this task, create exactly one git commit for it before stopping.
 - Leave the working tree clean when you finish.
 - Run the relevant build/tests needed to validate the task.

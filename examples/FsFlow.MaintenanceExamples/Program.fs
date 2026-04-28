@@ -25,20 +25,36 @@ let runTaskFlow label env workflow =
     printfn "%s: %A" label result
 
 let syncExample : Flow<int, string, int> =
-    Flow.read id
+    Flow.read id // Flow<int, string, int>
     |> Flow.map ((+) 1)
 
+// Keep the explicit lift form here so the conversion from Flow to AsyncFlow is easy to compare.
+let asyncExampleManual : AsyncFlow<int, string, int> =
+    asyncFlow {
+        let! value = syncExample |> AsyncFlow.fromFlow // AsyncFlow<int, string, int>
+        return value * 2
+    }
+
 let asyncExample : AsyncFlow<int, string, int> =
-    syncExample
-    |> AsyncFlow.fromFlow
-    |> AsyncFlow.bind (fun value ->
-        AsyncFlow.fromAsync(async { return value * 2 }))
+    asyncFlow {
+        let! value = syncExample // AsyncFlow<int, string, int>
+        return value * 2
+    }
+
+// Keep the explicit lift form here so the ColdTask-to-TaskFlow conversion stays obvious.
+let taskExampleManual : TaskFlow<int, string, int> =
+    taskFlow {
+        let! env = TaskFlow.env // TaskFlow<int, string, int>
+        let! suffix = ColdTask(fun _ -> Task.FromResult 5) |> TaskFlow.fromTask // TaskFlow<int, string, int>
+        return env + suffix
+    }
 
 let taskExample : TaskFlow<int, string, int> =
-    TaskFlow.fromTask(ColdTask(fun _ -> Task.FromResult 5))
-    |> TaskFlow.bind (fun suffix ->
-        TaskFlow.read id
-        |> TaskFlow.map (fun value -> value + suffix))
+    taskFlow {
+        let! env = TaskFlow.env // TaskFlow<int, string, int>
+        let! suffix = ColdTask(fun _ -> Task.FromResult 5) // TaskFlow<int, string, int>
+        return env + suffix
+    }
 
 [<EntryPoint>]
 let main _ =

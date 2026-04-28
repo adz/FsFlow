@@ -2,8 +2,8 @@
 
 This file is for internal planning and design rationale. It is not user-facing documentation.
 
-`TASKS.md` is the executable backlog.
-`PLAN.md` captures the architectural direction, rationale, tradeoffs, and release checklist.
+`dev-docs/TASKS.md` is the executable backlog.
+`dev-docs/PLAN.md` captures the architectural direction, rationale, tradeoffs, and release checklist.
 
 ## Current Direction
 

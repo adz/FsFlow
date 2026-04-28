@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAotCompatible Condition="'$(TargetFramework)' == 'net8.0'">true</IsAotCompatible>
     <PackageId>FsFlow.Net</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>Adam Davies</Authors>
     <Description>.NET task-oriented workflows, task interop, and task-specific runtime helpers for FsFlow.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

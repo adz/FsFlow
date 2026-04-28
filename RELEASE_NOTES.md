@@ -1,5 +1,14 @@
 # Release Notes
 
+## 0.3.0 - 2026-04-28
+
+- Major architectural shift to a workflow family: `Flow`, `AsyncFlow`, and `TaskFlow`
+- Introduced `FsFlow.Net` package for .NET task-oriented workflows and interop
+- Added `ColdTask<'value>` for deferred, restartable task factories
+- Migrated documentation to a versioned Docusaurus site with generated runnable examples
+- Added pure validation helpers and effect bridges for `Async` and `Task`
+- Expanded benchmark suite with BenchmarkDotNet and new comparison scenarios
+
 ## 0.2.0 - 2026-04-28
 
 - Second public preview release of `FsFlow`

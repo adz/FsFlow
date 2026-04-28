@@ -3,8 +3,8 @@ namespace FsFlow
 open System
 
 /// <summary>
-/// Represents a cold synchronous workflow that depends on an environment,
-/// can fail with a typed error, and can succeed with a value.
+/// Represents a cold synchronous workflow that reads an environment, returns a typed result,
+/// and is executed explicitly through <c>Flow.run</c>.
 /// </summary>
 /// <typeparam name="env">The type of the environment dependency.</typeparam>
 /// <typeparam name="error">The type of the failure value.</typeparam>
@@ -14,8 +14,8 @@ type Flow<'env, 'error, 'value> =
     | Flow of ('env -> Result<'value, 'error>)
 
 /// <summary>
-/// Represents a cold async workflow that depends on an environment,
-/// can fail with a typed error, and can succeed with a value.
+/// Represents a cold async workflow that reads an environment, returns a typed result,
+/// and is executed explicitly through <c>AsyncFlow.run</c>.
 /// </summary>
 /// <typeparam name="env">The type of the environment dependency.</typeparam>
 /// <typeparam name="error">The type of the failure value.</typeparam>
@@ -25,7 +25,7 @@ type AsyncFlow<'env, 'error, 'value> =
     | AsyncFlow of ('env -> Async<Result<'value, 'error>>)
 
 /// <summary>
-/// Log levels used by runtime logging helpers.
+/// Log levels used by runtime logging helpers and environment-provided logging functions.
 /// </summary>
 [<RequireQualifiedAccess>]
 type LogLevel =
@@ -37,7 +37,7 @@ type LogLevel =
     | Critical
 
 /// <summary>
-/// A log entry written through a runtime logger.
+/// A structured log entry written through a runtime logger.
 /// </summary>
 type LogEntry =
     {
@@ -47,7 +47,7 @@ type LogEntry =
     }
 
 /// <summary>
-/// Defines how runtime retry helpers should repeat typed failures.
+/// Defines how runtime retry helpers repeat typed failures in a controlled way.
 /// </summary>
 type RetryPolicy<'error> =
     {
@@ -57,7 +57,7 @@ type RetryPolicy<'error> =
     }
 
 /// <summary>
-/// Standard retry policies.
+/// Standard retry policies for runtime helpers.
 /// </summary>
 [<RequireQualifiedAccess>]
 module RetryPolicy =
@@ -143,38 +143,46 @@ module internal InternalCombinatorCore =
         fun environment -> factory () |> run environment
 
 /// <summary>
-/// Core functions for creating, composing, and executing synchronous flows.
+/// Core functions for creating, composing, executing, and adapting synchronous flows.
 /// </summary>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Flow =
+    /// <summary>Executes a synchronous flow with the provided environment.</summary>
     let run (environment: 'env) (Flow operation: Flow<'env, 'error, 'value>) : Result<'value, 'error> =
         operation environment
 
+    /// <summary>Creates a successful synchronous flow.</summary>
     let succeed (value: 'value) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> Ok value)
 
+    /// <summary>Alias for <see cref="succeed" /> that reads well in some call sites.</summary>
     let value (item: 'value) : Flow<'env, 'error, 'value> =
         succeed item
 
+    /// <summary>Creates a failing synchronous flow.</summary>
     let fail (error: 'error) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> Error error)
 
+    /// <summary>Lifts a <see cref="T:System.Result`2" /> into a synchronous flow.</summary>
     let fromResult (result: Result<'value, 'error>) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> result)
 
+    /// <summary>Lifts an option into a synchronous flow with the supplied error.</summary>
     let fromOption (error: 'error) (value: 'value option) : Flow<'env, 'error, 'value> =
         value
         |> OptionFlow.toResult error
         |> fromResult
 
+    /// <summary>Lifts a value option into a synchronous flow with the supplied error.</summary>
     let fromValueOption (error: 'error) (value: 'value voption) : Flow<'env, 'error, 'value> =
         value
         |> OptionFlow.toResultValueOption error
         |> fromResult
 
+    /// <summary>Turns a pure validation result into a synchronous flow with environment-provided failure.</summary>
     let orElseFlow
-        (errorFlow: Flow<'env, 'error, 'errorValue>)
+        (errorFlow: Flow<'env, 'error, 'error>)
         (result: Result<'value, unit>)
         : Flow<'env, 'error, 'value> =
         Flow(fun environment ->
@@ -182,21 +190,25 @@ module Flow =
             | Ok value -> Ok value
             | Error () ->
                 match run environment errorFlow with
-                | Ok errorValue -> Error errorValue
+                | Ok error -> Error error
                 | Error error -> Error error)
 
+    /// <summary>Reads the current environment as the flow value.</summary>
     let env<'env, 'error> : Flow<'env, 'error, 'env> =
         Flow(fun environment -> Ok environment)
 
+    /// <summary>Projects a value from the current environment.</summary>
     let read (projection: 'env -> 'value) : Flow<'env, 'error, 'value> =
         Flow(fun environment -> Ok(projection environment))
 
+    /// <summary>Maps the successful value of a synchronous flow.</summary>
     let map
         (mapper: 'value -> 'next)
         (flow: Flow<'env, 'error, 'value>)
         : Flow<'env, 'error, 'next> =
         Flow(InternalCombinatorCore.mapWith (fun mapOutcome outcome -> mapOutcome outcome) mapper (fun environment -> run environment flow))
 
+    /// <summary>Sequences a synchronous continuation after a successful value.</summary>
     let bind
         (binder: 'value -> Flow<'env, 'error, 'next>)
         (flow: Flow<'env, 'error, 'value>)
@@ -212,6 +224,7 @@ module Flow =
                 (fun environment -> run environment flow)
         )
 
+    /// <summary>Runs a synchronous side effect on success and preserves the original value.</summary>
     let tap
         (binder: 'value -> Flow<'env, 'error, unit>)
         (flow: Flow<'env, 'error, 'value>)
@@ -222,6 +235,7 @@ module Flow =
                 |> map (fun () -> value))
             flow
 
+    /// <summary>Runs a synchronous side effect on failure and preserves the original error.</summary>
     let tapError
         (binder: 'error -> Flow<'env, 'error, unit>)
         (flow: Flow<'env, 'error, 'value>)
@@ -234,6 +248,7 @@ module Flow =
                 | Ok () -> Error error
                 | Error nextError -> Error nextError)
 
+    /// <summary>Maps the error value of a synchronous flow.</summary>
     let mapError
         (mapper: 'error -> 'nextError)
         (flow: Flow<'env, 'error, 'value>)
@@ -245,6 +260,7 @@ module Flow =
                 (fun environment -> run environment flow)
         )
 
+    /// <summary>Catches exceptions raised during execution and maps them to a typed error.</summary>
     let catch
         (handler: exn -> 'error)
         (flow: Flow<'env, 'error, 'value>)
@@ -255,6 +271,7 @@ module Flow =
             with error ->
                 Error(handler error))
 
+    /// <summary>Falls back to another flow when the source flow fails.</summary>
     let orElse
         (fallback: Flow<'env, 'error, 'value>)
         (flow: Flow<'env, 'error, 'value>)
@@ -264,6 +281,7 @@ module Flow =
             | Ok value -> Ok value
             | Error _ -> run environment fallback)
 
+    /// <summary>Combines two flows into a tuple of their values.</summary>
     let zip
         (left: Flow<'env, 'error, 'left>)
         (right: Flow<'env, 'error, 'right>)
@@ -274,6 +292,7 @@ module Flow =
                 |> map (fun rightValue -> leftValue, rightValue))
             left
 
+    /// <summary>Combines two flows with a mapping function.</summary>
     let map2
         (mapper: 'left -> 'right -> 'value)
         (left: Flow<'env, 'error, 'left>)
@@ -282,18 +301,18 @@ module Flow =
         zip left right
         |> map (fun (leftValue, rightValue) -> mapper leftValue rightValue)
 
+    /// <summary>Transforms the environment before running the flow.</summary>
     let localEnv
         (mapping: 'outerEnvironment -> 'innerEnvironment)
         (flow: Flow<'innerEnvironment, 'error, 'value>)
         : Flow<'outerEnvironment, 'error, 'value> =
         Flow(InternalCombinatorCore.localEnvWith run mapping flow)
 
+    /// <summary>Defers flow construction until execution time.</summary>
     let delay (factory: unit -> Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
         Flow(InternalCombinatorCore.delayWith run factory)
 
-    /// <summary>
-    /// Transforms a sequence of values into a flow by applying a flow-producing function to each element.
-    /// </summary>
+    /// <summary>Transforms a sequence of values into a flow and stops at the first failure.</summary>
     let traverse
         (mapping: 'value -> Flow<'env, 'error, 'next>)
         (values: seq<'value>)
@@ -312,46 +331,52 @@ module Flow =
             | Some error -> Error error
             | None -> Ok(List.ofSeq results))
 
-    /// <summary>
-    /// Transforms a sequence of flows into a flow of a sequence.
-    /// </summary>
+    /// <summary>Transforms a sequence of flows into a flow of a sequence and stops at the first failure.</summary>
     let sequence (flows: seq<Flow<'env, 'error, 'value>>) : Flow<'env, 'error, 'value list> =
         traverse id flows
 
 /// <summary>
-/// Core functions for creating, composing, and executing async flows.
+/// Core functions for creating, composing, executing, and adapting async flows.
 /// </summary>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module AsyncFlow =
+    /// <summary>Executes an async flow with the provided environment.</summary>
     let run
         (environment: 'env)
         (AsyncFlow operation: AsyncFlow<'env, 'error, 'value>)
         : Async<Result<'value, 'error>> =
         operation environment
 
+    /// <summary>Converts an async flow into its raw async result shape.</summary>
     let toAsync (environment: 'env) (flow: AsyncFlow<'env, 'error, 'value>) : Async<Result<'value, 'error>> =
         run environment flow
 
+    /// <summary>Creates a successful async flow.</summary>
     let succeed (value: 'value) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun _ -> async.Return(Ok value))
 
+    /// <summary>Creates a failing async flow.</summary>
     let fail (error: 'error) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun _ -> async.Return(Error error))
 
+    /// <summary>Lifts a <see cref="T:System.Result`2" /> into an async flow.</summary>
     let fromResult (result: Result<'value, 'error>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun _ -> async.Return result)
 
+    /// <summary>Lifts an option into an async flow with the supplied error.</summary>
     let fromOption (error: 'error) (value: 'value option) : AsyncFlow<'env, 'error, 'value> =
         value
         |> OptionFlow.toResult error
         |> fromResult
 
+    /// <summary>Lifts a value option into an async flow with the supplied error.</summary>
     let fromValueOption (error: 'error) (value: 'value voption) : AsyncFlow<'env, 'error, 'value> =
         value
         |> OptionFlow.toResultValueOption error
         |> fromResult
 
+    /// <summary>Turns a pure validation result into an async flow with async-provided failure.</summary>
     let orElseAsync
         (errorAsync: Async<'error>)
         (result: Result<'value, unit>)
@@ -364,8 +389,9 @@ module AsyncFlow =
                 return Error error
         }
 
+    /// <summary>Turns a pure validation result into an async flow whose failure value comes from another async flow.</summary>
     let orElseAsyncFlow
-        (errorFlow: AsyncFlow<'env, 'error, 'errorValue>)
+        (errorFlow: AsyncFlow<'env, 'error, 'error>)
         (result: Result<'value, unit>)
         : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun environment ->
@@ -376,13 +402,15 @@ module AsyncFlow =
                     let! outcome = run environment errorFlow
 
                     match outcome with
-                    | Ok errorValue -> return Error errorValue
+                    | Ok error -> return Error error
                     | Error error -> return Error error
             })
 
+    /// <summary>Lifts a synchronous flow into an async flow.</summary>
     let fromFlow (flow: Flow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun environment -> async.Return(Flow.run environment flow))
 
+    /// <summary>Lifts an async value into an async flow.</summary>
     let fromAsync (operation: Async<'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun _ ->
             async {
@@ -390,15 +418,19 @@ module AsyncFlow =
                 return Ok value
             })
 
+    /// <summary>Lifts an async result into an async flow.</summary>
     let fromAsyncResult (operation: Async<Result<'value, 'error>>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun _ -> operation)
 
+    /// <summary>Reads the current environment as the flow value.</summary>
     let env<'env, 'error> : AsyncFlow<'env, 'error, 'env> =
         AsyncFlow(fun environment -> async.Return(Ok environment))
 
+    /// <summary>Projects a value from the current environment.</summary>
     let read (projection: 'env -> 'value) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun environment -> async.Return(Ok(projection environment)))
 
+    /// <summary>Maps the successful value of an async flow.</summary>
     let map
         (mapper: 'value -> 'next)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -414,6 +446,7 @@ module AsyncFlow =
                 (fun environment -> run environment flow)
         )
 
+    /// <summary>Sequences an async continuation after a successful value.</summary>
     let bind
         (binder: 'value -> AsyncFlow<'env, 'error, 'next>)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -433,6 +466,7 @@ module AsyncFlow =
                 (fun environment -> run environment flow)
         )
 
+    /// <summary>Runs an async side effect on success and preserves the original value.</summary>
     let tap
         (binder: 'value -> AsyncFlow<'env, 'error, unit>)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -443,6 +477,7 @@ module AsyncFlow =
                 |> map (fun () -> value))
             flow
 
+    /// <summary>Runs an async side effect on failure and preserves the original error.</summary>
     let tapError
         (binder: 'error -> AsyncFlow<'env, 'error, unit>)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -461,6 +496,7 @@ module AsyncFlow =
                     | Error nextError -> return Error nextError
             })
 
+    /// <summary>Maps the error value of an async flow.</summary>
     let mapError
         (mapper: 'error -> 'nextError)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -476,6 +512,7 @@ module AsyncFlow =
                 (fun environment -> run environment flow)
         )
 
+    /// <summary>Catches exceptions raised during execution and maps them to a typed error.</summary>
     let catch
         (handler: exn -> 'error)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -488,6 +525,7 @@ module AsyncFlow =
                     return Error(handler error)
             })
 
+    /// <summary>Falls back to another async flow when the source flow fails.</summary>
     let orElse
         (fallback: AsyncFlow<'env, 'error, 'value>)
         (flow: AsyncFlow<'env, 'error, 'value>)
@@ -501,6 +539,7 @@ module AsyncFlow =
                 | Error _ -> return! run environment fallback
             })
 
+    /// <summary>Combines two async flows into a tuple of their values.</summary>
     let zip
         (left: AsyncFlow<'env, 'error, 'left>)
         (right: AsyncFlow<'env, 'error, 'right>)
@@ -511,6 +550,7 @@ module AsyncFlow =
                 |> map (fun rightValue -> leftValue, rightValue))
             left
 
+    /// <summary>Combines two async flows with a mapping function.</summary>
     let map2
         (mapper: 'left -> 'right -> 'value)
         (left: AsyncFlow<'env, 'error, 'left>)
@@ -519,18 +559,18 @@ module AsyncFlow =
         zip left right
         |> map (fun (leftValue, rightValue) -> mapper leftValue rightValue)
 
+    /// <summary>Transforms the environment before running the async flow.</summary>
     let localEnv
         (mapping: 'outerEnvironment -> 'innerEnvironment)
         (flow: AsyncFlow<'innerEnvironment, 'error, 'value>)
         : AsyncFlow<'outerEnvironment, 'error, 'value> =
         AsyncFlow(InternalCombinatorCore.localEnvWith run mapping flow)
 
+    /// <summary>Defers async flow construction until execution time.</summary>
     let delay (factory: unit -> AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(InternalCombinatorCore.delayWith run factory)
 
-    /// <summary>
-    /// Transforms a sequence of values into an async flow by applying an async flow-producing function to each element.
-    /// </summary>
+    /// <summary>Transforms a sequence of values into an async flow and stops at the first failure.</summary>
     let traverse
         (mapping: 'value -> AsyncFlow<'env, 'error, 'next>)
         (values: seq<'value>)
@@ -553,9 +593,7 @@ module AsyncFlow =
                 | None -> return Ok(List.ofSeq results)
             })
 
-    /// <summary>
-    /// Transforms a sequence of async flows into an async flow of a sequence.
-    /// </summary>
+    /// <summary>Transforms a sequence of async flows into an async flow of a sequence and stops at the first failure.</summary>
     let sequence (flows: seq<AsyncFlow<'env, 'error, 'value>>) : AsyncFlow<'env, 'error, 'value list> =
         traverse id flows
 
@@ -818,6 +856,7 @@ module AsyncFlow =
 /// <summary>
 /// Computation expression builder for synchronous <see cref="T:FsFlow.Flow`3" /> workflows.
 /// </summary>
+/// <exclude/>
 type FlowBuilder() =
     member _.Return(value: 'value) : Flow<'env, 'error, 'value> =
         Flow.succeed value
@@ -945,6 +984,7 @@ type FlowBuilder() =
 /// <summary>
 /// Computation expression builder for async <see cref="T:FsFlow.AsyncFlow`3" /> workflows.
 /// </summary>
+/// <exclude/>
 type AsyncFlowBuilder() =
     member _.Return(value: 'value) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow.succeed value

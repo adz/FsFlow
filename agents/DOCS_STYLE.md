@@ -20,7 +20,8 @@ The audience is a **senior F# developer** who wants to solve real-world problems
 
 ## Structural Requirements
 
-- **Page Headers:** Every page must start with a one-sentence "When you should read this page" summary.
+- **Page Headers:** Every page must start with a one-sentence summary that begins with "This page shows".
+  Avoid "Read this page when you want..." phrasing in new or edited pages.
 - **Examples First:** Use small, credible examples before deep-diving into semantics.
 - **API Docstrings:** Every public function must have an XML doc comment with an example.
 - **Trade-offs:** Explicitly state when NOT to use a feature.

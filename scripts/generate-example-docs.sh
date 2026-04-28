@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+output_file="$root_dir/docs/examples/README.md"
+
+mkdir -p "$(dirname "$output_file")"
+
+render_code_block() {
+  local language="$1"
+  local file_path="$2"
+
+  printf '```%s\n' "$language"
+  cat "$file_path"
+  printf '\n```\n'
+}
+
+render_output_block() {
+  local output="$1"
+
+  printf '```text\n%s\n```\n' "$output"
+}
+
+run_example() {
+  local project_path="$1"
+
+  dotnet build "$project_path" --nologo --verbosity quiet >/dev/null
+  dotnet run --project "$project_path" --no-build --no-restore --nologo 2>&1
+}
+
+render_example_section() {
+  local title="$1"
+  local description="$2"
+  local project_path="$3"
+  local source_file="$4"
+  local source_link="$5"
+  local run_command="$6"
+
+  local example_output
+  example_output="$(run_example "$project_path")"
+
+  {
+    printf '## %s\n\n' "$title"
+    printf '%s\n\n' "$description"
+    printf 'Run it:\n\n'
+    printf '```bash\n%s\n```\n\n' "$run_command"
+    printf 'Source:\n\n'
+    printf -- '- [%s](%s)\n\n' "$(basename "$source_file")" "$source_link"
+    printf 'Source code:\n\n'
+    render_code_block fsharp "$source_file"
+    printf '\n'
+    printf 'Observed output:\n\n'
+    render_output_block "$example_output"
+    printf '\n'
+  } >> "$output_file"
+}
+
+cat > "$output_file" <<'EOF'
+---
+title: Runnable Examples
+description: Application-shaped examples that are executed during docs generation and mirrored back into the site.
+---
+
+# Runnable Examples
+
+This page shows the examples that are executed during the docs build, so the public docs stay tied to real code and observed output.
+
+The examples below are built from the repository projects, run with the current source, and then written back into this page.
+
+The code blocks keep the important API calls on the same lines as the values they bind, with trailing comments where that makes the signature easier to read.
+Each example starts with the explicit lift form and then shows the shorter auto-lifted form beside it.
+
+EOF
+
+render_example_section \
+  "Request Boundary Example" \
+  "This example starts with the explicit lift form, then shows the shorter auto-lifted form for a request boundary that pulls a user from a database-like environment, threads a trace id through the request context, and bridges the same model across Flow, AsyncFlow, and TaskFlow." \
+  "$root_dir/examples/FsFlow.Examples/FsFlow.Examples.fsproj" \
+  "$root_dir/examples/FsFlow.Examples/Program.fs" \
+  "https://github.com/adz/FsFlow/blob/main/examples/FsFlow.Examples/Program.fs" \
+  "dotnet run --project examples/FsFlow.Examples/FsFlow.Examples.fsproj --nologo"
+
+render_example_section \
+  "Playground Example" \
+  "This example shows the same core boundary in both explicit-lift and auto-lift form, so you can compare the two styles side by side." \
+  "$root_dir/examples/FsFlow.Playground/FsFlow.Playground.fsproj" \
+  "$root_dir/examples/FsFlow.Playground/Program.fs" \
+  "https://github.com/adz/FsFlow/blob/main/examples/FsFlow.Playground/Program.fs" \
+  "dotnet run --project examples/FsFlow.Playground/FsFlow.Playground.fsproj --nologo"
+
+render_example_section \
+  "Maintenance Example" \
+  "This example shows smaller, focused shapes for maintenance and interop scenarios, first with explicit lifting and then with the shorter auto-boundary form." \
+  "$root_dir/examples/FsFlow.MaintenanceExamples/FsFlow.MaintenanceExamples.fsproj" \
+  "$root_dir/examples/FsFlow.MaintenanceExamples/Program.fs" \
+  "https://github.com/adz/FsFlow/blob/main/examples/FsFlow.MaintenanceExamples/Program.fs" \
+  "dotnet run --project examples/FsFlow.MaintenanceExamples/FsFlow.MaintenanceExamples.fsproj --nologo"

@@ -10,17 +10,37 @@ type AppEnv =
       LoadSuffix: ColdTask<string> }
 
 let greetingFlow : Flow<AppEnv, string, string> =
-    Flow.read (fun env -> $"{env.Prefix} {env.Name}")
+    Flow.read (fun env -> $"{env.Prefix} {env.Name}") // Flow<AppEnv, string, string>
+
+// Keep the explicit lift form here so the example shows the conversion before the shorter CE version.
+let greetingAsyncFlowManual : AsyncFlow<AppEnv, string, string> =
+    asyncFlow {
+        let! greeting = greetingFlow |> AsyncFlow.fromFlow // AsyncFlow<AppEnv, string, string>
+        return greeting.ToUpperInvariant()
+    }
 
 let greetingAsyncFlow : AsyncFlow<AppEnv, string, string> =
-    greetingFlow
-    |> AsyncFlow.fromFlow
-    |> AsyncFlow.map (fun greeting -> greeting.ToUpperInvariant())
+    asyncFlow {
+        let! greeting = greetingFlow // AsyncFlow<AppEnv, string, string>
+        return greeting.ToUpperInvariant()
+    }
+
+// Keep the explicit lift form here so the task interop path stays visible before the auto-boundary version.
+let greetingTaskFlowManual : TaskFlow<AppEnv, string, string> =
+    taskFlow {
+        let! env = TaskFlow.env // TaskFlow<AppEnv, string, AppEnv>
+        let! greeting = greetingFlow |> TaskFlow.fromFlow // TaskFlow<AppEnv, string, string>
+        let! suffix = env.LoadSuffix |> TaskFlow.fromTask // TaskFlow<AppEnv, string, string>
+        return $"{greeting}{suffix}"
+    }
 
 let greetingTaskFlow : TaskFlow<AppEnv, string, string> =
-    TaskFlow.read _.LoadSuffix
-    |> TaskFlow.bind TaskFlow.fromTask
-    |> TaskFlow.map (fun suffix -> suffix)
+    taskFlow {
+        let! env = TaskFlow.env // TaskFlow<AppEnv, string, AppEnv>
+        let! greeting = greetingFlow // TaskFlow<AppEnv, string, string>
+        let! suffix = env.LoadSuffix // TaskFlow<AppEnv, string, string>
+        return $"{greeting}{suffix}"
+    }
 
 [<EntryPoint>]
 let main _ =
@@ -45,5 +65,5 @@ let main _ =
 
     printfn "Flow: %A" syncResult
     printfn "AsyncFlow: %A" asyncResult
-    printfn "TaskFlow suffix: %A" taskResult
+    printfn "TaskFlow: %A" taskResult
     0

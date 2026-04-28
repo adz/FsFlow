@@ -6,9 +6,8 @@ open System.Threading.Tasks
 open FsFlow
 
 /// <summary>
-/// Represents a cold task-based workflow that depends on an environment,
-/// observes a runtime cancellation token, can fail with a typed error,
-/// and can succeed with a value.
+/// Represents a cold task-based workflow that reads an environment, observes a runtime cancellation token,
+/// returns a typed result, and is executed explicitly through <c>TaskFlow.run</c>.
 /// </summary>
 /// <typeparam name="env">The type of the environment dependency.</typeparam>
 /// <typeparam name="error">The type of the failure value.</typeparam>
@@ -18,8 +17,7 @@ type TaskFlow<'env, 'error, 'value> =
     | TaskFlow of ('env -> CancellationToken -> Task<Result<'value, 'error>>)
 
 /// <summary>
-/// Represents delayed task work that can observe a runtime cancellation token
-/// when it is started.
+/// Represents delayed task work that can observe a runtime cancellation token when it is started.
 /// </summary>
 /// <typeparam name="value">The type of the produced task value.</typeparam>
 type ColdTask<'value> =
@@ -58,7 +56,7 @@ module ColdTask =
         operation cancellationToken
 
 /// <summary>
-/// Core functions for creating, composing, and executing task flows.
+/// Core functions for creating, composing, executing, and adapting task flows.
 /// </summary>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
@@ -121,7 +119,7 @@ module TaskFlow =
         }
 
     let orElseFlow
-        (errorFlow: Flow<'env, 'error, 'errorValue>)
+        (errorFlow: Flow<'env, 'error, 'error>)
         (result: Result<'value, unit>)
         : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment cancellationToken ->
@@ -130,12 +128,12 @@ module TaskFlow =
                 | Ok value -> return Ok value
                 | Error () ->
                     match Flow.run environment errorFlow with
-                    | Ok errorValue -> return Error errorValue
+                    | Ok error -> return Error error
                     | Error error -> return Error error
             })
 
     let orElseAsyncFlow
-        (errorFlow: AsyncFlow<'env, 'error, 'errorValue>)
+        (errorFlow: AsyncFlow<'env, 'error, 'error>)
         (result: Result<'value, unit>)
         : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment cancellationToken ->
@@ -148,12 +146,12 @@ module TaskFlow =
                         |> fun operation -> Async.StartAsTask(operation, cancellationToken = cancellationToken)
 
                     match outcome with
-                    | Ok errorValue -> return Error errorValue
+                    | Ok error -> return Error error
                     | Error error -> return Error error
             })
 
     let orElseTaskFlow
-        (errorFlow: TaskFlow<'env, 'error, 'errorValue>)
+        (errorFlow: TaskFlow<'env, 'error, 'error>)
         (result: Result<'value, unit>)
         : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment cancellationToken ->
@@ -164,7 +162,7 @@ module TaskFlow =
                     let! outcome = run environment cancellationToken errorFlow
 
                     match outcome with
-                    | Ok errorValue -> return Error errorValue
+                    | Ok error -> return Error error
                     | Error error -> return Error error
             })
 
@@ -332,9 +330,7 @@ module TaskFlow =
                 factory
                 (environment, cancellationToken))
 
-    /// <summary>
-    /// Transforms a sequence of values into a task flow by applying a task flow-producing function to each element.
-    /// </summary>
+    /// <summary>Transforms a sequence of values into a task flow and stops at the first failure.</summary>
     let traverse
         (mapping: 'value -> TaskFlow<'env, 'error, 'next>)
         (values: seq<'value>)
@@ -357,9 +353,7 @@ module TaskFlow =
                 | None -> return Ok(List.ofSeq results)
             })
 
-    /// <summary>
-    /// Transforms a sequence of task flows into a task flow of a sequence.
-    /// </summary>
+    /// <summary>Transforms a sequence of task flows into a task flow of a sequence and stops at the first failure.</summary>
     let sequence (flows: seq<TaskFlow<'env, 'error, 'value>>) : TaskFlow<'env, 'error, 'value list> =
         traverse id flows
 
@@ -368,9 +362,11 @@ module TaskFlow =
     /// </summary>
     [<RequireQualifiedAccess>]
     module Runtime =
+        /// <summary>Reads the current runtime cancellation token.</summary>
         let cancellationToken<'env, 'error> : TaskFlow<'env, 'error, CancellationToken> =
             TaskFlow(fun _environment cancellationToken -> Task.FromResult(Ok cancellationToken))
 
+        /// <summary>Converts an <see cref="OperationCanceledException" /> into a typed error.</summary>
         let catchCancellation
             (handler: OperationCanceledException -> 'error)
             (flow: TaskFlow<'env, 'error, 'value>)
@@ -383,6 +379,7 @@ module TaskFlow =
                         return Error(handler error)
                 })
 
+        /// <summary>Returns a typed error immediately when the runtime token is already canceled.</summary>
         let ensureNotCanceled<'env, 'error> (canceledError: 'error) : TaskFlow<'env, 'error, unit> =
             TaskFlow(fun _environment cancellationToken ->
                 if cancellationToken.IsCancellationRequested then
@@ -390,6 +387,7 @@ module TaskFlow =
                 else
                     Task.FromResult(Ok ()))
 
+        /// <summary>Suspends the flow for the specified duration while observing cancellation.</summary>
         let sleep<'env, 'error> (delay: TimeSpan) : TaskFlow<'env, 'error, unit> =
             TaskFlow(fun _environment cancellationToken ->
                 task {
@@ -397,6 +395,7 @@ module TaskFlow =
                     return Ok ()
                 })
 
+        /// <summary>Writes a fixed log message through the environment-provided logger.</summary>
         let log
             (writer: 'env -> LogEntry -> unit)
             (level: LogLevel)
@@ -411,6 +410,7 @@ module TaskFlow =
 
                 Task.FromResult(Ok ()))
 
+        /// <summary>Writes a log message computed from the current environment.</summary>
         let logWith
             (writer: 'env -> LogEntry -> unit)
             (level: LogLevel)
@@ -425,6 +425,7 @@ module TaskFlow =
 
                 Task.FromResult(Ok ()))
 
+        /// <summary>Acquires a resource, uses it, and always runs the release action.</summary>
         let useWithAcquireRelease
             (acquire: TaskFlow<'env, 'error, 'resource>)
             (release: 'resource -> CancellationToken -> Task)
@@ -449,6 +450,7 @@ module TaskFlow =
                         |> fun computation -> Async.StartAsTask(computation, cancellationToken = cancellationToken)))
                 acquire
 
+        /// <summary>Fails with the supplied error when the flow does not complete before the timeout.</summary>
         let timeout
             (after: TimeSpan)
             (timeoutError: 'error)
@@ -466,9 +468,7 @@ module TaskFlow =
                         return! operation
                 })
 
-        /// <summary>
-        /// Wraps a flow with a timeout. If the flow does not complete within the specified duration, returns a success value.
-        /// </summary>
+        /// <summary>Returns the supplied success value when the flow times out.</summary>
         let timeoutToOk
             (after: TimeSpan)
             (value: 'value)
@@ -486,9 +486,7 @@ module TaskFlow =
                         return! operation
                 })
 
-        /// <summary>
-        /// Transitions to a failure value on timeout.
-        /// </summary>
+        /// <summary>Forwards to <see cref="timeout" /> for a typed failure on timeout.</summary>
         let timeoutToError
             (after: TimeSpan)
             (error: 'error)
@@ -496,9 +494,7 @@ module TaskFlow =
             : TaskFlow<'env, 'error, 'value> =
             timeout after error flow
 
-        /// <summary>
-        /// Transitions to a fallback workflow on timeout.
-        /// </summary>
+        /// <summary>Runs a fallback flow when the original flow times out.</summary>
         let timeoutWith
             (after: TimeSpan)
             (fallback: unit -> TaskFlow<'env, 'error, 'value>)
@@ -516,6 +512,7 @@ module TaskFlow =
                         return! operation
                 })
 
+        /// <summary>Retries a flow according to the supplied policy.</summary>
         let retry
             (policy: RetryPolicy<'error>)
             (flow: TaskFlow<'env, 'error, 'value>)
@@ -543,9 +540,8 @@ module TaskFlow =
 
             loop 1
 
-/// <summary>
-/// Computation expression builder for task-based <see cref="T:FsFlow.Net.TaskFlow`3" /> workflows.
-/// </summary>
+/// [omit]
+/// <exclude/>
 type TaskFlowBuilder() =
     member _.Return(value: 'value) : TaskFlow<'env, 'error, 'value> =
         TaskFlow.succeed value
@@ -837,6 +833,8 @@ module TaskFlowBuilderExtensions =
             |> this.ReturnFrom
             |> TaskFlow.bind binder
 
+/// [omit]
+/// <exclude/>
 type DotNetAsyncFlowBuilder() =
     inherit AsyncFlowBuilder()
 
