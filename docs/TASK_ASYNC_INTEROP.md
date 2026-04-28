@@ -111,6 +111,7 @@ Prefer `TaskFlow` when:
 Use `TaskFlow.toTask` to run it.
 Use `Flow.Runtime` or `AsyncFlow.Runtime` for shared operational helpers like `sleep`, `timeout`, `retry`, and `useWithAcquireRelease`.
 Use `TaskFlow.Runtime` when you want the same helpers in a task-native shape.
+Use `FsFlow.Validate` for pure `Result<'value, unit>` validation, then bridge into `Flow`, `AsyncFlow`, or `TaskFlow` only when the error value itself needs effectful evaluation.
 
 ## `ColdTask<'value>`
 

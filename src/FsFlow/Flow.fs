@@ -173,6 +173,18 @@ module Flow =
         |> OptionFlow.toResultValueOption error
         |> fromResult
 
+    let orElseFlow
+        (errorFlow: Flow<'env, 'error, 'errorValue>)
+        (result: Result<'value, unit>)
+        : Flow<'env, 'error, 'value> =
+        Flow(fun environment ->
+            match result with
+            | Ok value -> Ok value
+            | Error () ->
+                match run environment errorFlow with
+                | Ok errorValue -> Error errorValue
+                | Error error -> Error error)
+
     let env<'env, 'error> : Flow<'env, 'error, 'env> =
         Flow(fun environment -> Ok environment)
 
@@ -339,6 +351,34 @@ module AsyncFlow =
         value
         |> OptionFlow.toResultValueOption error
         |> fromResult
+
+    let orElseAsync
+        (errorAsync: Async<'error>)
+        (result: Result<'value, unit>)
+        : Async<Result<'value, 'error>> =
+        async {
+            match result with
+            | Ok value -> return Ok value
+            | Error () ->
+                let! error = errorAsync
+                return Error error
+        }
+
+    let orElseAsyncFlow
+        (errorFlow: AsyncFlow<'env, 'error, 'errorValue>)
+        (result: Result<'value, unit>)
+        : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow(fun environment ->
+            async {
+                match result with
+                | Ok value -> return Ok value
+                | Error () ->
+                    let! outcome = run environment errorFlow
+
+                    match outcome with
+                    | Ok errorValue -> return Error errorValue
+                    | Error error -> return Error error
+            })
 
     let fromFlow (flow: Flow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(fun environment -> async.Return(Flow.run environment flow))

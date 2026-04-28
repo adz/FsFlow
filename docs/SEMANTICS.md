@@ -159,6 +159,13 @@ The `FsFlow.Net` package also provides `TaskFlow.Runtime` for task-native workfl
 
 Use `TaskFlow.Runtime` when the public boundary is task-based and the helper belongs in task execution.
 
+## Validation Helpers
+
+`FsFlow.Validate` provides pure `Result<'value, unit>` checks for booleans, options, value options, nulls, collections, equality, and strings.
+Use `Validate.orElse` or `Validate.orElseWith` to attach a typed error after the pure validation step.
+
+When the error value itself needs environment or effectful evaluation, use the bridge helpers on `Flow`, `AsyncFlow`, or `TaskFlow`.
+
 ## Family Direction
 
 The workflow families intentionally compose upward:

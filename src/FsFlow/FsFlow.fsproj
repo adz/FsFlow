@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Validate.fs" />
     <Compile Include="Flow.fs" />
   </ItemGroup>
 

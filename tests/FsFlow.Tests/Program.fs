@@ -562,6 +562,101 @@ let probe : TaskFlow<unit, string, int> =
         test <@ mapped = Ok 16 @>
 
     [<Fact>]
+    let ``Validate covers the pure result surface`` () =
+        test <@ Validate.okIf true = Ok () @>
+        test <@ Validate.okIf false = Error () @>
+        test <@ Validate.failIf true = Error () @>
+        test <@ Validate.failIf false = Ok () @>
+
+        test <@ Validate.okIfSome (Some 10) = Ok 10 @>
+        test <@ Validate.okIfSome None = Error () @>
+        test <@ Validate.failIfNone None = Error () @>
+        test <@ Validate.failIfNone (Some 7) = Ok 7 @>
+
+        test <@ Validate.okIfValueSome (ValueSome 11) = Ok 11 @>
+        test <@ Validate.okIfValueNone ValueNone = Ok () @>
+        test <@ Validate.failIfValueSome ValueNone = Ok () @>
+        test <@ Validate.failIfValueNone (ValueSome 8) = Ok 8 @>
+
+        let nonNull = "flowkit"
+        let nullString: string = null
+
+        test <@ Validate.okIfNotNull nonNull = Ok "flowkit" @>
+        test <@ Validate.okIfNull nullString = Ok () @>
+        test <@ Validate.failIfNotNull nullString = Error () @>
+        test <@ Validate.failIfNull nonNull = Error () @>
+
+        test <@ Validate.okIfNotEmpty [ 1; 2 ] |> Result.map Seq.toList = Ok [ 1; 2 ] @>
+        test <@ Validate.okIfEmpty Seq.empty = Ok () @>
+        test <@ Validate.failIfNotEmpty Seq.empty = Ok () @>
+        test <@ Validate.failIfEmpty Seq.empty = Error () @>
+
+        test <@ Validate.okIfEqual 3 3 = Ok () @>
+        test <@ Validate.okIfNotEqual 3 4 = Ok () @>
+        test <@ Validate.failIfEqual 3 4 = Ok () @>
+        test <@ Validate.failIfNotEqual 3 3 = Ok () @>
+
+        test <@ Validate.okIfNonEmptyStr "hello" = Ok "hello" @>
+        test <@ Validate.okIfEmptyStr "" = Ok () @>
+        test <@ Validate.okIfNotBlank "  x  " = Ok "  x  " @>
+        test <@ Validate.okIfBlank "   " = Ok () @>
+        test <@ Validate.failIfNonEmptyStr "" = Ok () @>
+        test <@ Validate.failIfEmptyStr "hello" = Ok "hello" @>
+        test <@ Validate.failIfNotBlank "   " = Ok () @>
+        test <@ Validate.failIfBlank "x" = Ok "x" @>
+
+        test <@ Validate.okIf false |> Validate.orElse "invalid" = Error "invalid" @>
+        test <@ Validate.okIf false |> Validate.orElseWith (fun () -> "generated") = Error "generated" @>
+
+    [<Fact>]
+    let ``Validate bridges into flow, async, and task shapes`` () =
+        let flowBridge =
+            Validate.okIf false
+            |> Flow.orElseFlow (Flow.read (fun env -> $"flow:{env}"))
+            |> Flow.run "env"
+
+        let asyncBridge =
+            Validate.okIf false
+            |> AsyncFlow.orElseAsync (async.Return "async")
+            |> Async.RunSynchronously
+
+        let asyncFlowBridge =
+            Validate.okIf false
+            |> AsyncFlow.orElseAsyncFlow (AsyncFlow.read (fun env -> $"async-flow:{env}"))
+            |> AsyncFlow.run "env"
+            |> Async.RunSynchronously
+
+        let taskBridge =
+            Validate.okIf false
+            |> TaskFlow.orElseTask (Task.FromResult "task")
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let taskAsyncBridge =
+            Validate.okIf false
+            |> TaskFlow.orElseAsync (async.Return "task-async")
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let taskFlowBridge =
+            Validate.okIf false
+            |> TaskFlow.orElseTaskFlow (TaskFlow.read (fun env -> $"task-flow:{env}"))
+            |> TaskFlow.run "env" CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let taskAsyncFlowBridge =
+            Validate.okIf false
+            |> TaskFlow.orElseAsyncFlow (AsyncFlow.read (fun env -> $"task-async-flow:{env}"))
+            |> TaskFlow.run "env" CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        test <@ flowBridge = Error "flow:env" @>
+        test <@ asyncBridge = Error "async" @>
+        test <@ asyncFlowBridge = Error "async-flow:env" @>
+        test <@ taskBridge = Error "task" @>
+        test <@ taskAsyncBridge = Error "task-async" @>
+        test <@ taskFlowBridge = Error "task-flow:env" @>
+        test <@ taskAsyncFlowBridge = Error "task-async-flow:env" @>
+
+    [<Fact>]
     let ``AsyncFlow runtime helpers cover timeout retry and release`` () =
         let timeoutResult =
             AsyncFlow.Runtime.sleep (TimeSpan.FromMilliseconds 20.0)

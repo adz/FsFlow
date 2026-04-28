@@ -96,6 +96,78 @@ module TaskFlow =
         | ValueSome innerValue -> succeed innerValue
         | ValueNone -> fail error
 
+    let orElseTask
+        (errorTask: Task<'error>)
+        (result: Result<'value, unit>)
+        : Task<Result<'value, 'error>> =
+        task {
+            match result with
+            | Ok value -> return Ok value
+            | Error () ->
+                let! error = errorTask
+                return Error error
+        }
+
+    let orElseAsync
+        (errorAsync: Async<'error>)
+        (result: Result<'value, unit>)
+        : Task<Result<'value, 'error>> =
+        task {
+            match result with
+            | Ok value -> return Ok value
+            | Error () ->
+                let! error = errorAsync |> Async.StartAsTask
+                return Error error
+        }
+
+    let orElseFlow
+        (errorFlow: Flow<'env, 'error, 'errorValue>)
+        (result: Result<'value, unit>)
+        : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                match result with
+                | Ok value -> return Ok value
+                | Error () ->
+                    match Flow.run environment errorFlow with
+                    | Ok errorValue -> return Error errorValue
+                    | Error error -> return Error error
+            })
+
+    let orElseAsyncFlow
+        (errorFlow: AsyncFlow<'env, 'error, 'errorValue>)
+        (result: Result<'value, unit>)
+        : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                match result with
+                | Ok value -> return Ok value
+                | Error () ->
+                    let! outcome =
+                        AsyncFlow.run environment errorFlow
+                        |> fun operation -> Async.StartAsTask(operation, cancellationToken = cancellationToken)
+
+                    match outcome with
+                    | Ok errorValue -> return Error errorValue
+                    | Error error -> return Error error
+            })
+
+    let orElseTaskFlow
+        (errorFlow: TaskFlow<'env, 'error, 'errorValue>)
+        (result: Result<'value, unit>)
+        : TaskFlow<'env, 'error, 'value> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                match result with
+                | Ok value -> return Ok value
+                | Error () ->
+                    let! outcome = run environment cancellationToken errorFlow
+
+                    match outcome with
+                    | Ok errorValue -> return Error errorValue
+                    | Error error -> return Error error
+            })
+
     let fromFlow (flow: Flow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment _ -> Task.FromResult(Flow.run environment flow))
 
