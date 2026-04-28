@@ -109,6 +109,7 @@ Prefer `TaskFlow` when:
 - runtime cancellation belongs in execution
 
 Use `TaskFlow.toTask` to run it.
+Use `Flow.Runtime` or `AsyncFlow.Runtime` for shared operational helpers like `sleep`, `timeout`, `retry`, and `useWithAcquireRelease`.
 
 ## `ColdTask<'value>`
 

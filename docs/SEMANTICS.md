@@ -129,6 +129,23 @@ let workflow : TaskFlow<unit, string, int> =
 
 Each run calls the `ColdTask` factory again and passes in the current workflow cancellation token.
 
+## Runtime Helpers
+
+The shared runtime helpers live on `Flow.Runtime` and `AsyncFlow.Runtime`:
+
+- `cancellationToken`
+- `catchCancellation`
+- `ensureNotCanceled`
+- `sleep`
+- `log`
+- `logWith`
+- `useWithAcquireRelease`
+- `timeout`
+- `retry`
+
+Use `Flow.Runtime` for synchronous workflows and `AsyncFlow.Runtime` for async workflows.
+`FsFlow.Net.TaskFlow` stays focused on task interop and cold task execution.
+
 ## Family Direction
 
 The workflow families intentionally compose upward:

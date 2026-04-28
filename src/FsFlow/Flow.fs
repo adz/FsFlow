@@ -461,6 +461,204 @@ module AsyncFlow =
     let delay (factory: unit -> AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow(InternalCombinatorCore.delayWith run factory)
 
+    /// <summary>
+    /// Runtime helpers for operational concerns like logging, timeout, retry, and cleanup.
+    /// </summary>
+    [<RequireQualifiedAccess>]
+    module Runtime =
+        open System.Threading
+        open System.Threading.Tasks
+
+        /// <summary>
+        /// Reads the current cancellation token from the flow.
+        /// </summary>
+        /// <remarks>This observes the runtime token; it does not translate cancellation into a typed error by itself.</remarks>
+        let cancellationToken<'env, 'error> : AsyncFlow<'env, 'error, CancellationToken> =
+            AsyncFlow(fun _ ->
+                async {
+                    let! cancellationToken = Async.CancellationToken
+                    return Ok cancellationToken
+                })
+
+        /// <summary>
+        /// Catches <see cref="OperationCanceledException"/> and converts it into a typed error.
+        /// </summary>
+        /// <param name="handler">The function to convert the exception.</param>
+        /// <param name="flow">The source flow.</param>
+        /// <remarks>This translates cancellation exceptions raised during execution. It does not pre-check the token.</remarks>
+        let catchCancellation
+            (handler: OperationCanceledException -> 'error)
+            (flow: AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            AsyncFlow(fun environment ->
+                async {
+                    try
+                        return! run environment flow
+                    with :? OperationCanceledException as error ->
+                        return Error(handler error)
+                })
+
+        /// <summary>
+        /// Checks if cancellation has been requested and returns a typed error if it has.
+        /// </summary>
+        /// <param name="canceledError">The error to return if canceled.</param>
+        /// <remarks>This observes the current token state and returns a typed error immediately instead of waiting for an exception.</remarks>
+        let ensureNotCanceled (canceledError: 'error) : AsyncFlow<'env, 'error, unit> =
+            AsyncFlow(fun _ ->
+                async {
+                    let! cancellationToken = Async.CancellationToken
+
+                    if cancellationToken.IsCancellationRequested then
+                        return Error canceledError
+                    else
+                        return Ok ()
+                })
+
+        /// <summary>
+        /// Suspends the flow for the specified duration, observing cancellation.
+        /// </summary>
+        /// <param name="delay">The duration to sleep.</param>
+        /// <remarks>If the runtime token is canceled, the underlying task raises cancellation which can be translated with <see cref="catchCancellation"/>.</remarks>
+        let sleep (delay: TimeSpan) : AsyncFlow<'env, 'error, unit> =
+            AsyncFlow(fun _ ->
+                async {
+                    let! cancellationToken = Async.CancellationToken
+                    do! Task.Delay(delay, cancellationToken) |> Async.AwaitTask
+                    return Ok ()
+                })
+
+        /// <summary>
+        /// Writes a log entry using the writer provided by the environment.
+        /// </summary>
+        /// <param name="writer">The logging function extracted from the environment.</param>
+        /// <param name="level">The log level.</param>
+        /// <param name="message">The message.</param>
+        let log
+            (writer: 'env -> LogEntry -> unit)
+            (level: LogLevel)
+            (message: string)
+            : AsyncFlow<'env, 'error, unit> =
+            AsyncFlow(fun environment ->
+                async {
+                    writer
+                        environment
+                        { Level = level
+                          Message = message
+                          TimestampUtc = DateTimeOffset.UtcNow }
+
+                    return Ok ()
+                })
+
+        /// <summary>
+        /// Writes a log entry using a message produced from the environment.
+        /// </summary>
+        /// <param name="writer">The logging function extracted from the environment.</param>
+        /// <param name="level">The log level.</param>
+        /// <param name="messageFactory">The function to produce the message from the environment.</param>
+        let logWith
+            (writer: 'env -> LogEntry -> unit)
+            (level: LogLevel)
+            (messageFactory: 'env -> string)
+            : AsyncFlow<'env, 'error, unit> =
+            AsyncFlow(fun environment ->
+                async {
+                    writer
+                        environment
+                        { Level = level
+                          Message = messageFactory environment
+                          TimestampUtc = DateTimeOffset.UtcNow }
+
+                    return Ok ()
+                })
+
+        /// <summary>
+        /// Safely acquires a resource, uses it, and ensures it is released via a task-based action.
+        /// </summary>
+        /// <param name="acquire">The flow that acquires the resource.</param>
+        /// <param name="release">The function that releases the resource.</param>
+        /// <param name="useResource">The flow that uses the resource.</param>
+        let useWithAcquireRelease
+            (acquire: AsyncFlow<'env, 'error, 'resource>)
+            (release: 'resource -> CancellationToken -> Task)
+            (useResource: 'resource -> AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            bind
+                (fun resource ->
+                    AsyncFlow(fun environment ->
+                        async {
+                            let! cancellationToken = Async.CancellationToken
+                            let! result = run environment (useResource resource) |> Async.Catch
+
+                            do! release resource cancellationToken |> Async.AwaitTask
+
+                            match result with
+                            | Choice1Of2 (Ok value) -> return Ok value
+                            | Choice1Of2 (Error error) -> return Error error
+                            | Choice2Of2 error -> return raise error
+                        }))
+                acquire
+
+        /// <summary>
+        /// Wraps a flow with a timeout. If the flow does not complete within the specified duration, returns a typed error.
+        /// </summary>
+        /// <param name="after">The duration after which to timeout.</param>
+        /// <param name="timeoutError">The error to return on timeout.</param>
+        /// <param name="flow">The flow to wrap.</param>
+        /// <remarks>This helper translates timeout into a typed error. It does not automatically cancel the underlying work on timeout.</remarks>
+        let timeout
+            (after: TimeSpan)
+            (timeoutError: 'error)
+            (flow: AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            AsyncFlow(fun environment ->
+                async {
+                    let! cancellationToken = Async.CancellationToken
+                    let operation =
+                        run environment flow
+                        |> fun asyncOperation -> Async.StartAsTask(asyncOperation, cancellationToken = cancellationToken)
+
+                    let timeoutTask = Task.Delay after
+                    let! completed = Task.WhenAny([| operation :> Task; timeoutTask |]) |> Async.AwaitTask
+
+                    if obj.ReferenceEquals(completed, timeoutTask) then
+                        return Error timeoutError
+                    else
+                        return! operation |> Async.AwaitTask
+                })
+
+        /// <summary>
+        /// Retries a flow according to the specified policy.
+        /// </summary>
+        /// <param name="policy">The retry policy.</param>
+        /// <param name="flow">The flow to retry.</param>
+        let retry
+            (policy: RetryPolicy<'error>)
+            (flow: AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            if policy.MaxAttempts < 1 then
+                invalidArg (nameof policy.MaxAttempts) "RetryPolicy.MaxAttempts must be at least 1."
+
+            let rec loop attempt =
+                AsyncFlow(fun environment ->
+                    async {
+                        let! result = run environment flow
+
+                        match result with
+                        | Ok value -> return Ok value
+                        | Error error when attempt < policy.MaxAttempts && policy.ShouldRetry error ->
+                            let delay = policy.Delay attempt
+                            let! cancellationToken = Async.CancellationToken
+
+                            if delay > TimeSpan.Zero then
+                                do! Task.Delay(delay, cancellationToken) |> Async.AwaitTask
+
+                            return! run environment (loop (attempt + 1))
+                        | Error error ->
+                            return Error error
+                    })
+
+            loop 1
+
 /// <summary>
 /// Computation expression builder for synchronous <see cref="T:FsFlow.Flow`3" /> workflows.
 /// </summary>

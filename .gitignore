@@ -7,3 +7,4 @@ artifacts/*
 .codex
 .fsdocs/
 output/
+BenchmarkDotNet.Artifacts/

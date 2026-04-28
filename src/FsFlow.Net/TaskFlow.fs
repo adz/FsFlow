@@ -87,14 +87,14 @@ module TaskFlow =
         TaskFlow(fun _ _ -> Task.FromResult result)
 
     let fromOption (error: 'error) (value: 'value option) : TaskFlow<'env, 'error, 'value> =
-        value
-        |> FsFlow.OptionFlow.toResult error
-        |> fromResult
+        match value with
+        | Some innerValue -> succeed innerValue
+        | None -> fail error
 
     let fromValueOption (error: 'error) (value: 'value voption) : TaskFlow<'env, 'error, 'value> =
-        value
-        |> FsFlow.OptionFlow.toResultValueOption error
-        |> fromResult
+        match value with
+        | ValueSome innerValue -> succeed innerValue
+        | ValueNone -> fail error
 
     let fromFlow (flow: Flow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow(fun environment _ -> Task.FromResult(Flow.run environment flow))
@@ -299,14 +299,14 @@ type TaskFlowBuilder() =
         TaskFlow.fromResult result
 
     member _.ReturnFrom(option: 'value option) : TaskFlow<'env, unit, 'value> =
-        option
-        |> FsFlow.OptionFlow.toUnitResult
-        |> TaskFlow.fromResult
+        match option with
+        | Some value -> TaskFlow.succeed value
+        | None -> TaskFlow.fail ()
 
     member _.ReturnFrom(option: 'value voption) : TaskFlow<'env, unit, 'value> =
-        option
-        |> FsFlow.OptionFlow.toUnitResultValueOption
-        |> TaskFlow.fromResult
+        match option with
+        | ValueSome value -> TaskFlow.succeed value
+        | ValueNone -> TaskFlow.fail ()
 
     member _.Zero() : TaskFlow<'env, 'error, unit> =
         TaskFlow.succeed ()
@@ -395,20 +395,18 @@ type TaskFlowBuilder() =
             option: 'value option,
             binder: 'value -> TaskFlow<'env, unit, 'next>
         ) : TaskFlow<'env, unit, 'next> =
-        option
-        |> FsFlow.OptionFlow.toUnitResult
-        |> TaskFlow.fromResult
-        |> TaskFlow.bind binder
+        match option with
+        | Some value -> binder value
+        | None -> TaskFlow.fail ()
 
     member _.Bind
         (
             option: 'value voption,
             binder: 'value -> TaskFlow<'env, unit, 'next>
         ) : TaskFlow<'env, unit, 'next> =
-        option
-        |> FsFlow.OptionFlow.toUnitResultValueOption
-        |> TaskFlow.fromResult
-        |> TaskFlow.bind binder
+        match option with
+        | ValueSome value -> binder value
+        | ValueNone -> TaskFlow.fail ()
 
     member _.Delay(factory: unit -> TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow.delay factory

@@ -27,7 +27,8 @@ Use these pages in this order:
 7. [Environment Slicing](ENV_SLICING.html)
 8. [Semantics](SEMANTICS.html)
 9. [Troubleshooting Types](TROUBLESHOOTING_TYPES.html)
-10. [FsFlow And Effect-TS](EFFECT_TS_COMPARISON.html)
+10. [Benchmarks](BENCHMARKS.html)
+11. [FsFlow And Effect-TS](EFFECT_TS_COMPARISON.html)
 
 Runnable examples live in the repository under
 [`examples/`](https://github.com/adz/FsFlow/tree/main/examples).

@@ -202,6 +202,39 @@ Interpretation:
   - `TaskFlow` should remain `Task`-backed for now because the correctness model still dominates
   - future performance work should first target reducing completed-path overhead in the existing `Task`-backed combinators before reconsidering a stored `ValueTask` backbone
 
+Task 24 direction:
+
+- the benchmark harness should now use BenchmarkDotNet rather than ad hoc stopwatch loops
+- the benchmark story should not stop at one `Async<Result<_,_>>` comparison because the main user question is broader than migration alone
+- the suite should keep the scenarios modular so each measured cost maps to one semantic claim:
+  - reader overhead through `localEnv`
+  - short-circuit cost through `Result`
+  - composition depth across `Flow`, `AsyncFlow`, and `TaskFlow`
+  - cancellation propagation cost in task-oriented workflows
+  - synchronous-success cost for the `Task` backbone versus the local `ValueTask` candidate
+- the main published comparisons should be:
+  - `AsyncFlow` versus direct `Async<Result<_,_>>`
+  - `TaskFlow` versus direct `Task<Result<_,_>>`
+  - `TaskFlow` versus raw `Task`
+  - `TaskFlow.localEnv` versus manual env passing and `AsyncLocal`
+- this gives a more coherent user story than a single "FsFlow versus Async<Result>" number because it isolates which part of the abstraction is paying for which semantic benefit
+
+Task 24 recorded run:
+
+- benchmark date: `2026-04-28`
+- harness: BenchmarkDotNet `0.15.8`
+- host runtime: `.NET 10.0.5`
+- measurement mode for the first published pass:
+  - in-process job
+  - `3` warmup iterations
+  - `3` measured iterations
+- first conclusions:
+  - `AsyncFlow` is currently about `1.18x` slower than direct `Async<Result<_,_>>` on the late-failure path and about `1.78x` slower on the earliest-failure path
+  - `TaskFlow` is currently about `2.21x` slower than direct `Task<Result<_,_>>` on the late-failure path and about `15.17x` slower on the earliest-failure path
+  - `TaskFlow` is currently about `3.14x` slower than raw `Task` in the recorded 100-bind composition benchmark
+  - `TaskFlow.localEnv` is slower than manual env passing but still faster than `AsyncLocal` mutation in the measured 10-layer reader scenario
+  - the candidate `ValueTask` backbone still shows a large synchronous-completion advantage over the current `TaskFlow` backbone
+
 ## Option And ValueOption
 
 `Option<'value>` and `ValueOption<'value>` should be short-circuiting inputs.

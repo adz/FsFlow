@@ -562,6 +562,54 @@ let probe : TaskFlow<unit, string, int> =
         test <@ mapped = Ok 16 @>
 
     [<Fact>]
+    let ``AsyncFlow runtime helpers cover timeout retry and release`` () =
+        let timeoutResult =
+            AsyncFlow.Runtime.sleep (TimeSpan.FromMilliseconds 20.0)
+            |> AsyncFlow.Runtime.timeout (TimeSpan.FromMilliseconds 1.0) "timed out"
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let retryRuns = ref 0
+
+        let retryWorkflow =
+            let policy : RetryPolicy<string> =
+                { MaxAttempts = 3
+                  Delay = fun _ -> TimeSpan.Zero
+                  ShouldRetry = fun error -> error = "transient" }
+
+            AsyncFlow.delay(fun () ->
+                retryRuns.Value <- retryRuns.Value + 1
+
+                if retryRuns.Value < 2 then
+                    AsyncFlow.fail "transient"
+                else
+                    AsyncFlow.succeed 42)
+            |> AsyncFlow.Runtime.retry policy
+
+        let retryResult =
+            retryWorkflow
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        let releaseCount = ref 0
+
+        let acquireReleaseResult =
+            AsyncFlow.Runtime.useWithAcquireRelease
+                (AsyncFlow.succeed 7)
+                (fun _ _ ->
+                    releaseCount.Value <- releaseCount.Value + 1
+                    Task.CompletedTask)
+                (fun _ -> AsyncFlow.fail "boom")
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+
+        test <@ timeoutResult = Error "timed out" @>
+        test <@ retryResult = Ok 42 @>
+        test <@ retryRuns.Value = 2 @>
+        test <@ acquireReleaseResult = Error "boom" @>
+        test <@ releaseCount.Value = 1 @>
+
+    [<Fact>]
     let ``flow computation expression is sync only`` () =
         let workflow : Flow<int, string, int> =
             flow {
