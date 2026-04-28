@@ -144,7 +144,20 @@ The shared runtime helpers live on `Flow.Runtime` and `AsyncFlow.Runtime`:
 - `retry`
 
 Use `Flow.Runtime` for synchronous workflows and `AsyncFlow.Runtime` for async workflows.
-`FsFlow.Net.TaskFlow` stays focused on task interop and cold task execution.
+
+The `FsFlow.Net` package also provides `TaskFlow.Runtime` for task-native workflows:
+
+- `TaskFlow.Runtime.cancellationToken`
+- `TaskFlow.Runtime.catchCancellation`
+- `TaskFlow.Runtime.ensureNotCanceled`
+- `TaskFlow.Runtime.sleep`
+- `TaskFlow.Runtime.log`
+- `TaskFlow.Runtime.logWith`
+- `TaskFlow.Runtime.useWithAcquireRelease`
+- `TaskFlow.Runtime.timeout`
+- `TaskFlow.Runtime.retry`
+
+Use `TaskFlow.Runtime` when the public boundary is task-based and the helper belongs in task execution.
 
 ## Family Direction
 

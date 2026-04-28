@@ -610,6 +610,136 @@ let probe : TaskFlow<unit, string, int> =
         test <@ releaseCount.Value = 1 @>
 
     [<Fact>]
+    let ``TaskFlow runtime helpers cover timeout retry and release`` () =
+        let timeoutResult =
+            TaskFlow.Runtime.sleep (TimeSpan.FromMilliseconds 20.0)
+            |> TaskFlow.Runtime.timeout (TimeSpan.FromMilliseconds 1.0) "timed out"
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let retryRuns = ref 0
+
+        let retryWorkflow =
+            let policy : RetryPolicy<string> =
+                { MaxAttempts = 3
+                  Delay = fun _ -> TimeSpan.Zero
+                  ShouldRetry = fun error -> error = "transient" }
+
+            TaskFlow.delay(fun () ->
+                retryRuns.Value <- retryRuns.Value + 1
+
+                if retryRuns.Value < 2 then
+                    TaskFlow.fail "transient"
+                else
+                    TaskFlow.succeed 42)
+            |> TaskFlow.Runtime.retry policy
+
+        let retryResult =
+            retryWorkflow
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        let releaseCount = ref 0
+
+        let acquireReleaseResult =
+            TaskFlow.Runtime.useWithAcquireRelease
+                (TaskFlow.succeed 7)
+                (fun _ _ ->
+                    releaseCount.Value <- releaseCount.Value + 1
+                    Task.CompletedTask)
+                (fun _ -> TaskFlow.fail "boom")
+            |> TaskFlow.run () CancellationToken.None
+            |> fun task -> task.GetAwaiter().GetResult()
+
+        test <@ timeoutResult = Error "timed out" @>
+        test <@ retryResult = Ok 42 @>
+        test <@ retryRuns.Value = 2 @>
+        test <@ acquireReleaseResult = Error "boom" @>
+        test <@ releaseCount.Value = 1 @>
+
+    [<Fact>]
+    let ``Flow traverse and sequence work as expected`` () =
+        let values = [ 1; 2; 3 ]
+        let workflow = values |> Flow.traverse (fun v -> Flow.succeed (v * 2))
+        let result = Flow.run () workflow
+        test <@ result = Ok [ 2; 4; 6 ] @>
+
+        let flows = [ Flow.succeed 1; Flow.succeed 2 ]
+        let sequenceResult = Flow.run () (Flow.sequence flows)
+        test <@ sequenceResult = Ok [ 1; 2 ] @>
+
+        let failWorkflow = [ 1; 2 ] |> Flow.traverse (fun v -> if v = 1 then Flow.fail "error" else Flow.succeed v)
+        test <@ Flow.run () failWorkflow = Error "error" @>
+
+    [<Fact>]
+    let ``AsyncFlow traverse and sequence work as expected`` () =
+        let values = [ 1; 2; 3 ]
+        let workflow = values |> AsyncFlow.traverse (fun v -> AsyncFlow.succeed (v * 2))
+        let result = AsyncFlow.run () workflow |> Async.RunSynchronously
+        test <@ result = Ok [ 2; 4; 6 ] @>
+
+        let flows = [ AsyncFlow.succeed 1; AsyncFlow.succeed 2 ]
+        let sequenceResult = AsyncFlow.run () (AsyncFlow.sequence flows) |> Async.RunSynchronously
+        test <@ sequenceResult = Ok [ 1; 2 ] @>
+
+    [<Fact>]
+    let ``TaskFlow traverse and sequence work as expected`` () =
+        let values = [ 1; 2; 3 ]
+        let workflow = values |> TaskFlow.traverse (fun v -> TaskFlow.succeed (v * 2))
+        let result = TaskFlow.run () CancellationToken.None workflow |> fun t -> t.GetAwaiter().GetResult()
+        test <@ result = Ok [ 2; 4; 6 ] @>
+
+        let flows = [ TaskFlow.succeed 1; TaskFlow.succeed 2 ]
+        let sequenceResult = TaskFlow.run () CancellationToken.None (TaskFlow.sequence flows) |> fun t -> t.GetAwaiter().GetResult()
+        test <@ sequenceResult = Ok [ 1; 2 ] @>
+
+    [<Fact>]
+    let ``AsyncFlow timeout helpers work as expected`` () =
+        let okResult = 
+            AsyncFlow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+            |> AsyncFlow.Runtime.timeoutToOk (TimeSpan.FromMilliseconds 1.0) ()
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+        test <@ okResult = Ok () @>
+
+        let errorResult =
+            AsyncFlow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+            |> AsyncFlow.Runtime.timeoutToError (TimeSpan.FromMilliseconds 1.0) "timed out"
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+        test <@ errorResult = Error "timed out" @>
+
+        let withResult =
+            AsyncFlow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+            |> AsyncFlow.Runtime.timeoutWith (TimeSpan.FromMilliseconds 1.0) (fun () -> AsyncFlow.succeed ())
+            |> AsyncFlow.run ()
+            |> Async.RunSynchronously
+        test <@ withResult = Ok () @>
+
+    [<Fact>]
+    let ``TaskFlow timeout helpers work as expected`` () =
+        let okResult = 
+            TaskFlow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+            |> TaskFlow.Runtime.timeoutToOk (TimeSpan.FromMilliseconds 1.0) ()
+            |> TaskFlow.run () CancellationToken.None
+            |> fun t -> t.GetAwaiter().GetResult()
+        test <@ okResult = Ok () @>
+
+        let errorResult =
+            TaskFlow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+            |> TaskFlow.Runtime.timeoutToError (TimeSpan.FromMilliseconds 1.0) "timed out"
+            |> TaskFlow.run () CancellationToken.None
+            |> fun t -> t.GetAwaiter().GetResult()
+        test <@ errorResult = Error "timed out" @>
+
+        let withResult =
+            TaskFlow.Runtime.sleep (TimeSpan.FromMilliseconds 50.0)
+            |> TaskFlow.Runtime.timeoutWith (TimeSpan.FromMilliseconds 1.0) (fun () -> TaskFlow.succeed ())
+            |> TaskFlow.run () CancellationToken.None
+            |> fun t -> t.GetAwaiter().GetResult()
+        test <@ withResult = Ok () @>
+
+    [<Fact>]
     let ``flow computation expression is sync only`` () =
         let workflow : Flow<int, string, int> =
             flow {

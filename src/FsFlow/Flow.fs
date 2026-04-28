@@ -279,6 +279,33 @@ module Flow =
     let delay (factory: unit -> Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
         Flow(InternalCombinatorCore.delayWith run factory)
 
+    /// <summary>
+    /// Transforms a sequence of values into a flow by applying a flow-producing function to each element.
+    /// </summary>
+    let traverse
+        (mapping: 'value -> Flow<'env, 'error, 'next>)
+        (values: seq<'value>)
+        : Flow<'env, 'error, 'next list> =
+        Flow(fun environment ->
+            let results = ResizeArray()
+            let mutable currentError = None
+            use enumerator = values.GetEnumerator()
+
+            while currentError.IsNone && enumerator.MoveNext() do
+                match mapping enumerator.Current |> run environment with
+                | Ok value -> results.Add value
+                | Error error -> currentError <- Some error
+
+            match currentError with
+            | Some error -> Error error
+            | None -> Ok(List.ofSeq results))
+
+    /// <summary>
+    /// Transforms a sequence of flows into a flow of a sequence.
+    /// </summary>
+    let sequence (flows: seq<Flow<'env, 'error, 'value>>) : Flow<'env, 'error, 'value list> =
+        traverse id flows
+
 /// <summary>
 /// Core functions for creating, composing, and executing async flows.
 /// </summary>
@@ -462,6 +489,37 @@ module AsyncFlow =
         AsyncFlow(InternalCombinatorCore.delayWith run factory)
 
     /// <summary>
+    /// Transforms a sequence of values into an async flow by applying an async flow-producing function to each element.
+    /// </summary>
+    let traverse
+        (mapping: 'value -> AsyncFlow<'env, 'error, 'next>)
+        (values: seq<'value>)
+        : AsyncFlow<'env, 'error, 'next list> =
+        AsyncFlow(fun environment ->
+            async {
+                let results = ResizeArray()
+                let mutable currentError = None
+                use enumerator = values.GetEnumerator()
+
+                while currentError.IsNone && enumerator.MoveNext() do
+                    let! outcome = mapping enumerator.Current |> run environment
+
+                    match outcome with
+                    | Ok value -> results.Add value
+                    | Error error -> currentError <- Some error
+
+                match currentError with
+                | Some error -> return Error error
+                | None -> return Ok(List.ofSeq results)
+            })
+
+    /// <summary>
+    /// Transforms a sequence of async flows into an async flow of a sequence.
+    /// </summary>
+    let sequence (flows: seq<AsyncFlow<'env, 'error, 'value>>) : AsyncFlow<'env, 'error, 'value list> =
+        traverse id flows
+
+    /// <summary>
     /// Runtime helpers for operational concerns like logging, timeout, retry, and cleanup.
     /// </summary>
     [<RequireQualifiedAccess>]
@@ -474,7 +532,7 @@ module AsyncFlow =
         /// </summary>
         /// <remarks>This observes the runtime token; it does not translate cancellation into a typed error by itself.</remarks>
         let cancellationToken<'env, 'error> : AsyncFlow<'env, 'error, CancellationToken> =
-            AsyncFlow(fun _ ->
+            AsyncFlow(fun _environment ->
                 async {
                     let! cancellationToken = Async.CancellationToken
                     return Ok cancellationToken
@@ -503,8 +561,8 @@ module AsyncFlow =
         /// </summary>
         /// <param name="canceledError">The error to return if canceled.</param>
         /// <remarks>This observes the current token state and returns a typed error immediately instead of waiting for an exception.</remarks>
-        let ensureNotCanceled (canceledError: 'error) : AsyncFlow<'env, 'error, unit> =
-            AsyncFlow(fun _ ->
+        let ensureNotCanceled<'env, 'error> (canceledError: 'error) : AsyncFlow<'env, 'error, unit> =
+            AsyncFlow(fun _environment ->
                 async {
                     let! cancellationToken = Async.CancellationToken
 
@@ -519,8 +577,8 @@ module AsyncFlow =
         /// </summary>
         /// <param name="delay">The duration to sleep.</param>
         /// <remarks>If the runtime token is canceled, the underlying task raises cancellation which can be translated with <see cref="catchCancellation"/>.</remarks>
-        let sleep (delay: TimeSpan) : AsyncFlow<'env, 'error, unit> =
-            AsyncFlow(fun _ ->
+        let sleep<'env, 'error> (delay: TimeSpan) : AsyncFlow<'env, 'error, unit> =
+            AsyncFlow(fun _environment ->
                 async {
                     let! cancellationToken = Async.CancellationToken
                     do! Task.Delay(delay, cancellationToken) |> Async.AwaitTask
@@ -622,6 +680,64 @@ module AsyncFlow =
 
                     if obj.ReferenceEquals(completed, timeoutTask) then
                         return Error timeoutError
+                    else
+                        return! operation |> Async.AwaitTask
+                })
+
+        /// <summary>
+        /// Wraps a flow with a timeout. If the flow does not complete within the specified duration, returns a success value.
+        /// </summary>
+        let timeoutToOk
+            (after: TimeSpan)
+            (value: 'value)
+            (flow: AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            AsyncFlow(fun environment ->
+                async {
+                    let! cancellationToken = Async.CancellationToken
+                    let operation =
+                        run environment flow
+                        |> fun asyncOperation -> Async.StartAsTask(asyncOperation, cancellationToken = cancellationToken)
+
+                    let timeoutTask = Task.Delay after
+                    let! completed = Task.WhenAny([| operation :> Task; timeoutTask |]) |> Async.AwaitTask
+
+                    if obj.ReferenceEquals(completed, timeoutTask) then
+                        return Ok value
+                    else
+                        return! operation |> Async.AwaitTask
+                })
+
+        /// <summary>
+        /// Transitions to a failure value on timeout.
+        /// </summary>
+        let timeoutToError
+            (after: TimeSpan)
+            (error: 'error)
+            (flow: AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            timeout after error flow
+
+        /// <summary>
+        /// Transitions to a fallback workflow on timeout.
+        /// </summary>
+        let timeoutWith
+            (after: TimeSpan)
+            (fallback: unit -> AsyncFlow<'env, 'error, 'value>)
+            (flow: AsyncFlow<'env, 'error, 'value>)
+            : AsyncFlow<'env, 'error, 'value> =
+            AsyncFlow(fun environment ->
+                async {
+                    let! cancellationToken = Async.CancellationToken
+                    let operation =
+                        run environment flow
+                        |> fun asyncOperation -> Async.StartAsTask(asyncOperation, cancellationToken = cancellationToken)
+
+                    let timeoutTask = Task.Delay after
+                    let! completed = Task.WhenAny([| operation :> Task; timeoutTask |]) |> Async.AwaitTask
+
+                    if obj.ReferenceEquals(completed, timeoutTask) then
+                        return! run environment (fallback ())
                     else
                         return! operation |> Async.AwaitTask
                 })

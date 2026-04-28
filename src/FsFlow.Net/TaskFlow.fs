@@ -260,6 +260,217 @@ module TaskFlow =
                 factory
                 (environment, cancellationToken))
 
+    /// <summary>
+    /// Transforms a sequence of values into a task flow by applying a task flow-producing function to each element.
+    /// </summary>
+    let traverse
+        (mapping: 'value -> TaskFlow<'env, 'error, 'next>)
+        (values: seq<'value>)
+        : TaskFlow<'env, 'error, 'next list> =
+        TaskFlow(fun environment cancellationToken ->
+            task {
+                let results = ResizeArray()
+                let mutable currentError = None
+                use enumerator = values.GetEnumerator()
+
+                while currentError.IsNone && enumerator.MoveNext() do
+                    let! outcome = mapping enumerator.Current |> run environment cancellationToken
+
+                    match outcome with
+                    | Ok value -> results.Add value
+                    | Error error -> currentError <- Some error
+
+                match currentError with
+                | Some error -> return Error error
+                | None -> return Ok(List.ofSeq results)
+            })
+
+    /// <summary>
+    /// Transforms a sequence of task flows into a task flow of a sequence.
+    /// </summary>
+    let sequence (flows: seq<TaskFlow<'env, 'error, 'value>>) : TaskFlow<'env, 'error, 'value list> =
+        traverse id flows
+
+    /// <summary>
+    /// Task-native runtime helpers for operational concerns like logging, timeout, retry, and scoped cleanup.
+    /// </summary>
+    [<RequireQualifiedAccess>]
+    module Runtime =
+        let cancellationToken<'env, 'error> : TaskFlow<'env, 'error, CancellationToken> =
+            TaskFlow(fun _environment cancellationToken -> Task.FromResult(Ok cancellationToken))
+
+        let catchCancellation
+            (handler: OperationCanceledException -> 'error)
+            (flow: TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            TaskFlow(fun environment cancellationToken ->
+                task {
+                    try
+                        return! run environment cancellationToken flow
+                    with :? OperationCanceledException as error ->
+                        return Error(handler error)
+                })
+
+        let ensureNotCanceled<'env, 'error> (canceledError: 'error) : TaskFlow<'env, 'error, unit> =
+            TaskFlow(fun _environment cancellationToken ->
+                if cancellationToken.IsCancellationRequested then
+                    Task.FromResult(Error canceledError)
+                else
+                    Task.FromResult(Ok ()))
+
+        let sleep<'env, 'error> (delay: TimeSpan) : TaskFlow<'env, 'error, unit> =
+            TaskFlow(fun _environment cancellationToken ->
+                task {
+                    do! Task.Delay(delay, cancellationToken)
+                    return Ok ()
+                })
+
+        let log
+            (writer: 'env -> LogEntry -> unit)
+            (level: LogLevel)
+            (message: string)
+            : TaskFlow<'env, 'error, unit> =
+            TaskFlow(fun environment _ ->
+                writer
+                    environment
+                    { Level = level
+                      Message = message
+                      TimestampUtc = DateTimeOffset.UtcNow }
+
+                Task.FromResult(Ok ()))
+
+        let logWith
+            (writer: 'env -> LogEntry -> unit)
+            (level: LogLevel)
+            (messageFactory: 'env -> string)
+            : TaskFlow<'env, 'error, unit> =
+            TaskFlow(fun environment _ ->
+                writer
+                    environment
+                    { Level = level
+                      Message = messageFactory environment
+                      TimestampUtc = DateTimeOffset.UtcNow }
+
+                Task.FromResult(Ok ()))
+
+        let useWithAcquireRelease
+            (acquire: TaskFlow<'env, 'error, 'resource>)
+            (release: 'resource -> CancellationToken -> Task)
+            (useResource: 'resource -> TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            bind
+                (fun resource ->
+                    TaskFlow(fun environment cancellationToken ->
+                        async {
+                            let! result =
+                                run environment cancellationToken (useResource resource)
+                                |> Async.AwaitTask
+                                |> Async.Catch
+
+                            do! release resource cancellationToken |> Async.AwaitTask
+
+                            match result with
+                            | Choice1Of2 (Ok value) -> return Ok value
+                            | Choice1Of2 (Error error) -> return Error error
+                            | Choice2Of2 error -> return raise error
+                        }
+                        |> fun computation -> Async.StartAsTask(computation, cancellationToken = cancellationToken)))
+                acquire
+
+        let timeout
+            (after: TimeSpan)
+            (timeoutError: 'error)
+            (flow: TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            TaskFlow(fun environment cancellationToken ->
+                task {
+                    let operation = run environment cancellationToken flow
+                    let timeoutTask = Task.Delay after
+                    let! completed = Task.WhenAny([| operation :> Task; timeoutTask |])
+
+                    if obj.ReferenceEquals(completed, timeoutTask) then
+                        return Error timeoutError
+                    else
+                        return! operation
+                })
+
+        /// <summary>
+        /// Wraps a flow with a timeout. If the flow does not complete within the specified duration, returns a success value.
+        /// </summary>
+        let timeoutToOk
+            (after: TimeSpan)
+            (value: 'value)
+            (flow: TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            TaskFlow(fun environment cancellationToken ->
+                task {
+                    let operation = run environment cancellationToken flow
+                    let timeoutTask = Task.Delay after
+                    let! completed = Task.WhenAny([| operation :> Task; timeoutTask |])
+
+                    if obj.ReferenceEquals(completed, timeoutTask) then
+                        return Ok value
+                    else
+                        return! operation
+                })
+
+        /// <summary>
+        /// Transitions to a failure value on timeout.
+        /// </summary>
+        let timeoutToError
+            (after: TimeSpan)
+            (error: 'error)
+            (flow: TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            timeout after error flow
+
+        /// <summary>
+        /// Transitions to a fallback workflow on timeout.
+        /// </summary>
+        let timeoutWith
+            (after: TimeSpan)
+            (fallback: unit -> TaskFlow<'env, 'error, 'value>)
+            (flow: TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            TaskFlow(fun environment cancellationToken ->
+                task {
+                    let operation = run environment cancellationToken flow
+                    let timeoutTask = Task.Delay after
+                    let! completed = Task.WhenAny([| operation :> Task; timeoutTask |])
+
+                    if obj.ReferenceEquals(completed, timeoutTask) then
+                        return! run environment cancellationToken (fallback ())
+                    else
+                        return! operation
+                })
+
+        let retry
+            (policy: RetryPolicy<'error>)
+            (flow: TaskFlow<'env, 'error, 'value>)
+            : TaskFlow<'env, 'error, 'value> =
+            if policy.MaxAttempts < 1 then
+                invalidArg (nameof policy.MaxAttempts) "RetryPolicy.MaxAttempts must be at least 1."
+
+            let rec loop attempt =
+                TaskFlow(fun environment cancellationToken ->
+                    task {
+                        let! result = run environment cancellationToken flow
+
+                        match result with
+                        | Ok value -> return Ok value
+                        | Error error when attempt < policy.MaxAttempts && policy.ShouldRetry error ->
+                            let delay = policy.Delay attempt
+
+                            if delay > TimeSpan.Zero then
+                                do! Task.Delay(delay, cancellationToken)
+
+                            return! run environment cancellationToken (loop (attempt + 1))
+                        | Error error ->
+                            return Error error
+                    })
+
+            loop 1
+
 /// <summary>
 /// Computation expression builder for task-based <see cref="T:FsFlow.Net.TaskFlow`3" /> workflows.
 /// </summary>
