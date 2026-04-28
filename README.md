@@ -8,25 +8,27 @@
 
 FsFlow keeps F# application workflows cold, typed, and explicit.
 
-Use it when dependency threading, async work, and expected failures all show up in the same use case.
+Use it when dependency threading, async work, and expected failures all show up in the same use case,
+but you still want the code to read like ordinary F#.
 
 [![ci](https://github.com/adz/FsFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/adz/FsFlow/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/FsFlow.svg)](https://www.nuget.org/packages/FsFlow)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Docs: [adz.github.io/FsFlow](https://adz.github.io/FsFlow/)
+Start with the docs site: [adz.github.io/FsFlow](https://adz.github.io/FsFlow/)
 
-## What You Get
+## Why FsFlow
 
-- `Flow` for synchronous workflows
-- `AsyncFlow` for `Async`-based workflows in the core package
-- `TaskFlow` for `.NET Task`-based workflows in `FsFlow.Net`
+- Keep dependencies visible instead of hiding them in globals or service locators
+- Keep expected failures in the type instead of pushing them into exceptions
+- Keep the runtime shape honest, whether that shape is sync, `Async`, or `Task`
+- Use one family that can fit a booted app environment, explicit feature dependencies, or a conventional `.NET` host
 
 ## Start Here
 
-- [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) for the workflow-family overview
 - [`docs/TINY_EXAMPLES.md`](docs/TINY_EXAMPLES.md) for the smallest runnable snippets
-- [`docs/SEMANTICS.md`](docs/SEMANTICS.md) for the execution model
+- [`docs/ARCHITECTURAL_STYLES.md`](docs/ARCHITECTURAL_STYLES.md) for the supported architecture shapes
+- [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) for the workflow-family overview
 - [`docs/INTEGRATIONS_FSTOOLKIT.md`](docs/INTEGRATIONS_FSTOOLKIT.md) for FsToolkit coexistence and migration
 
 ## Install
@@ -34,5 +36,8 @@ Docs: [adz.github.io/FsFlow](https://adz.github.io/FsFlow/)
 - `FsFlow` for `Flow` and `AsyncFlow`
 - `FsFlow.Net` for `TaskFlow`
 
-Keep the domain plain F#.
-Put FsFlow at the application boundary where the runtime shape is part of the problem.
+## What You Get
+
+- `Flow` for synchronous workflows
+- `AsyncFlow` for `Async`-based workflows in the core package
+- `TaskFlow` for `.NET Task`-based workflows in `FsFlow.Net`
