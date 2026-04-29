@@ -5,7 +5,7 @@ const darkCodeTheme = themes.dracula;
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'FsFlow',
-  tagline: 'Cold, typed workflows for F# application code.',
+  tagline: 'Typed results, explicit context, and async/task interop for F#.',
   favicon: 'img/favicon-light.svg',
   url: 'https://adz.github.io',
   baseUrl: '/FsFlow/',
