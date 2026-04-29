@@ -7,7 +7,6 @@ open System
 /// plus the bridge functions that turn those checks into application errors.
 /// </summary>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
 module Validate =
     /// <summary>Returns success when the condition is true.</summary>
     let okIf (cond: bool) : Result<unit, unit> =
