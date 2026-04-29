@@ -6,10 +6,10 @@
   <img alt="FsFlow" src="docs/content/img/fsflow-readme-light.svg" width="160">
 </picture>
 
-FsFlow blends `Result` with an added `'env` in a `flow { ... }` computation expression,
-for threading dependencies or request context (for example, a trace ID) without globals. 
-It also provides `taskFlow { ... }` and `asyncFlow { ... }` which in addition to `Result`
-and `'env` blend in standard F# Task and Async types respectively.
+FsFlow is an F# library for typed results, explicit context, and async/task interop.
+`flow { ... }` combines `Result` with an added `'env`, so you can thread dependencies or
+request context, such as a trace ID, without globals. `asyncFlow { ... }` and
+`taskFlow { ... }` extend the same style to F# `Async` and .NET `Task`.
 
 [![ci](https://github.com/adz/FsFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/adz/FsFlow/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/FsFlow.svg)](https://www.nuget.org/packages/FsFlow)
