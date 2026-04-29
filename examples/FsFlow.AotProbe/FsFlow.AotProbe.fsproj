@@ -7,6 +7,16 @@
     <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
+  <UsingTask TaskName="ComputeManagedAssemblies"
+             Override="true"
+             AssemblyFile="$(ILLinkTasksAssembly)"
+             Condition="'$(PublishAot)' == 'true' and '$(ILLinkTasksAssembly)' != ''" />
+
+  <UsingTask TaskName="ILLink"
+             Override="true"
+             AssemblyFile="$(ILLinkTasksAssembly)"
+             Condition="'$(PublishAot)' == 'true' and '$(ILLinkTasksAssembly)' != ''" />
+
   <ItemGroup>
     <Compile Include="Program.fs" />
   </ItemGroup>
