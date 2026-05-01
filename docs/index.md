@@ -3,10 +3,6 @@ title: Home
 description: FsFlow technical guides, semantics, and API reference.
 ---
 
-:::warning
-API Still stabilising - wait for 1.0 to avoid breaking changes
-:::
-
 <div class="docs-home-hero">
 
 <div class="docs-home-copy">
@@ -17,6 +13,7 @@ API Still stabilising - wait for 1.0 to avoid breaking changes
 
 <p class="lede">
 Write validation and typed-error logic once. Keep it as plain `Result` while the code is pure, then lift the same logic into `Flow`, `AsyncFlow`, or `TaskFlow` when the boundary needs environment access, async work, task interop, cancellation, or runtime policy.
+![Flow](content/img/flow-graphic.png)
 </p>
 
 <div class="docs-home-meta">
@@ -28,6 +25,10 @@ Write validation and typed-error logic once. Keep it as plain `Result` while the
 </div>
 
 </div>
+
+:::warning
+API Still stabilising - wait for 1.0 to avoid breaking changes
+:::
 
 <aside class="docs-home-panel">
 <section class="docs-home-panel-card">

@@ -123,7 +123,7 @@ let computation : TaskFlow<unit, string, int> =
 
 ## When Explicit Lifting Still Matters
 
-Use the direct auto-lift when the computation error type can stay `unit`.
+For some types you only get the direct auto-lift when the computation error type can stay `unit`.
 Use an explicit lift when you want to choose the error value yourself.
 
 For example, `option<'value>` can bind directly in a `unit`-error computation:
@@ -150,14 +150,12 @@ let typedError : Flow<unit, string, string> =
     }
 ```
 
-The same pattern applies when a `Result<'value, unit>` from `FsFlow.Validate` is ready to become a typed boundary error:
+Another approach to the same type is to user `orElse`
 
 ```fsharp
 let typedError : Flow<unit, string, string> =
     flow {
-        let! name =
-            Validate.okIfNotBlank "Ada"
-            |> Validate.orElse "name is required"
+        let! name = maybeName |> okIfSome |> orElse "name is required"
         return name
     }
 ```
@@ -168,7 +166,7 @@ Prefer `AsyncFlow` when:
 
 - the outer application code already uses `Async`
 - you want to stay in core `FsFlow`
-- `Async` is the honest execution model for the computation
+- `Async` is the execution model for the computation
 
 Use `AsyncFlow.toAsync` to run it.
 
@@ -179,11 +177,16 @@ Prefer `TaskFlow` when:
 - the public boundary is `.NET Task`
 - task interop is central to the computation
 - runtime cancellation belongs in execution
+- `Task` is the execution model for the computation.
 
 Use `TaskFlow.toTask` to run it.
+
 Use `Flow.Runtime` or `AsyncFlow.Runtime` for shared operational helpers like `sleep`, `timeout`, `retry`, and `useWithAcquireRelease`.
+
 Use `TaskFlow.Runtime` when you want the same helpers in a task-native shape.
+
 Use `FsFlow.Validate` for pure `Result<'value, unit>` validation.
+
 The builders bind those results directly, so extra bridge calls are only needed when the error value itself needs a different conversion shape.
 
 ## `ColdTask<'value>`
@@ -226,6 +229,7 @@ Started task inputs are hot:
 - the current cancellation token is passed into the `ColdTask` factory
 
 Use a direct `Task` or `ValueTask` bind when you intentionally want to reuse existing started work.
+
 Use `ColdTask` when the task helper is part of the boundary effect and can stay delayed, restartable, and cancellation-aware.
 
 Example with a started task:

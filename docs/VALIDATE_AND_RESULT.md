@@ -45,7 +45,8 @@ Validate.orElseWith : (unit -> 'error) -> Result<'value, unit> -> Result<'value,
 
 ## Main Pattern
 
-When the validation is just a check, return `Result<unit, 'error>`:
+The primary pattern is to keep the validated value.
+This allows you to bind the result and use the "clean" value in subsequent steps.
 
 ```fsharp
 open FsFlow.Validate
@@ -54,26 +55,25 @@ type RegistrationError =
     | NameRequired
     | EmailRequired
 
-let validateName (name: string) : Result<unit, RegistrationError> =
-    name
-    |> okIfNotBlank
-    |> Result.map ignore
-    |> orElse NameRequired
-
-let validateEmail (email: string) : Result<unit, RegistrationError> =
-    email
-    |> okIfNotBlank
-    |> Result.map ignore
-    |> orElse EmailRequired
-```
-
-When the validation also produces a value, keep the value:
-
-```fsharp
 let requireName (name: string) : Result<string, RegistrationError> =
     name
     |> okIfNotBlank
     |> orElse NameRequired
+
+let requireEmail (email: string) : Result<string, RegistrationError> =
+    email
+    |> okIfNotBlank
+    |> orElse EmailRequired
+```
+
+When you only need a check (and don't need the value), you can still return `Result<unit, 'error>` by ignoring the value:
+
+```fsharp
+let validateName (name: string) : Result<unit, RegistrationError> =
+    requireName name |> Result.map ignore
+
+let validateEmail (email: string) : Result<unit, RegistrationError> =
+    requireEmail email |> Result.map ignore
 ```
 
 ## In Plain Result Code
