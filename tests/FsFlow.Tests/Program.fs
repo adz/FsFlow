@@ -112,13 +112,36 @@ module Tests =
 
             childProcess.Start() |> ignore
 
-            let standardOutput = childProcess.StandardOutput.ReadToEnd()
-            let standardError = childProcess.StandardError.ReadToEnd()
+            let standardOutput = childProcess.StandardOutput.ReadToEndAsync()
+            let standardError = childProcess.StandardError.ReadToEndAsync()
             childProcess.WaitForExit()
+            Task.WhenAll(standardOutput, standardError).Wait()
 
-            childProcess.ExitCode, standardOutput + standardError
+            childProcess.ExitCode, standardOutput.Result + standardError.Result
         finally
             File.Delete scriptPath
+
+    let private runBashScript (scriptPath: string) (environment: (string * string) list) =
+        use childProcess =
+            new Process(
+                StartInfo =
+                    ProcessStartInfo(
+                        FileName = "bash",
+                        Arguments = $"\"{scriptPath}\"",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false
+                    )
+            )
+
+        for key, value in environment do
+            childProcess.StartInfo.EnvironmentVariables[key] <- value
+
+        childProcess.Start() |> ignore
+
+        let standardOutput = childProcess.StandardOutput.ReadToEnd()
+        childProcess.WaitForExit()
+
+        childProcess.ExitCode, standardOutput
 
     type private SingleConsumptionValueTaskSource<'value>(value: 'value) as this =
         let consumptionCount = ref 0
@@ -477,6 +500,25 @@ let probe : TaskFlow<unit, string, int> =
         test <@ rawOutput.Contains("error FS") @>
         test <@ wrappedExitCode = 0 @>
         test <@ wrappedOutput = "" @>
+
+    [<Fact>]
+    let ``Runnable example docs are generated from executable example projects`` () =
+        let repoRoot = Path.GetFullPath(Path.Combine(__SOURCE_DIRECTORY__, "..", ".."))
+        let docsExamplesPath = Path.Combine(repoRoot, "docs", "examples", "README.md")
+        let generatorPath = Path.Combine(repoRoot, "scripts", "generate-example-docs.sh")
+        let generatedPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.md")
+
+        try
+            let exitCode, output =
+                runBashScript generatorPath [ "DOCS_EXAMPLES_OUTPUT", generatedPath ]
+
+            if exitCode <> 0 then
+                failwithf "generate-example-docs.sh failed with exit code %d:%s%s" exitCode Environment.NewLine output
+
+            test <@ File.ReadAllText generatedPath = File.ReadAllText docsExamplesPath @>
+        finally
+            if File.Exists generatedPath then
+                File.Delete generatedPath
 
     [<Fact>]
     let ``TaskFlow can lift AsyncFlow`` () =
