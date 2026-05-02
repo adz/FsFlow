@@ -3,63 +3,42 @@
 This file is the active queue for `scripts/ralph-loop-tasks.sh`.
 Keep completed work out of this file.
 Keep settled design decisions in `dev-docs/decisions/`.
-Keep live architecture direction in `dev-docs/PLAN.md`.
+Keep live product and architecture direction in `dev-docs/PLAN.md`.
 
 The numbered items below are intentionally linear so the ralph loop can move through them one at a time.
 
-## Completed 0.3.0 Release
+1. [ ] Publish one reference page per public API surface in `FsFlow`.
+   - Split `Check`, `Diagnostics`, `Validation`, `Result`, `Flow`, `AsyncFlow`, and the runtime helpers into their own pages.
+   - Lift the page content from the XML doc comments so the rendered docs and IDE experience stay in sync.
+   - Keep each page in the FsToolkit-style format: short summary, explaining example, member map, and source link.
+   - Use versioned source links for release pages and `main` links for next/unreleased docs.
 
-1. [x] Finish the docs site shape for the current API.
-   - Lead with `Flow`, `AsyncFlow`, and `TaskFlow`.
-   - Keep separate API homes for `FsFlow` and `FsFlow.Net`.
-2. [x] Raise the docs from generated dump to product manual.
-   - Clarify getting started, execution semantics, task/async interop, environment slicing, and architectural styles.
-3. [x] Improve public doc comments for the release.
-   - Cover the first-use combinators, builders, bridges, and edge cases users will hit first.
-4. [x] Verify examples and docs build.
-   - Run the example generation path and the docs site build.
-5. [x] Trim the README into a release entry point.
-   - Keep the value proposition, install snippet, smallest useful example, and docs link.
-6. [x] Cut the release.
-   - Confirm package metadata, docs versioning, and release notes.
+2. [ ] Publish one reference page per public API surface in `FsFlow.Net`.
+   - Split `TaskFlow`, `ColdTask`, `TaskFlow.Runtime`, `TaskFlowSpec`, `Capability`, `Layer`, and the builder extensions into their own pages.
+   - Lift the page content from the XML doc comments so the rendered docs and IDE experience stay in sync.
+   - Keep the task package hub concise and route readers into the member pages.
+   - Make sure task interop pages and runtime helper pages are reachable from the side menu.
 
-## Post-0.3.0 Architecture
+3. [ ] Rework the docs navigation around the new API page structure.
+   - Add side-menu entries for every public API page.
+   - Keep package hubs as landing pages, not as the only place where API names are visible.
+   - Make the navigation mirror the code split between `FsFlow` and `FsFlow.Net`.
 
-7. [x] Define the explicit `Check` type and public names.
-   - Choose the predicate carrier shape and the boolean-algebra vocabulary.
-8. [x] Implement `Check` composition and error bridging.
-   - Add `not`, `and`, `or`, `all`, `any`, and the bridge into domain errors.
-9. [x] Define the validation graph carrier and public names.
-   - Choose the graph type name and the diagnostic/path vocabulary.
-10. [x] Implement diagnostics merge semantics.
-   - Add empty, singleton, merge, and flatten helpers plus recursive branch merging.
-11. [x] Add the accumulating `Validation` carrier and `validate {}` CE.
-   - Make `and!` accumulate siblings and `let!` remain sequential within a branch.
-12. [x] Build the `Check` helper surface.
-    - Add predicate constructors, boolean algebra, and bridge helpers.
-13. [x] Split and tighten the `Result` helper surface.
-    - Keep fail-fast helpers on `Result`, add `mapErrorTo`, and keep `result {}`.
-14. [x] Normalize `Result` binding across the flow builders.
-    - Bind `Result` and `Result<unit, _>` directly in `Flow`, `AsyncFlow`, and `TaskFlow`.
-15. [x] Implement the reader-env `yield` ergonomics.
-    - Allow `yield _.Field` in reader-style builders and keep `Flow.read`.
-16. [x] Design and prototype the runtime and capability model.
-    - Separate runtime services from app dependencies and pressure-test the API shape.
+4. [ ] Rewrite the validation docs for the graph-based model.
+   - Lead with `Check`, `Diagnostics`, `Validation`, and applicative `validate {}`.
+   - Treat `Validate` as compatibility-only terminology in the narrative docs.
+   - Document the path-aware diagnostics graph and the bridge from `Check` into typed errors.
 
-## Docs and Automation
+5. [ ] Refresh the rest of the guides to match the current public surface.
+   - Update `GETTING_STARTED`, `WHY_FSFLOW`, `SEMANTICS`, `TASK_ASYNC_INTEROP`, and the integration pages.
+   - Remove stale `Validate`-as-primary language.
+   - Keep the examples aligned with the current source-documented API pages.
 
-17. [x] Rewrite docs around the post-`0.3.0` model once implemented.
-    - Lead with `Check -> Result -> Validation -> Flow -> AsyncFlow -> TaskFlow`.
-18. [x] Replace lifted API pages with source-doc extraction.
-    - Preserve source links and keep hand-written notes limited to cross-cutting commentary.
-19. [x] Expand executable documentation examples into docs-as-tests.
-    - Keep examples runnable during docs generation and capture evaluated output.
-20. [x] Tighten docs release automation.
-    - Wire docs generation into release and tag workflows, and add link checking where practical.
-21. [x] Expand benchmark coverage where it helps the architecture.
-    - Add peer benchmarks for `FsToolkit.ErrorHandling`, `Ply`, and `IcedTasks`.
+6. [ ] Move settled docs and product-shape decisions out of `PLAN.md`.
+   - Record the final rules in `dev-docs/decisions/`.
+   - Keep `PLAN.md` focused on unresolved or genuinely live direction.
 
-## Deferred
-
-22. [x] Decide whether `Option<'value>` and `ValueOption<'value>` should get implicit binding or only explicit conversion helpers.
-23. [x] Decide whether the core logging abstraction should stay generic or lean on `ILogger` adapters for ergonomics.
+7. [ ] Verify versioned docs and next-branch links.
+   - Keep `site/versioned_docs/version-0.3.0` aligned with the release snapshot.
+   - Ensure unreleased docs point source links at `main` and released docs point at the matching version.
+   - Check the docs site still reads coherently in both the current and versioned trees.

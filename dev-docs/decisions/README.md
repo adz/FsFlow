@@ -11,3 +11,5 @@ This folder captures settled design decisions and supporting rationale that no l
 - [Reader-env `yield`](reader-env-yield.md): 2026-04-29. Allow `yield` inside readers to project from the environment while keeping `Flow.read`.
 - [Option and ValueOption binding](option-valueoption-binding.md): 2026-05-03. Keep implicit binding only for `unit` error workflows and use explicit conversion helpers for typed errors.
 - [Logging ergonomics](logging-ergonomics.md): 2026-05-03. Keep the core logging abstraction generic and treat `ILogger` as an integration adapter.
+- [Validation surface](validation-surface.md): 2026-05-03. `Check`, `Diagnostics`, `Validation`, and the applicative `validate {}` split.
+- [API reference page shape](reference-page-shape.md): 2026-05-03. One page per public API surface, side-menu entries, examples, and versioned source links.
