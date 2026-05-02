@@ -41,7 +41,7 @@ The numbered items below are intentionally linear so the ralph loop can move thr
     - Keep fail-fast helpers on `Result`, add `mapErrorTo`, and keep `result {}`.
 14. [x] Normalize `Result` binding across the flow builders.
     - Bind `Result` and `Result<unit, _>` directly in `Flow`, `AsyncFlow`, and `TaskFlow`.
-15. [ ] Implement the reader-env `yield` ergonomics.
+15. [x] Implement the reader-env `yield` ergonomics.
     - Allow `yield _.Field` in reader-style builders and keep `Flow.read`.
 16. [ ] Design and prototype the runtime and capability model.
     - Separate runtime services from app dependencies and pressure-test the API shape.

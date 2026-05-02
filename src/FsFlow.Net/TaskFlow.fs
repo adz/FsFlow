@@ -546,6 +546,15 @@ type TaskFlowBuilder() =
     member _.Return(value: 'value) : TaskFlow<'env, 'error, 'value> =
         TaskFlow.succeed value
 
+    member _.Yield(value: obj) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.succeed (unbox<'value> value)
+
+    member _.Yield(project: 'env -> 'value) : TaskFlow<'env, 'error, 'value> =
+        TaskFlow.read project
+
+    member _.YieldFrom(flow: TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
+        flow
+
     member _.ReturnFrom(flow: TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         flow
 

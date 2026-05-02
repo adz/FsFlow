@@ -12,6 +12,10 @@ open Swensen.Unquote
 open Xunit
 
 module Tests =
+    type private ReaderEnv =
+        { Prefix: string
+          Count: int }
+
     let private publicInstanceMethodNames (targetType: Type) =
         targetType.GetMethods()
         |> Array.filter (fun methodInfo -> methodInfo.IsPublic && not methodInfo.IsSpecialName)
@@ -1088,6 +1092,8 @@ let probe : TaskFlow<unit, string, int> =
 
         test <@ Flow.run 21 workflow = Ok 42 @>
         test <@ publicMethods |> Array.contains "Bind" @>
+        test <@ publicMethods |> Array.contains "Yield" @>
+        test <@ publicMethods |> Array.contains "YieldFrom" @>
         test <@ publicMethods |> Array.contains "ReturnFrom" @>
         test <@ argumentTypeNames = [| "FSharpFunc`2"; "FSharpOption`1"; "FSharpResult`2"; "FSharpValueOption`1"; "Flow`3" |] @>
 
@@ -1120,6 +1126,55 @@ let probe : TaskFlow<unit, string, int> =
         test <@ Flow.run 21 syncWorkflow = Ok 42 @>
         test <@ asyncWorkflow |> AsyncFlow.run 21 |> Async.RunSynchronously = Ok 42 @>
         test <@ taskWorkflow |> TaskFlow.run 21 CancellationToken.None |> fun task -> task.GetAwaiter().GetResult() = Ok 42 @>
+
+    [<Fact>]
+    let ``reader-style yield projects from the environment across builders`` () =
+        let environment =
+            { Prefix = "flow"
+              Count = 21 }
+
+        let syncValue : Flow<ReaderEnv, string, int> =
+            flow {
+                yield 42
+            }
+
+        let syncProjection : Flow<ReaderEnv, string, string> =
+            flow {
+                yield _.Prefix
+            }
+
+        let syncYieldFrom : Flow<ReaderEnv, string, string> =
+            flow {
+                yield! Flow.read _.Prefix
+            }
+
+        let asyncProjection : AsyncFlow<ReaderEnv, string, string> =
+            asyncFlow {
+                yield _.Prefix
+            }
+
+        let asyncYieldFrom : AsyncFlow<ReaderEnv, string, string> =
+            asyncFlow {
+                yield! AsyncFlow.read _.Prefix
+            }
+
+        let taskProjection : TaskFlow<ReaderEnv, string, string> =
+            taskFlow {
+                yield _.Prefix
+            }
+
+        let taskYieldFrom : TaskFlow<ReaderEnv, string, string> =
+            taskFlow {
+                yield! TaskFlow.read _.Prefix
+            }
+
+        test <@ Flow.run environment syncValue = Ok 42 @>
+        test <@ Flow.run environment syncProjection = Ok "flow" @>
+        test <@ Flow.run environment syncYieldFrom = Ok "flow" @>
+        test <@ asyncProjection |> AsyncFlow.run environment |> Async.RunSynchronously = Ok "flow" @>
+        test <@ asyncYieldFrom |> AsyncFlow.run environment |> Async.RunSynchronously = Ok "flow" @>
+        test <@ taskProjection |> TaskFlow.run environment CancellationToken.None |> fun task -> task.GetAwaiter().GetResult() = Ok "flow" @>
+        test <@ taskYieldFrom |> TaskFlow.run environment CancellationToken.None |> fun task -> task.GetAwaiter().GetResult() = Ok "flow" @>
 
     [<Fact>]
     let ``option and valueoption inputs short-circuit with unit errors across builders`` () =

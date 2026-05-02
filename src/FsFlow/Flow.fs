@@ -861,6 +861,15 @@ type FlowBuilder() =
     member _.Return(value: 'value) : Flow<'env, 'error, 'value> =
         Flow.succeed value
 
+    member _.Yield(value: obj) : Flow<'env, 'error, 'value> =
+        Flow.succeed (unbox<'value> value)
+
+    member _.Yield(project: 'env -> 'value) : Flow<'env, 'error, 'value> =
+        Flow.read project
+
+    member _.YieldFrom(flow: Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
+        flow
+
     member _.ReturnFrom(flow: Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
         flow
 
@@ -988,6 +997,15 @@ type FlowBuilder() =
 type AsyncFlowBuilder() =
     member _.Return(value: 'value) : AsyncFlow<'env, 'error, 'value> =
         AsyncFlow.succeed value
+
+    member _.Yield(value: obj) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.succeed (unbox<'value> value)
+
+    member _.Yield(project: 'env -> 'value) : AsyncFlow<'env, 'error, 'value> =
+        AsyncFlow.read project
+
+    member _.YieldFrom(flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
+        flow
 
     member _.ReturnFrom(flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value> =
         flow
