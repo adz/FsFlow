@@ -29,6 +29,50 @@ type Diagnostics<'error> =
     }
 
 /// <summary>
+/// Helpers for building, merging, and flattening validation diagnostics graphs.
+/// </summary>
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Diagnostics =
+    let empty<'error> : Diagnostics<'error> =
+        {
+            Local = []
+            Children = Map.empty
+        }
+
+    let singleton (diagnostic: Diagnostic<'error>) : Diagnostics<'error> =
+        {
+            Local = [ diagnostic ]
+            Children = Map.empty
+        }
+
+    let rec merge (left: Diagnostics<'error>) (right: Diagnostics<'error>) : Diagnostics<'error> =
+        let addBranch children key branch =
+            match Map.tryFind key children with
+            | Some existing -> Map.add key (merge existing branch) children
+            | None -> Map.add key branch children
+
+        {
+            Local = left.Local @ right.Local
+            Children = Map.fold addBranch left.Children right.Children
+        }
+
+    let flatten (graph: Diagnostics<'error>) : Diagnostic<'error> list =
+        let rec flattenWithPrefix (prefix: Path) (node: Diagnostics<'error>) =
+            let local =
+                node.Local
+                |> List.map (fun diagnostic -> { diagnostic with Path = prefix @ diagnostic.Path })
+
+            let children =
+                node.Children
+                |> Map.toList
+                |> List.collect (fun (segment, child) -> flattenWithPrefix (prefix @ [ segment ]) child)
+
+            local @ children
+
+        flattenWithPrefix [] graph
+
+/// <summary>
 /// A reusable predicate result that carries a unit failure placeholder until the caller
 /// maps it into a domain-specific error.
 /// </summary>

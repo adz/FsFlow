@@ -31,7 +31,7 @@ The numbered items below are intentionally linear so the ralph loop can move thr
    - Add `not`, `and`, `or`, `all`, `any`, and the bridge into domain errors.
 9. [x] Define the validation graph carrier and public names.
    - Choose the graph type name and the diagnostic/path vocabulary.
-10. [ ] Implement diagnostics merge semantics.
+10. [x] Implement diagnostics merge semantics.
    - Add empty, singleton, merge, and flatten helpers plus recursive branch merging.
 11. [ ] Add the accumulating `Validation` carrier and `validate {}` CE.
    - Make `and!` accumulate siblings and `let!` remain sequential within a branch.

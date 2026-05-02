@@ -669,6 +669,84 @@ let probe : TaskFlow<unit, string, int> =
         test <@ graph.Children.IsEmpty @>
 
     [<Fact>]
+    let ``diagnostics merge recursively combines shared branches and flattens paths`` () =
+        let makeDiagnostic (path: Path) (error: string) : Diagnostic<string> =
+            {
+                Path = path
+                Error = error
+            }
+
+        let left =
+            {
+                Local = [ makeDiagnostic [] "left-root" ]
+                Children =
+                    Map.ofList
+                        [
+                            PathSegment.Key "user",
+                            {
+                                Local = [ makeDiagnostic [] "left-user" ]
+                                Children =
+                                    Map.ofList
+                                        [
+                                            PathSegment.Key "address",
+                                            Diagnostics.singleton (makeDiagnostic [ PathSegment.Index 0 ] "left-address")
+                                        ]
+                            }
+                        ]
+            }
+
+        let right =
+            {
+                Local = [ makeDiagnostic [] "right-root" ]
+                Children =
+                    Map.ofList
+                        [
+                            PathSegment.Key "user",
+                            {
+                                Local = [ makeDiagnostic [] "right-user" ]
+                                Children =
+                                    Map.ofList
+                                        [
+                                            PathSegment.Key "address",
+                                            Diagnostics.singleton (makeDiagnostic [ PathSegment.Index 1 ] "right-address")
+                                        ]
+                            }
+                        ]
+            }
+
+        let merged = Diagnostics.merge left right
+
+        test <@ merged.Local = [ makeDiagnostic [] "left-root"; makeDiagnostic [] "right-root" ] @>
+
+        match merged.Children |> Map.tryFind (PathSegment.Key "user") with
+        | Some userBranch ->
+            test <@ userBranch.Local = [ makeDiagnostic [] "left-user"; makeDiagnostic [] "right-user" ] @>
+
+            match userBranch.Children |> Map.tryFind (PathSegment.Key "address") with
+            | Some addressBranch ->
+                let expectedAddress =
+                    [
+                        makeDiagnostic [ PathSegment.Index 0 ] "left-address"
+                        makeDiagnostic [ PathSegment.Index 1 ] "right-address"
+                    ]
+
+                test <@ Diagnostics.flatten addressBranch = expectedAddress @>
+            | None -> failwith "expected merged address branch"
+        | None -> failwith "expected merged user branch"
+
+        let expectedMerged =
+            [
+                makeDiagnostic [] "left-root"
+                makeDiagnostic [] "right-root"
+                makeDiagnostic [ PathSegment.Key "user" ] "left-user"
+                makeDiagnostic [ PathSegment.Key "user" ] "right-user"
+                makeDiagnostic [ PathSegment.Key "user"; PathSegment.Key "address"; PathSegment.Index 0 ] "left-address"
+                makeDiagnostic [ PathSegment.Key "user"; PathSegment.Key "address"; PathSegment.Index 1 ] "right-address"
+            ]
+
+        test <@ Diagnostics.flatten merged = expectedMerged @>
+
+    [<Fact>]
     let ``Validate bridges into flow, async, and task shapes`` () =
         let flowBridge =
             Validate.okIf false
