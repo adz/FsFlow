@@ -78,6 +78,82 @@ module Diagnostics =
         flattenWithPrefix [] graph
 
 /// <summary>
+/// Helpers for fail-fast <see cref="T:System.Result`2" /> workflows and the bridge from
+/// placeholder unit failures into application errors.
+/// </summary>
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module Result =
+    /// <summary>Maps the successful value of a result.</summary>
+    let map
+        (mapper: 'value -> 'next)
+        (result: Result<'value, 'error>)
+        : Result<'next, 'error> =
+        match result with
+        | Ok value -> Ok(mapper value)
+        | Error error -> Error error
+
+    /// <summary>Sequences a result-producing continuation after a successful value.</summary>
+    let bind
+        (binder: 'value -> Result<'next, 'error>)
+        (result: Result<'value, 'error>)
+        : Result<'next, 'error> =
+        match result with
+        | Ok value -> binder value
+        | Error error -> Error error
+
+    /// <summary>Maps the failure value of a result.</summary>
+    let mapError
+        (mapper: 'error -> 'nextError)
+        (result: Result<'value, 'error>)
+        : Result<'value, 'nextError> =
+        match result with
+        | Ok value -> Ok value
+        | Error error -> Error(mapper error)
+
+    /// <summary>Replaces the unit failure from a predicate result with the supplied error.</summary>
+    let mapErrorTo
+        (error: 'nextError)
+        (result: Result<'value, unit>)
+        : Result<'value, 'nextError> =
+        mapError (fun () -> error) result
+
+    /// <summary>Runs a sequence of results until the first failure or the end of the sequence.</summary>
+    let sequence (results: seq<Result<'value, 'error>>) : Result<'value list, 'error> =
+        let mutable values = []
+        let mutable failure = None
+
+        use enumerator = results.GetEnumerator()
+
+        while failure.IsNone && enumerator.MoveNext() do
+            match enumerator.Current with
+            | Ok value -> values <- value :: values
+            | Error error -> failure <- Some error
+
+        match failure with
+        | Some error -> Error error
+        | None -> Ok(List.rev values)
+
+    /// <summary>Maps a sequence with a fail-fast result-producing function.</summary>
+    let traverse
+        (mapper: 'source -> Result<'value, 'error>)
+        (values: seq<'source>)
+        : Result<'value list, 'error> =
+        let mutable collected = []
+        let mutable failure = None
+
+        use enumerator = values.GetEnumerator()
+
+        while failure.IsNone && enumerator.MoveNext() do
+            match mapper enumerator.Current with
+            | Ok value -> collected <- value :: collected
+            | Error error -> failure <- Some error
+
+        match failure with
+        | Some error -> Error error
+        | None -> Ok(List.rev collected)
+
+/// <summary>
 /// Helpers for accumulating validation results with mergeable diagnostics.
 /// </summary>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
@@ -387,10 +463,12 @@ module Check =
         if String.IsNullOrWhiteSpace str then Error () else Ok str
 
     /// <summary>Maps a unit error into the supplied application error value.</summary>
+    [<Obsolete("Use Result.mapErrorTo instead.")>]
     let orElse (error: 'e) (result: Check<'value>) : Result<'value, 'e> =
-        Result.mapError (fun () -> error) result
+        Result.mapErrorTo error result
 
     /// <summary>Maps a unit error into an application error produced on demand.</summary>
+    [<Obsolete("Use Result.mapError instead.")>]
     let orElseWith (errorFn: unit -> 'e) (result: Check<'value>) : Result<'value, 'e> =
         Result.mapError (fun () -> errorFn ()) result
 
@@ -457,8 +535,95 @@ module Validate =
     let failIfBlank = Check.failIfBlank
     let notBlank = Check.notBlank
     let blank = Check.blank
-    let orElse = Check.orElse
-    let orElseWith = Check.orElseWith
+    [<Obsolete("Use Result.mapErrorTo instead.")>]
+    let orElse (error: 'e) (result: Check<'value>) : Result<'value, 'e> =
+        Result.mapErrorTo error result
+    [<Obsolete("Use Result.mapError instead.")>]
+    let orElseWith (errorFn: unit -> 'e) (result: Check<'value>) : Result<'value, 'e> =
+        Result.mapError (fun () -> errorFn ()) result
+
+/// <summary>
+/// Computation expression builder for fail-fast <see cref="T:System.Result`2" /> workflows.
+/// </summary>
+/// <exclude/>
+type ResultBuilder() =
+    member _.Return(value: 'value) : Result<'value, 'error> =
+        Ok value
+
+    member _.ReturnFrom(result: Result<'value, 'error>) : Result<'value, 'error> =
+        result
+
+    member _.Zero() : Result<unit, 'error> =
+        Ok ()
+
+    member _.Bind
+        (
+            result: Result<'value, 'error>,
+            binder: 'value -> Result<'next, 'error>
+        ) : Result<'next, 'error> =
+        Result.bind binder result
+
+    member _.Delay(factory: unit -> Result<'value, 'error>) : Result<'value, 'error> =
+        factory ()
+
+    member _.Run(result: Result<'value, 'error>) : Result<'value, 'error> =
+        result
+
+    member _.Combine
+        (
+            first: Result<unit, 'error>,
+            second: Result<'value, 'error>
+        ) : Result<'value, 'error> =
+        Result.bind (fun () -> second) first
+
+    member _.TryWith
+        (
+            result: Result<'value, 'error>,
+            handler: exn -> Result<'value, 'error>
+        ) : Result<'value, 'error> =
+        try
+            result
+        with error ->
+            handler error
+
+    member _.TryFinally(result: Result<'value, 'error>, compensation: unit -> unit) : Result<'value, 'error> =
+        try
+            result
+        finally
+            compensation ()
+
+    member this.Using
+        (
+            resource: 'resource,
+            binder: 'resource -> Result<'value, 'error>
+        ) : Result<'value, 'error>
+        when 'resource :> IDisposable =
+        this.TryFinally(
+            binder resource,
+            fun () ->
+                if not (isNull (box resource)) then
+                    resource.Dispose()
+        )
+
+    member this.While
+        (
+            guard: unit -> bool,
+            body: Result<unit, 'error>
+        ) : Result<unit, 'error> =
+        if guard () then
+            this.Bind(body, fun () -> this.While(guard, body))
+        else
+            this.Zero()
+
+    member this.For
+        (
+            sequence: seq<'value>,
+            binder: 'value -> Result<unit, 'error>
+        ) : Result<unit, 'error> =
+        this.Using(
+            sequence.GetEnumerator(),
+            fun enumerator -> this.While(enumerator.MoveNext, this.Delay(fun () -> binder enumerator.Current))
+        )
 
 /// <summary>
 /// Computation expression builder for accumulating <see cref="T:FsFlow.Validation`2" /> workflows.

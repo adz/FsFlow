@@ -593,8 +593,6 @@ let probe : TaskFlow<unit, string, int> =
 
         test <@ Check.any anyShortCircuits = Ok () @>
 
-        test <@ Check.okIf false |> Check.orElse "invalid" = Error "invalid" @>
-
         test <@ Check.okIf true = Ok () @>
         test <@ Check.okIf false = Error () @>
         test <@ Check.failIf true = Error () @>
@@ -647,8 +645,43 @@ let probe : TaskFlow<unit, string, int> =
 
         test <@ Validate.notBlank "  x  " = Ok "  x  " @>
         test <@ Validate.notNull nonNull = Ok "flowkit" @>
-        test <@ Validate.okIf false |> Validate.orElse "invalid" = Error "invalid" @>
-        test <@ Validate.okIf false |> Validate.orElseWith (fun () -> "generated") = Error "generated" @>
+
+    [<Fact>]
+    let ``Result covers fail-fast helpers and the result computation expression`` () =
+        let sequenceShortCircuits =
+            seq {
+                yield Ok 1
+                yield Ok 2
+                yield Error "stop"
+                failwith "Result.sequence should short-circuit before the fourth item"
+            }
+
+        let visits = ref 0
+
+        let traverseWorkflow =
+            FsFlow.Result.traverse
+                (fun value ->
+                    visits.Value <- visits.Value + 1
+                    if value < 3 then Ok(value * 2) else Error "too-high")
+                [ 1; 2; 3; 4 ]
+
+        let workflow =
+            result {
+                let! value = Ok 20
+                let! divisor = Ok 2
+                do! Ok ()
+                return value / divisor
+            }
+
+        test <@ FsFlow.Result.map ((+) 1) (Ok 10) = Ok 11 @>
+        test <@ FsFlow.Result.bind (fun value -> Ok(value + 5)) (Ok 7) = Ok 12 @>
+        test <@ FsFlow.Result.mapError string (Error 42) = Error "42" @>
+        test <@ FsFlow.Result.mapErrorTo "invalid" (Check.okIf false) = Error "invalid" @>
+        test <@ FsFlow.Result.sequence [ Ok 1; Ok 2; Ok 3 ] = Ok [ 1; 2; 3 ] @>
+        test <@ FsFlow.Result.sequence sequenceShortCircuits = Error "stop" @>
+        test <@ visits.Value = 3 @>
+        test <@ traverseWorkflow = Error "too-high" @>
+        test <@ workflow = Ok 10 @>
 
     [<Fact>]
     let ``validation graph names are explicit`` () =

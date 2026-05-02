@@ -1156,6 +1156,11 @@ type AsyncFlowBuilder() =
 [<AutoOpen>]
 module Builders =
     /// <summary>
+    /// The fail-fast <c>result { }</c> computation expression.
+    /// </summary>
+    let result = ResultBuilder()
+
+    /// <summary>
     /// The sync-only <c>flow { }</c> computation expression.
     /// </summary>
     let flow = FlowBuilder()

@@ -37,7 +37,7 @@ The numbered items below are intentionally linear so the ralph loop can move thr
    - Make `and!` accumulate siblings and `let!` remain sequential within a branch.
 12. [x] Build the `Check` helper surface.
     - Add predicate constructors, boolean algebra, and bridge helpers.
-13. [ ] Split and tighten the `Result` helper surface.
+13. [x] Split and tighten the `Result` helper surface.
     - Keep fail-fast helpers on `Result`, add `mapErrorTo`, and keep `result {}`.
 14. [ ] Normalize `Result` binding across the flow builders.
     - Bind `Result` and `Result<unit, _>` directly in `Flow`, `AsyncFlow`, and `TaskFlow`.
