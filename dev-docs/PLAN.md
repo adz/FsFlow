@@ -62,6 +62,7 @@ The settled decisions are already recorded in:
 - [Benchmark history](decisions/benchmark-history.md)
 - [Docs source extraction](decisions/docs-source-extraction.md)
 - [Reader-env `yield`](decisions/reader-env-yield.md)
+- [Option and ValueOption binding](decisions/option-valueoption-binding.md)
 
 ## Check, Result, and Validation
 
@@ -402,7 +403,6 @@ The `yield` work stays intentionally conservative:
 
 These still need explicit decisions:
 
-- `Option<'value>` and `ValueOption<'value>` short-circuit behavior and implicit binding rules
 - the core logging abstraction versus `ILogger` adapters and ergonomics
 - the final scope of the runtime/capability model and whether it becomes a core contract or a `FsFlow.Net` concern
 - the final public name of the diagnostics graph type and its child/merge helpers
