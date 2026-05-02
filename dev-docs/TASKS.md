@@ -25,7 +25,7 @@ The numbered items below are intentionally linear so the ralph loop can move thr
 
 ## Post-0.3.0 Architecture
 
-7. [ ] Define the explicit `Check` type and public names.
+7. [x] Define the explicit `Check` type and public names.
    - Choose the predicate carrier shape and the boolean-algebra vocabulary.
 8. [ ] Implement `Check` composition and error bridging.
    - Add `not`, `and`, `or`, `all`, `any`, and the bridge into domain errors.

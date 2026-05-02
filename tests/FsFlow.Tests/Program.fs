@@ -562,48 +562,48 @@ let probe : TaskFlow<unit, string, int> =
         test <@ mapped = Ok 16 @>
 
     [<Fact>]
-    let ``Validate covers the pure result surface`` () =
-        test <@ Validate.okIf true = Ok () @>
-        test <@ Validate.okIf false = Error () @>
-        test <@ Validate.failIf true = Error () @>
-        test <@ Validate.failIf false = Ok () @>
+    let ``Check covers the pure result surface`` () =
+        test <@ Check.okIf true = Ok () @>
+        test <@ Check.okIf false = Error () @>
+        test <@ Check.failIf true = Error () @>
+        test <@ Check.failIf false = Ok () @>
 
-        test <@ Validate.okIfSome (Some 10) = Ok 10 @>
-        test <@ Validate.okIfSome None = Error () @>
-        test <@ Validate.failIfNone None = Error () @>
-        test <@ Validate.failIfNone (Some 7) = Ok 7 @>
+        test <@ Check.okIfSome (Some 10) = Ok 10 @>
+        test <@ Check.okIfSome None = Error () @>
+        test <@ Check.failIfNone None = Error () @>
+        test <@ Check.failIfNone (Some 7) = Ok 7 @>
 
-        test <@ Validate.okIfValueSome (ValueSome 11) = Ok 11 @>
-        test <@ Validate.okIfValueNone ValueNone = Ok () @>
-        test <@ Validate.failIfValueSome ValueNone = Ok () @>
-        test <@ Validate.failIfValueNone (ValueSome 8) = Ok 8 @>
+        test <@ Check.okIfValueSome (ValueSome 11) = Ok 11 @>
+        test <@ Check.okIfValueNone ValueNone = Ok () @>
+        test <@ Check.failIfValueSome ValueNone = Ok () @>
+        test <@ Check.failIfValueNone (ValueSome 8) = Ok 8 @>
 
         let nonNull = "flowkit"
         let nullString: string = null
 
-        test <@ Validate.okIfNotNull nonNull = Ok "flowkit" @>
-        test <@ Validate.okIfNull nullString = Ok () @>
-        test <@ Validate.failIfNotNull nullString = Error () @>
-        test <@ Validate.failIfNull nonNull = Error () @>
+        test <@ Check.okIfNotNull nonNull = Ok "flowkit" @>
+        test <@ Check.okIfNull nullString = Ok () @>
+        test <@ Check.failIfNotNull nullString = Error () @>
+        test <@ Check.failIfNull nonNull = Error () @>
 
-        test <@ Validate.okIfNotEmpty [ 1; 2 ] |> Result.map Seq.toList = Ok [ 1; 2 ] @>
-        test <@ Validate.okIfEmpty Seq.empty = Ok () @>
-        test <@ Validate.failIfNotEmpty Seq.empty = Ok () @>
-        test <@ Validate.failIfEmpty Seq.empty = Error () @>
+        test <@ Check.okIfNotEmpty [ 1; 2 ] |> Result.map Seq.toList = Ok [ 1; 2 ] @>
+        test <@ Check.okIfEmpty Seq.empty = Ok () @>
+        test <@ Check.failIfNotEmpty Seq.empty = Ok () @>
+        test <@ Check.failIfEmpty Seq.empty = Error () @>
 
-        test <@ Validate.okIfEqual 3 3 = Ok () @>
-        test <@ Validate.okIfNotEqual 3 4 = Ok () @>
-        test <@ Validate.failIfEqual 3 4 = Ok () @>
-        test <@ Validate.failIfNotEqual 3 3 = Ok () @>
+        test <@ Check.okIfEqual 3 3 = Ok () @>
+        test <@ Check.okIfNotEqual 3 4 = Ok () @>
+        test <@ Check.failIfEqual 3 4 = Ok () @>
+        test <@ Check.failIfNotEqual 3 3 = Ok () @>
 
-        test <@ Validate.okIfNonEmptyStr "hello" = Ok "hello" @>
-        test <@ Validate.okIfEmptyStr "" = Ok () @>
-        test <@ Validate.okIfNotBlank "  x  " = Ok "  x  " @>
-        test <@ Validate.okIfBlank "   " = Ok () @>
-        test <@ Validate.failIfNonEmptyStr "" = Ok () @>
-        test <@ Validate.failIfEmptyStr "hello" = Ok "hello" @>
-        test <@ Validate.failIfNotBlank "   " = Ok () @>
-        test <@ Validate.failIfBlank "x" = Ok "x" @>
+        test <@ Check.okIfNonEmptyStr "hello" = Ok "hello" @>
+        test <@ Check.okIfEmptyStr "" = Ok () @>
+        test <@ Check.okIfNotBlank "  x  " = Ok "  x  " @>
+        test <@ Check.okIfBlank "   " = Ok () @>
+        test <@ Check.failIfNonEmptyStr "" = Ok () @>
+        test <@ Check.failIfEmptyStr "hello" = Ok "hello" @>
+        test <@ Check.failIfNotBlank "   " = Ok () @>
+        test <@ Check.failIfBlank "x" = Ok "x" @>
 
         test <@ Validate.okIf false |> Validate.orElse "invalid" = Error "invalid" @>
         test <@ Validate.okIf false |> Validate.orElseWith (fun () -> "generated") = Error "generated" @>
