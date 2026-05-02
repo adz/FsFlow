@@ -599,6 +599,8 @@ let probe : TaskFlow<unit, string, int> =
         test <@ Check.okIf false = Error () @>
         test <@ Check.failIf true = Error () @>
         test <@ Check.failIf false = Ok () @>
+        test <@ Check.fromPredicate (fun value -> value > 3) 4 = Ok 4 @>
+        test <@ Check.fromPredicate (fun value -> value > 3) 2 = Error () @>
 
         test <@ Check.okIfSome (Some 10) = Ok 10 @>
         test <@ Check.okIfSome None = Error () @>
@@ -636,7 +638,15 @@ let probe : TaskFlow<unit, string, int> =
         test <@ Check.failIfEmptyStr "hello" = Ok "hello" @>
         test <@ Check.failIfNotBlank "   " = Ok () @>
         test <@ Check.failIfBlank "x" = Ok "x" @>
+        test <@ Check.notNull nonNull = Ok "flowkit" @>
+        test <@ Check.notBlank "  x  " = Ok "  x  " @>
+        test <@ Check.notEmpty [ 1; 2 ] |> Result.map Seq.toList = Ok [ 1; 2 ] @>
+        test <@ Check.blank "   " = Ok () @>
+        test <@ Check.equal 3 3 = Ok () @>
+        test <@ Check.notEqual 3 4 = Ok () @>
 
+        test <@ Validate.notBlank "  x  " = Ok "  x  " @>
+        test <@ Validate.notNull nonNull = Ok "flowkit" @>
         test <@ Validate.okIf false |> Validate.orElse "invalid" = Error "invalid" @>
         test <@ Validate.okIf false |> Validate.orElseWith (fun () -> "generated") = Error "generated" @>
 

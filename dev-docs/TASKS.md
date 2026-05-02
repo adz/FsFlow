@@ -35,7 +35,7 @@ The numbered items below are intentionally linear so the ralph loop can move thr
    - Add empty, singleton, merge, and flatten helpers plus recursive branch merging.
 11. [x] Add the accumulating `Validation` carrier and `validate {}` CE.
    - Make `and!` accumulate siblings and `let!` remain sequential within a branch.
-12. [ ] Build the `Check` helper surface.
+12. [x] Build the `Check` helper surface.
     - Add predicate constructors, boolean algebra, and bridge helpers.
 13. [ ] Split and tighten the `Result` helper surface.
     - Keep fail-fast helpers on `Result`, add `mapErrorTo`, and keep `result {}`.

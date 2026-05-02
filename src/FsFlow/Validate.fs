@@ -179,6 +179,13 @@ type Check<'value> = Result<'value, unit>
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Check =
+    /// <summary>Builds a check from a predicate while preserving the successful value.</summary>
+    let fromPredicate (predicate: 'value -> bool) (value: 'value) : Check<'value> =
+        if predicate value then
+            Ok value
+        else
+            Error ()
+
     /// <summary>Returns success when the supplied check fails.</summary>
     let not (check: Check<'value>) : Check<unit> =
         match check with
@@ -359,9 +366,17 @@ module Check =
     let okIfNotBlank (str: string) : Check<string> =
         if String.IsNullOrWhiteSpace str then Error () else Ok str
 
+    /// <summary>Returns the string when it is not blank.</summary>
+    let notBlank (str: string) : Check<string> =
+        fromPredicate (fun value -> Operators.not (String.IsNullOrWhiteSpace value)) str
+
     /// <summary>Returns success when the string is blank.</summary>
     let okIfBlank (str: string) : Check<unit> =
         if String.IsNullOrWhiteSpace str then Ok () else Error ()
+
+    /// <summary>Returns success when the string is blank.</summary>
+    let blank (str: string) : Check<unit> =
+        okIfBlank str
 
     /// <summary>Returns success when the string is blank.</summary>
     let failIfNotBlank (str: string) : Check<unit> =
@@ -379,6 +394,22 @@ module Check =
     let orElseWith (errorFn: unit -> 'e) (result: Check<'value>) : Result<'value, 'e> =
         Result.mapError (fun () -> errorFn ()) result
 
+    /// <summary>Returns the value when it is not null.</summary>
+    let notNull (value: 'a when 'a : null) : Check<'a> =
+        fromPredicate (fun inner -> Operators.not (isNull inner)) value
+
+    /// <summary>Returns the sequence when it is not empty.</summary>
+    let notEmpty (coll: seq<'a>) : Check<seq<'a>> =
+        fromPredicate (fun inner -> Operators.not (Seq.isEmpty inner)) coll
+
+    /// <summary>Returns success when the values are equal.</summary>
+    let equal (expected: 'a) (actual: 'a) : Check<unit> =
+        okIfEqual expected actual
+
+    /// <summary>Returns success when the values are not equal.</summary>
+    let notEqual (expected: 'a) (actual: 'a) : Check<unit> =
+        okIfNotEqual expected actual
+
 /// <summary>
 /// Backward-compatible aliases for the old validation module name.
 /// </summary>
@@ -389,6 +420,7 @@ module Validate =
     let (``or``) = Check.``or``
     let all = Check.all
     let any = Check.any
+    let fromPredicate = Check.fromPredicate
     let okIf = Check.okIf
     let failIf = Check.failIf
     let okIfSome = Check.okIfSome
@@ -403,14 +435,18 @@ module Validate =
     let okIfNull = Check.okIfNull
     let failIfNotNull = Check.failIfNotNull
     let failIfNull = Check.failIfNull
+    let notNull = Check.notNull
     let okIfNotEmpty = Check.okIfNotEmpty
     let okIfEmpty = Check.okIfEmpty
     let failIfNotEmpty = Check.failIfNotEmpty
     let failIfEmpty = Check.failIfEmpty
+    let notEmpty = Check.notEmpty
     let okIfEqual = Check.okIfEqual
     let okIfNotEqual = Check.okIfNotEqual
     let failIfEqual = Check.failIfEqual
     let failIfNotEqual = Check.failIfNotEqual
+    let equal = Check.equal
+    let notEqual = Check.notEqual
     let okIfNonEmptyStr = Check.okIfNonEmptyStr
     let okIfEmptyStr = Check.okIfEmptyStr
     let failIfNonEmptyStr = Check.failIfNonEmptyStr
@@ -419,6 +455,8 @@ module Validate =
     let okIfBlank = Check.okIfBlank
     let failIfNotBlank = Check.failIfNotBlank
     let failIfBlank = Check.failIfBlank
+    let notBlank = Check.notBlank
+    let blank = Check.blank
     let orElse = Check.orElse
     let orElseWith = Check.orElseWith
 
