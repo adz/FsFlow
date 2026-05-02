@@ -17,16 +17,16 @@ The stronger framing is:
 The core progression is:
 
 ```text
-Validate -> Result -> Flow -> AsyncFlow -> TaskFlow
+Check -> Result -> Validation -> Flow -> AsyncFlow -> TaskFlow
 ```
 
-The same validation vocabulary should work at every step. The user should not need separate helper worlds for `Result`, `Async<Result>`, and `Task<Result>`.
+The same predicate and validation vocabulary should work at every step. The user should not need separate helper worlds for raw checks, fail-fast `Result`, accumulated `Validation`, `Async<Result>`, and `Task<Result>`.
 
 ## Release Sequencing
 
 The next release is `0.3.0`.
 
-`0.3.0` should ship the current codebase with the improved docs and release shape already in progress. The validation graph, `result {}`, `validate {}`, and runtime/capability model are the post-`0.3.0` architectural track unless a small part of them is already safely present.
+`0.3.0` should ship the current codebase with the improved docs and release shape already in progress. The explicit `Check` predicate model, the validation graph, `result {}`, `validate {}`, and the runtime/capability model are the post-`0.3.0` architectural track unless a small part of them is already safely present.
 
 The point of `0.3.0` is:
 
@@ -63,16 +63,22 @@ The settled decisions are already recorded in:
 - [Docs source extraction](decisions/docs-source-extraction.md)
 - [Reader-env `yield`](decisions/reader-env-yield.md)
 
-## Result, Validation, and Validate
+## Check, Result, and Validation
 
-Validation is central, not a side utility, but it needs two different execution semantics:
+Validation is central, not a side utility, but it needs three distinct layers:
 
+- `Check` is explicit predicate logic with boolean algebra
 - `result {}` is monadic and short-circuiting
 - `validate {}` is applicative and accumulating
 
-The split should be visible in the API. `Result<'value,'error>` is the fail-fast carrier. Accumulated validation should not pretend to be the same thing with a hidden list on the error side.
+The split should be visible in the API. `Result<'value,'error>` is the fail-fast carrier for typed failures. `Check<'value>` is the reusable predicate layer that starts from values and returns a unit error placeholder. `Validation<'value,'error>` is the accumulating carrier and should not pretend to be the same thing with a hidden list on the error side.
 
 The intended public shape is:
+
+```fsharp
+Check.notBlank
+|> Result.mapErrorTo NameRequired
+```
 
 ```fsharp
 result {
@@ -95,28 +101,28 @@ Sequential `let!` means dependency and short-circuiting. Applicative `and!` mean
 
 The module split should follow that semantic split:
 
-- `Result` owns fail-fast helpers such as `map`, `bind`, `mapError`, `sequence`, and `traverse`
+- `Check` owns reusable predicate programs and boolean algebra such as `not`, `and`, `or`, `all`, and `any`
+- `Result` owns fail-fast helpers such as `map`, `bind`, `mapError`, `mapErrorTo`, `sequence`, and `traverse`
 - `result {}` owns fail-fast CE syntax for pure domain code
-- `Validate.OkIf.*` and `Validate.FailIf.*` own mirrored predicate checks
-- `Validate.Error.*` owns conversion from placeholder failures into domain errors
 - `validate {}` owns accumulated validation syntax
-- validation graph helpers live under `Validate` or a clearly related submodule
+- validation graph helpers live under `Validation` or a clearly related submodule
+- the predicate bridge from `Check<'value>` into a domain error belongs on `Result`
 
-`Validate.OkIf.*` and `Validate.FailIf.*` should remain mirrored where practical. The user should be able to choose the predicate direction that reads naturally:
+`Check` should read like a reusable predicate DSL. The user should be able to compose checks before choosing the final error:
 
 ```fsharp
 rawName
-|> Validate.OkIf.notBlank
-|> Validate.Error.is NameRequired
+|> Check.notBlank
+|> Result.mapErrorTo NameRequired
 ```
 
 ```fsharp
 value
-|> Validate.FailIf.isNull
-|> Validate.Error.with (fun () -> MissingValue)
+|> Check.notNull
+|> Result.mapErrorTo MissingValue
 ```
 
-`Validate.Error.is` and `Validate.Error.with` are preferred over `OrElse`-style naming because they describe the operation being performed: assign or compute the domain error for a failed check.
+`Result.mapErrorTo` is preferred over `OrElse`-style naming because it describes the operation being performed: replace the placeholder failure with the domain error you actually want to surface.
 
 ## Validation Graph
 
@@ -194,7 +200,7 @@ validate {
 
     let! name = validateName parsed.Name
     and! email = validateEmail parsed.Email
-    and! address = validateAddress parsed.Address |> Validate.at (Key "address")
+    and! address = validateAddress parsed.Address |> Validation.at (Key "address")
 
     return build parsed name email address
 }
@@ -204,9 +210,9 @@ If `parseEnvelope` fails, the sibling checks are not run. If parsing succeeds, t
 
 Batch helpers are the function form of the same behavior:
 
-- `Validate.collect` runs many independent `Validation<'value,'error>` values and returns `Validation<'value list,'error>`
-- `Validate.sequence` flips a sequence of validations into one validation of a sequence
-- `Validate.map2` / `map3` / `apply` combine independent validations and merge diagnostics
+- `Validation.collect` runs many independent `Validation<'value,'error>` values and returns `Validation<'value list,'error>`
+- `Validation.sequence` flips a sequence of validations into one validation of a sequence
+- `Validation.map2` / `map3` / `apply` combine independent validations and merge diagnostics
 - scoped helpers attach path or branch context before merging
 
 This design uses category-theory language internally: `Result` is the monadic fail-fast path, and `Validation` is the applicative accumulating path. The public documentation should explain this in plain terms first and reserve the category names for advanced notes.
@@ -339,7 +345,7 @@ Start
 
 Core Model
 - The FsFlow Model
-- Validate and Result
+- Check, Result, and Validation
 - Validation Graphs
 - Flow / AsyncFlow / TaskFlow
 - Execution Semantics
@@ -366,7 +372,7 @@ Reference
 
 The docs should explain:
 
-- the `Validate -> Result -> Flow` continuum
+- the `Check -> Result -> Validation -> Flow` continuum
 - how the validation graph accumulates sibling failures while preserving nested structure
 - why `do!` and `let!` mean different things
 - where cold/restartable semantics matter
@@ -379,8 +385,9 @@ The API surface should keep improving in the direction of fewer conceptual seams
 
 The main ergonomic items are:
 
+- an explicit `Check` DSL for reusable predicates and boolean algebra
 - a `Result` CE for pure validation/domain code
-- `Result` helpers that support the main FsFlow path without bloating the surface
+- `Result` helpers that support the main FsFlow path without bloating the surface, including error bridging like `mapErrorTo`
 - direct `Result` binding into all flow builders
 - reader-env `yield` as shorthand for environment projection, while keeping `Flow.read` as the explicit API
 - a validation CE that exposes applicative accumulation over the diagnostics graph
@@ -399,6 +406,7 @@ These still need explicit decisions:
 - the core logging abstraction versus `ILogger` adapters and ergonomics
 - the final scope of the runtime/capability model and whether it becomes a core contract or a `FsFlow.Net` concern
 - the final public name of the diagnostics graph type and its child/merge helpers
+- whether `Check` should expose only `not` / `and` / `or` or also `all` / `any` as first-class combinators
 
 ## Done Means
 

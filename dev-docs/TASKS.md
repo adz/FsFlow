@@ -25,37 +25,41 @@ The numbered items below are intentionally linear so the ralph loop can move thr
 
 ## Post-0.3.0 Architecture
 
-7. [ ] Define the validation graph carrier and public names.
+7. [ ] Define the explicit `Check` type and public names.
+   - Choose the predicate carrier shape and the boolean-algebra vocabulary.
+8. [ ] Implement `Check` composition and error bridging.
+   - Add `not`, `and`, `or`, `all`, `any`, and the bridge into domain errors.
+9. [ ] Define the validation graph carrier and public names.
    - Choose the graph type name and the diagnostic/path vocabulary.
-8. [ ] Implement diagnostics merge semantics.
+10. [ ] Implement diagnostics merge semantics.
    - Add empty, singleton, merge, and flatten helpers plus recursive branch merging.
-9. [ ] Add the accumulating `Validation` carrier and `validate {}` CE.
+11. [ ] Add the accumulating `Validation` carrier and `validate {}` CE.
    - Make `and!` accumulate siblings and `let!` remain sequential within a branch.
-10. [ ] Build the `Validate` helper surface.
-    - Add predicate helpers, error mapping, collection helpers, and scoping helpers.
-11. [ ] Split and tighten the `Result` helper surface.
-    - Keep fail-fast helpers on `Result` and `result {}`.
-12. [ ] Normalize `Result` binding across the flow builders.
+12. [ ] Build the `Check` helper surface.
+    - Add predicate constructors, boolean algebra, and bridge helpers.
+13. [ ] Split and tighten the `Result` helper surface.
+    - Keep fail-fast helpers on `Result`, add `mapErrorTo`, and keep `result {}`.
+14. [ ] Normalize `Result` binding across the flow builders.
     - Bind `Result` and `Result<unit, _>` directly in `Flow`, `AsyncFlow`, and `TaskFlow`.
-13. [ ] Implement the reader-env `yield` ergonomics.
+15. [ ] Implement the reader-env `yield` ergonomics.
     - Allow `yield _.Field` in reader-style builders and keep `Flow.read`.
-14. [ ] Design and prototype the runtime and capability model.
+16. [ ] Design and prototype the runtime and capability model.
     - Separate runtime services from app dependencies and pressure-test the API shape.
 
 ## Docs and Automation
 
-15. [ ] Rewrite docs around the post-`0.3.0` model once implemented.
-    - Lead with `Validate -> Result -> Flow -> AsyncFlow -> TaskFlow`.
-16. [ ] Replace lifted API pages with source-doc extraction.
+17. [ ] Rewrite docs around the post-`0.3.0` model once implemented.
+    - Lead with `Check -> Result -> Validation -> Flow -> AsyncFlow -> TaskFlow`.
+18. [ ] Replace lifted API pages with source-doc extraction.
     - Preserve source links and keep hand-written notes limited to cross-cutting commentary.
-17. [ ] Expand executable documentation examples into docs-as-tests.
+19. [ ] Expand executable documentation examples into docs-as-tests.
     - Keep examples runnable during docs generation and capture evaluated output.
-18. [ ] Tighten docs release automation.
+20. [ ] Tighten docs release automation.
     - Wire docs generation into release and tag workflows, and add link checking where practical.
-19. [ ] Expand benchmark coverage where it helps the architecture.
+21. [ ] Expand benchmark coverage where it helps the architecture.
     - Add peer benchmarks for `FsToolkit.ErrorHandling`, `Ply`, and `IcedTasks`.
 
 ## Deferred
 
-20. [ ] Decide whether `Option<'value>` and `ValueOption<'value>` should get implicit binding or only explicit conversion helpers.
-21. [ ] Decide whether the core logging abstraction should stay generic or lean on `ILogger` adapters for ergonomics.
+22. [ ] Decide whether `Option<'value>` and `ValueOption<'value>` should get implicit binding or only explicit conversion helpers.
+23. [ ] Decide whether the core logging abstraction should stay generic or lean on `ILogger` adapters for ergonomics.
