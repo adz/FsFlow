@@ -2,6 +2,32 @@ namespace FsFlow
 
 open System
 
+/// <summary>Location markers used to describe where a diagnostic belongs in a validation graph.</summary>
+[<RequireQualifiedAccess>]
+type PathSegment =
+    | Key of string
+    | Index of int
+    | Name of string
+
+/// <summary>A path through a validation graph.</summary>
+type Path = PathSegment list
+
+/// <summary>A single failure item attached to a path in a validation graph.</summary>
+type Diagnostic<'error> =
+    {
+        Path: Path
+        Error: 'error
+    }
+
+/// <summary>
+/// A mergeable validation graph that carries local diagnostics and nested child branches.
+/// </summary>
+type Diagnostics<'error> =
+    {
+        Local: Diagnostic<'error> list
+        Children: Map<PathSegment, Diagnostics<'error>>
+    }
+
 /// <summary>
 /// A reusable predicate result that carries a unit failure placeholder until the caller
 /// maps it into a domain-specific error.

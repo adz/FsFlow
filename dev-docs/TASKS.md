@@ -29,7 +29,7 @@ The numbered items below are intentionally linear so the ralph loop can move thr
    - Choose the predicate carrier shape and the boolean-algebra vocabulary.
 8. [x] Implement `Check` composition and error bridging.
    - Add `not`, `and`, `or`, `all`, `any`, and the bridge into domain errors.
-9. [ ] Define the validation graph carrier and public names.
+9. [x] Define the validation graph carrier and public names.
    - Choose the graph type name and the diagnostic/path vocabulary.
 10. [ ] Implement diagnostics merge semantics.
    - Add empty, singleton, merge, and flatten helpers plus recursive branch merging.

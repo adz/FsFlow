@@ -641,6 +641,34 @@ let probe : TaskFlow<unit, string, int> =
         test <@ Validate.okIf false |> Validate.orElseWith (fun () -> "generated") = Error "generated" @>
 
     [<Fact>]
+    let ``validation graph names are explicit`` () =
+        let path =
+            [
+                PathSegment.Key "user"
+                PathSegment.Index 0
+                PathSegment.Name "email"
+            ]
+
+        let diagnostic =
+            {
+                Path = path
+                Error = "missing"
+            }
+
+        let graph : Diagnostics<string> =
+            {
+                Local = [ diagnostic ]
+                Children = Map.empty
+            }
+
+        test <@ typeof<PathSegment>.Name = "PathSegment" @>
+        test <@ typeof<Diagnostic<string>>.Name = "Diagnostic`1" @>
+        test <@ typeof<Diagnostics<string>>.Name = "Diagnostics`1" @>
+        test <@ graph.Local.Head.Path = path @>
+        test <@ graph.Local.Head.Error = "missing" @>
+        test <@ graph.Children.IsEmpty @>
+
+    [<Fact>]
     let ``Validate bridges into flow, async, and task shapes`` () =
         let flowBridge =
             Validate.okIf false
