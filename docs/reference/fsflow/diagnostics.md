@@ -17,11 +17,8 @@ This page shows the source-documented `Diagnostics` surface: the path-aware grap
 ## Module functions
 
 - module `Diagnostics`: Helpers for building, merging, and flattening validation diagnostics graphs. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L41)
-- `Diagnostics.empty` [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L42)
-- `Diagnostics.singleton` [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L48)
-- `Diagnostics.merge` [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L54)
-- `Diagnostics.flatten` [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L65)
+- [`Diagnostics.empty`](./diagnostics-empty.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L42)
+- [`Diagnostics.singleton`](./diagnostics-singleton.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L48)
+- [`Diagnostics.merge`](./diagnostics-merge.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L54)
+- [`Diagnostics.flatten`](./diagnostics-flatten.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L65)
 
-## Source
-
-- [Validate.fs](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs)

@@ -1,0 +1,16 @@
+---
+title: fromAsyncResult
+description: API reference for AsyncFlow.fromAsyncResult
+---
+
+# fromAsyncResult
+
+Lifts an async result into an async flow.
+
+
+
+## AsyncFlow.fromAsyncResult
+
+- **Module**: `AsyncFlow`
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L461)
+

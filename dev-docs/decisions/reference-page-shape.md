@@ -11,28 +11,30 @@
 
 ## Decision
 
-FsFlow documents every public API surface with its own reference page.
+FsFlow documents every public API surface with its own reference page, following a "one page per function" model similar to FsToolkit.ErrorHandling.
 
 The reference shape is:
 
-- one page per public type, module, computation expression, or runtime helper surface
-- one concise package hub per package
-- one side-menu entry per public page
-- one explaining example on each page
-- one source link on each page
+- **Surface Pages:** One page per public type, module, or builder that serves as a categorized index.
+- **Function Pages:** One dedicated page per public function or member, nested under its parent surface.
+- **Side Menu:** Reflects this granularity, allowing direct navigation to individual functions.
+- **Rich Content:** Every function page includes:
+    - A clear title and description.
+    - Full summary and remarks lifted from XML doc comments.
+    - Multiple runnable-style examples lifted from XML `<example>` tags.
+    - Explicit namespace, module, and signature information.
+    - A direct source link to the implementation.
 
 Documentation rules:
 
-- **Source-driven:** Lift the reference page content from the XML doc comments so the rendered docs and IDE experience stay in sync.
-- **FsToolkit-style:** Keep each page focused: short summary, explaining example, member map, and source link.
-- **Validation story:** Lead with `Check`, `Diagnostics`, `Validation`, and applicative `validate {}`.
-- **Zero legacy:** Remove `Validate`-as-primary or `Validate`-as-compatibility language from narrative docs. Compatibility aliases are removed before 1.0.
+- **Source-driven:** Lift all reference content from XML doc comments (`<summary>`, `<remarks>`, `<example>`) to ensure synchronization between code and docs.
+- **Function-level Granularity:** Every member in a `module` or `type` that is listed in the `pageSpecs` gets its own markdown file.
+- **Zero legacy:** Maintain no legacy terminology or compatibility aliases in the new structure.
 
 Versioning rules:
 
-- released docs link source pages to the matching release snapshot
-- unreleased docs link source pages to `main`
-- versioned docs stay aligned with the tagged release tree
+- released docs link source pages to the matching release snapshot.
+- unreleased docs link source pages to `main`.
 
 ## Why
 

@@ -19,6 +19,7 @@
   --fsflow-border-color: rgba(42, 41, 37, 0.15);
   --fsflow-sidebar-bg: rgba(249, 247, 242, 0.94);
   --fsflow-card-bg: rgba(255, 255, 255, 0.92);
+  --fsflow-gradient-start: #fbf9f5;
 }
 
 [data-theme='dark'] {
@@ -28,12 +29,13 @@
   --fsflow-border-color: rgba(235, 230, 220, 0.15);
   --fsflow-sidebar-bg: rgba(35, 33, 30, 0.94);
   --fsflow-card-bg: rgba(45, 43, 40, 0.92);
+  --fsflow-gradient-start: #24221f;
 }
 
 html {
   background:
-    radial-gradient(circle at top left, rgba(55, 103, 177, 0.08), transparent 26%),
-    linear-gradient(180deg, #fbf9f5 0%, var(--ifm-background-color) 100%);
+    radial-gradient(circle at top left, rgba(55, 103, 177, 0.12), transparent 40%),
+    linear-gradient(180deg, var(--fsflow-gradient-start) 0%, var(--ifm-background-color) 100%);
 }
 
 body {

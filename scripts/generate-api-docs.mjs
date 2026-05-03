@@ -278,18 +278,20 @@ function readLines(filePath) {
 function cleanXmlDocText(text) {
   return text
     .replace(/<c>([\s\S]*?)<\/c>/gi, '`$1`')
+    .replace(/<code>([\s\S]*?)<\/code>/gi, (_match, code) => {
+      const trimmed = code.trim();
+      return `\n\n\`\`\`fsharp\n${trimmed}\n\`\`\`\n\n`;
+    })
     .replace(/<paramref name="([^"]+)"\s*\/>/gi, '`$1`')
     .replace(/<see cref="([^"]+)"\s*\/>/gi, (_match, cref) => {
       const withoutPrefix = cref.replace(/^[A-Z]:/, '');
       const lastSegment = withoutPrefix.split(/[.:]/).pop() ?? withoutPrefix;
       return `\`${lastSegment.replace(/`[0-9]+/g, '')}\``;
     })
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
     .trim();
 }
 
-function extractSummary(commentLines) {
+function extractFromXml(commentLines, tag) {
   if (commentLines.length === 0) {
     return '';
   }
@@ -298,9 +300,31 @@ function extractSummary(commentLines) {
     .map((line) => line.replace(/^\s*\/\/\/\s?/, ''))
     .join('\n');
 
-  const summaryMatch = raw.match(/<summary>([\s\S]*?)<\/summary>/i);
-  const content = summaryMatch ? summaryMatch[1] : raw;
+  const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'i');
+  const match = raw.match(regex);
+  if (!match) {
+    return tag === 'summary' ? cleanXmlDocText(raw.replace(/<[^>]+>[\s\S]*?<\/[^>]+>/gi, '')) : '';
+  }
+
+  const content = match[1];
   return cleanXmlDocText(content);
+}
+
+function extractSummary(commentLines) {
+  return extractFromXml(commentLines, 'summary');
+}
+
+function extractRemarks(commentLines) {
+  return extractFromXml(commentLines, 'remarks');
+}
+
+function extractExamples(commentLines) {
+  const raw = commentLines
+    .map((line) => line.replace(/^\s*\/\/\/\s?/, ''))
+    .join('\n');
+
+  const matches = [...raw.matchAll(/<example>([\s\S]*?)<\/example>/gi)];
+  return matches.map(m => cleanXmlDocText(m[1]));
 }
 
 function isAttributeLine(line) {
@@ -344,12 +368,16 @@ function extractSymbols(filePath) {
     }
 
     const summary = extractSummary(pendingComments);
+    const remarks = extractRemarks(pendingComments);
+    const examples = extractExamples(pendingComments);
     const fullName = currentPrefix() ? `${currentPrefix()}.${name}` : name;
     const existing = symbols.get(fullName) ?? [];
     existing.push({
       kind,
       line: lineNumber,
       summary,
+      remarks,
+      examples,
       filePath,
     });
     symbols.set(fullName, existing);
@@ -434,85 +462,160 @@ function resolveSymbolDoc(symbols, qualifiedName, kindHint) {
   return docs.find((doc) => doc.kind === 'module') ?? docs.find((doc) => doc.kind === 'type') ?? docs[0];
 }
 
-function renderItem(symbols, sourcePath, symbolRef) {
-  const [sourcePrefix, rawSymbol] = symbolRef.includes('::') ? symbolRef.split('::', 2) : [null, symbolRef];
-  const sourcePathKey = sourcePrefix && !sourcePrefix.includes(':') ? sourcePrefix : sourcePath;
-  const symbolWithKind = sourcePrefix && sourcePrefix.includes(':') ? sourcePrefix : rawSymbol;
+function renderFunctionPage(spec, symbolRef, symbolsByFile) {
+  const [sourceAlias, symbolWithKind] = symbolRef.includes('::') ? symbolRef.split('::', 2) : [null, symbolRef];
+  const [kindHint, qualifiedName] = symbolWithKind.includes(':') ? symbolWithKind.split(':', 2) : [null, symbolWithKind];
+  
+  let doc = null;
+  const searchFiles = sourceAlias ? [sourceAlias] : spec.sourceFiles;
+  for (const filePath of searchFiles) {
+    const fullPath = path.resolve(repoRoot, filePath);
+    const symbols = symbolsByFile.get(fullPath);
+    if (symbols) {
+      doc = resolveSymbolDoc(symbols, qualifiedName, kindHint);
+      if (doc) break;
+    }
+  }
+
+  if (!doc) {
+    throw new Error(`Missing symbol doc for function page: ${symbolRef}`);
+  }
+
+  const shortName = qualifiedName.split('.').pop();
+  const parentName = qualifiedName.includes('.') ? qualifiedName.substring(0, qualifiedName.lastIndexOf('.')) : '';
+
+  let content = `---
+title: ${shortName}
+description: API reference for ${qualifiedName}
+---
+
+# ${shortName}
+
+${doc.summary || ''}
+
+${doc.remarks ? `## Remarks\n\n${doc.remarks}\n` : ''}
+
+## ${qualifiedName}
+
+- **Module**: ${parentName ? `\`${parentName}\`` : 'Global'}
+- **Source**: [source](${makeSourceLink(doc.filePath, doc.line)})
+
+`;
+
+  if (doc.examples && doc.examples.length > 0) {
+    content += `## Examples\n\n`;
+    for (const example of doc.examples) {
+      content += `${example}\n\n`;
+    }
+  }
+
+  return content;
+}
+
+function renderItem(symbols, sourcePath, symbolRef, pagePath) {
+  const [sourceAlias, rawSymbol] = symbolRef.includes('::') ? symbolRef.split('::', 2) : [null, symbolRef];
+  const symbolWithKind = sourceAlias && sourceAlias.includes(':') ? sourceAlias : rawSymbol;
   const [kindHint, qualifiedName] = symbolWithKind.includes(':') ? symbolWithKind.split(':', 2) : [null, symbolWithKind];
   const doc = resolveSymbolDoc(symbols, qualifiedName, kindHint);
   if (!doc) {
-    throw new Error(`Missing symbol doc for ${symbolRef} in ${sourcePathKey}`);
+    throw new Error(`Missing symbol doc for ${symbolRef} in ${sourcePath}`);
   }
 
-  const label = kindHint && !qualifiedName.includes('.') ? `${kindHint} \`${qualifiedName}\`` : `\`${qualifiedName}\``;
+  const shortName = qualifiedName.split('.').pop();
+  const functionPageName = qualifiedName.toLowerCase().split('.').join('-');
+  
+  const label = kindHint && !qualifiedName.includes('.') ? `${kindHint} \`${qualifiedName}\`` : `[\`${qualifiedName}\`](./${functionPageName}.md)`;
   const summary = doc.summary ? `: ${doc.summary}` : '';
   return `- ${label}${summary} [source](${makeSourceLink(sourcePath, doc.line)})`;
 }
 
-function renderSection(spec, section, symbolsByFile) {
-  const lines = [`## ${section.title}`, ''];
+function renderPage(spec, symbolsByFile, outPath) {
+  let content = `---
+title: ${spec.title}
+description: ${spec.description}
+---
 
-  if (section.manual) {
-    lines.push(section.manual, '');
-  }
+# ${spec.title}
 
-  for (const symbol of section.symbols ?? []) {
-    const [sourceAlias, symbolName] = symbol.includes('::') ? symbol.split('::', 2) : [null, symbol];
-    const sourcePath = sourceAlias && !sourceAlias.includes(':') ? sourceAlias : spec.sourceFiles[0];
-    const symbols = symbolsByFile.get(sourcePath);
-    if (!symbols) {
-      throw new Error(`Missing symbol index for ${sourcePath}`);
-    }
-    lines.push(renderItem(symbols, path.join(repoRoot, sourcePath), sourceAlias ? `${sourceAlias}::${symbolName}` : symbol));
-  }
+${spec.intro}
 
-  if ((section.symbols ?? []).length > 0) {
-    lines.push('');
-  }
-
-  return lines;
-}
-
-function renderPage(spec, symbolsByFile) {
-  const lines = [
-    '---',
-    `title: ${spec.title}`,
-    `description: ${spec.description}`,
-    '---',
-    '',
-    `# ${spec.title}`,
-    '',
-    spec.intro,
-    '',
-  ];
+`;
 
   for (const section of spec.sections) {
-    lines.push(...renderSection(spec, section, symbolsByFile));
+    content += `## ${section.title}\n\n`;
+    if (section.manual) {
+      content += `${section.manual}\n\n`;
+    }
+
+    for (const symbolRef of section.symbols) {
+      let found = false;
+      const [sourceAlias, _] = symbolRef.includes('::') ? symbolRef.split('::', 2) : [null, symbolRef];
+      const searchFiles = sourceAlias ? [sourceAlias] : spec.sourceFiles;
+      
+      for (const filePath of searchFiles) {
+        const fullPath = path.resolve(repoRoot, filePath);
+        const symbols = symbolsByFile.get(fullPath);
+        if (symbols) {
+          try {
+            content += renderItem(symbols, fullPath, symbolRef, outPath) + '\n';
+            found = true;
+            break;
+          } catch (e) {
+            // continue
+          }
+        }
+      }
+      if (!found) {
+        throw new Error(`Could not find doc for ${symbolRef} in any source file of page ${spec.title}`);
+      }
+    }
+    content += '\n';
   }
 
-  lines.push('## Source', '');
-  for (const sourceFile of spec.sourceFiles) {
-    const relPath = path.relative(repoRoot, path.join(repoRoot, sourceFile)).split(path.sep).join('/');
-    lines.push(`- [${path.basename(sourceFile)}](${githubBase}/${relPath})`);
-  }
-  lines.push('');
-
-  return lines.join('\n');
+  return content;
 }
 
 function generate() {
-  const symbolsByFile = new Map();
+  const allSourceFiles = new Set();
+  for (const spec of pageSpecs) {
+    for (const file of spec.sourceFiles) {
+      allSourceFiles.add(file);
+    }
+    for (const section of spec.sections) {
+      for (const symbol of section.symbols) {
+        if (symbol.includes('::')) {
+          const [source, _] = symbol.split('::');
+          if (!source.includes(':')) {
+            allSourceFiles.add(source);
+          }
+        }
+      }
+    }
+  }
 
-  for (const sourceFile of new Set(pageSpecs.flatMap((spec) => spec.sourceFiles))) {
-    symbolsByFile.set(sourceFile, extractSymbols(path.join(repoRoot, sourceFile)));
+  const symbolsByFile = new Map();
+  for (const file of allSourceFiles) {
+    symbolsByFile.set(path.resolve(repoRoot, file), extractSymbols(path.resolve(repoRoot, file)));
   }
 
   for (const targetRoot of targets) {
-    ensureDir(targetRoot);
     for (const spec of pageSpecs) {
       const outPath = path.join(targetRoot, ...spec.outPath);
       ensureDir(path.dirname(outPath));
-      fs.writeFileSync(outPath, renderPage(spec, symbolsByFile), 'utf8');
+      fs.writeFileSync(outPath, renderPage(spec, symbolsByFile, outPath), 'utf8');
+
+      // Generate individual function pages
+      for (const section of spec.sections) {
+        for (const symbolRef of section.symbols) {
+          const [sourceAlias, symbolWithKind] = symbolRef.includes('::') ? symbolRef.split('::', 2) : [null, symbolRef];
+          const [kindHint, qualifiedName] = symbolWithKind.includes(':') ? symbolWithKind.split(':', 2) : [null, symbolWithKind];
+          if (kindHint === 'module' || kindHint === 'type') continue;
+          
+          const functionPageName = qualifiedName.toLowerCase().split('.').join('-');
+          const functionPagePath = path.join(path.dirname(outPath), functionPageName + '.md');
+          fs.writeFileSync(functionPagePath, renderFunctionPage(spec, symbolRef, symbolsByFile), 'utf8');
+        }
+      }
     }
   }
 }

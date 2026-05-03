@@ -21,7 +21,7 @@ This package groups the synchronous, async, and task workflow families plus the 
 - `Result` for fail-fast helpers
 - `Validation` for accumulated diagnostics
 - support types that shape runtime logging and retry behavior
-- the `flow {}`, `asyncFlow {}`, and `taskFlow {}` entry points
+- the `flow {}`, `asyncFlow {}`, `taskFlow {}`, `result {}`, and `validate {}` entry points
 
 The builder types themselves stay below the surface. The families and their modules are the public story.
 
@@ -43,7 +43,7 @@ The builder types themselves stay below the surface. The families and their modu
 <p>The `Flow&lt;'env, 'error, 'value&gt;` type and `Flow` module cover synchronous composition, explicit environment reads, short-circuiting, and execution.</p>
 <p>The next page expands the full member map, including creation helpers, composition helpers, environment access, traversals, runtime helpers, and interop points.</p>
 <div class="docs-card-links">
-<a href="flow">Open the Flow page</a>
+<a href="./flow.md">Open the Flow page</a>
 </div>
 </section>
 
@@ -53,7 +53,7 @@ The builder types themselves stay below the surface. The families and their modu
 <p>The `AsyncFlow&lt;'env, 'error, 'value&gt;` type and `AsyncFlow` module cover async composition, `Async` interop, explicit environment reads, and execution.</p>
 <p>The next page expands the full member map, including creation helpers, composition helpers, traversals, runtime helpers, and async bridges.</p>
 <div class="docs-card-links">
-<a href="asyncflow">Open the AsyncFlow page</a>
+<a href="./asyncflow.md">Open the AsyncFlow page</a>
 </div>
 </section>
 
@@ -63,7 +63,7 @@ The builder types themselves stay below the surface. The families and their modu
 <p>The `TaskFlow&lt;'env, 'error, 'value&gt;` type and `TaskFlow` module cover task-native composition, explicit environment reads, cancellation, and execution.</p>
 <p>The next pages expand the full member map for the task surface, including cold task helpers, runtime helpers, and async bridges.</p>
 <div class="docs-card-links">
-<a href="taskflow">Open the TaskFlow page</a>
+<a href="./taskflow.md">Open the TaskFlow page</a>
 </div>
 </section>
 
@@ -73,7 +73,7 @@ The builder types themselves stay below the surface. The families and their modu
 <p>`FsFlow.Check` gives pure `Result&lt;_, unit&gt;` checks for booleans, options, value options, nulls, collections, equality, and strings.</p>
 <p>The `Check` page expands the full member map and the bridges that turn unit failures into application errors.</p>
 <div class="docs-card-links">
-<a href="check">Open the check page</a>
+<a href="./check.md">Open the check page</a>
 </div>
 </section>
 
@@ -86,7 +86,7 @@ The builder types themselves stay below the surface. The families and their modu
 <h3>Operational support</h3>
 <p>These types and modules handle the "how" of execution: `LogEntry`, `LogLevel`, `RetryPolicy`, and the `AsyncFlow.Runtime` helpers for timeouts and sleep.</p>
 <div class="docs-card-links">
-<a href="runtime">Open the runtime page</a>
+<a href="./runtime.md">Open the runtime page</a>
 </div>
 </section>
 
@@ -123,43 +123,43 @@ The builder types themselves stay below the surface. The families and their modu
 
 <section class="docs-card">
 <span class="label">Flow</span>
-<h3><a href="flow">Sync boundaries</a></h3>
+<h3><a href="./flow.md">Sync boundaries</a></h3>
 <p>Type, module, composition, environment, and execution in the synchronous family.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">AsyncFlow</span>
-<h3><a href="asyncflow">Async boundaries</a></h3>
+<h3><a href="./asyncflow.md">Async boundaries</a></h3>
 <p>The async family surface, including async bridges and the same explicit environment model.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">TaskFlow</span>
-<h3><a href="taskflow">Task boundaries</a></h3>
-<p>The task family surface, including task-native runtime helpers and async bridges.</p>
+<h3><a href="./taskflow.md">Task boundaries</a></h3>
+<p>The task family surface, including cold task helpers, task-native runtime helpers, and async bridges.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Check</span>
-<h3><a href="check">Pure checks</a></h3>
+<h3><a href="./check.md">Pure checks</a></h3>
 <p>Pure predicates and the bridge to effectful error creation.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Validation</span>
-<h3><a href="validation">Accumulating validation</a></h3>
+<h3><a href="./validation.md">Accumulating validation</a></h3>
 <p>The `Validation` type and `validate {}` builder for collecting diagnostics into a structured graph.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Result</span>
-<h3><a href="result">Fail-fast results</a></h3>
+<h3><a href="./result.md">Fail-fast results</a></h3>
 <p>The `Result` module and `result {}` builder for short-circuiting workflows.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Runtime</span>
-<h3><a href="runtime">Operational support</a></h3>
+<h3><a href="./runtime.md">Operational support</a></h3>
 <p>Logging, retry helpers, and async runtime operations like timeouts and sleep.</p>
 </section>
 

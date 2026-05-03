@@ -150,26 +150,64 @@ module internal InternalCombinatorCore =
 [<RequireQualifiedAccess>]
 module Flow =
     /// <summary>Executes a synchronous flow with the provided environment.</summary>
+    /// <example>
+    /// <code>
+    /// let flow = Flow.read (fun env -> $"Hello, {env}!")
+    /// let result = Flow.run "World" flow
+    /// // result = Ok "Hello, World!"
+    /// </code>
+    /// </example>
     let run (environment: 'env) (Flow operation: Flow<'env, 'error, 'value>) : Result<'value, 'error> =
         operation environment
 
     /// <summary>Creates a successful synchronous flow.</summary>
+    /// <example>
+    /// <code>
+    /// let flow = Flow.succeed 42
+    /// let result = Flow.run () flow
+    /// // result = Ok 42
+    /// </code>
+    /// </example>
     let succeed (value: 'value) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> Ok value)
 
     /// <summary>Alias for <see cref="succeed" /> that reads well in some call sites.</summary>
+    /// <example>
+    /// <code>
+    /// let flow = Flow.value "constant"
+    /// </code>
+    /// </example>
     let value (item: 'value) : Flow<'env, 'error, 'value> =
         succeed item
 
     /// <summary>Creates a failing synchronous flow.</summary>
+    /// <example>
+    /// <code>
+    /// let flow = Flow.fail "error"
+    /// let result = Flow.run () flow
+    /// // result = Error "error"
+    /// </code>
+    /// </example>
     let fail (error: 'error) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> Error error)
 
     /// <summary>Lifts a <see cref="T:System.Result`2" /> into a synchronous flow.</summary>
+    /// <example>
+    /// <code>
+    /// let res = Ok "success"
+    /// let flow = Flow.fromResult res
+    /// </code>
+    /// </example>
     let fromResult (result: Result<'value, 'error>) : Flow<'env, 'error, 'value> =
         Flow(fun _ -> result)
 
     /// <summary>Lifts an option into a synchronous flow with the supplied error.</summary>
+    /// <example>
+    /// <code>
+    /// let opt = Some "value"
+    /// let flow = Flow.fromOption "missing" opt
+    /// </code>
+    /// </example>
     let fromOption (error: 'error) (value: 'value option) : Flow<'env, 'error, 'value> =
         value
         |> OptionFlow.toResult error
