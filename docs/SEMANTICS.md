@@ -159,49 +159,26 @@ Each run calls the `ColdTask` factory again and passes in the current computatio
 
 ## Runtime Helpers
 
-The shared runtime helpers live on `Flow.Runtime` and `AsyncFlow.Runtime`:
+Operational helpers for logging, timeout, retry, and resource handling are grouped into `Runtime` modules:
 
-- `cancellationToken`
-- `catchCancellation`
-- `ensureNotCanceled`
-- `sleep`
-- `log`
-- `logWith`
-- `useWithAcquireRelease`
-- `timeout`
-- `retry`
+- **`AsyncFlow.Runtime`**: Helpers for `AsyncFlow` computations (cancellation, sleep, log, timeout, retry).
+- **`TaskFlow.Runtime`**: Task-native helpers for `TaskFlow` computations, including support for `RuntimeContext`.
 
-Use `Flow.Runtime` for synchronous computations and `AsyncFlow.Runtime` for async computations.
-
-The task surface also provides `TaskFlow.Runtime` for task-native computations:
-
-- `TaskFlow.Runtime.cancellationToken`
-- `TaskFlow.Runtime.catchCancellation`
-- `TaskFlow.Runtime.ensureNotCanceled`
-- `TaskFlow.Runtime.sleep`
-- `TaskFlow.Runtime.log`
-- `TaskFlow.Runtime.logWith`
-- `TaskFlow.Runtime.useWithAcquireRelease`
-- `TaskFlow.Runtime.timeout`
-- `TaskFlow.Runtime.retry`
-
-Use `TaskFlow.Runtime` when the public boundary is task-based and the helper belongs in task execution.
-
-The task surface also exposes `RuntimeContext<'runtime, 'env>` for task workflows that need separate
-runtime services and application capabilities, plus `TaskFlowSpec` and `Capability` helpers for
-shaping those two halves.
+There is no `Flow.Runtime` because synchronous flows are intended for pure logic that does not
+require operational runtime support like cancellation or timeouts.
 
 ## Validation Helpers
 
 `FsFlow.Check` provides pure `Result<'value, unit>` checks for booleans, options, value options,
 nulls, collections, equality, and strings.
-`FsFlow.Validate` remains as a compatibility alias for the same surface.
 
 Use `Result.mapErrorTo` to attach a typed error after the pure validation step.
 
-When the error value itself needs environment or effectful evaluation, use the bridge helpers on `Flow`, `AsyncFlow`, or `TaskFlow`.
+When the error value itself needs environment or effectful evaluation, use the bridge helpers on
+`Flow`, `AsyncFlow`, or `TaskFlow`.
 
-Use `Validation` when the failures should accumulate instead of short-circuiting.
+Use `Validation` and `validate {}` when the failures should accumulate into a structured
+`Diagnostics` graph instead of short-circuiting.
 
 ## Family Direction
 

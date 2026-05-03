@@ -121,7 +121,7 @@ let registerUser userId : TaskFlow<RegistrationEnv, RegistrationError, string * 
 The runtime gets richer without changing how validation is expressed.
 
 This snippet shows the core shape. The full runnable example, including `main` and temp-directory setup,
-is in [`examples/FsFlow.ReadmeExample/Program.fs`](https://github.com/adz/FsFlow/blob/main/examples/FsFlow.ReadmeExample/Program.fs).
+is in [`examples/FsFlow.ReadmeExample/Program.fs`](https://github.com/adz/FsFlow/blob/v0.3.0/examples/FsFlow.ReadmeExample/Program.fs).
 
 It reads `Root` and other dependencies from `'env`, reuses plain validation, and performs file reads in one `taskFlow {}`
 so the cancellation token is passed implicitly into each cold task.

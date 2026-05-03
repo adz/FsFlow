@@ -705,8 +705,8 @@ let probe : TaskFlow<unit, string, int> =
         test <@ Check.equal 3 3 = Ok () @>
         test <@ Check.notEqual 3 4 = Ok () @>
 
-        test <@ Validate.notBlank "  x  " = Ok "  x  " @>
-        test <@ Validate.notNull nonNull = Ok "flowkit" @>
+        test <@ Check.notBlank "  x  " = Ok "  x  " @>
+        test <@ Check.notNull nonNull = Ok "flowkit" @>
 
     [<Fact>]
     let ``Result covers fail-fast helpers and the result computation expression`` () =
@@ -911,41 +911,41 @@ let probe : TaskFlow<unit, string, int> =
         test <@ liftedResult = Ok 22 @>
 
     [<Fact>]
-    let ``Validate bridges into flow, async, and task shapes`` () =
+    let ``Check bridges into flow, async, and task shapes`` () =
         let flowBridge =
-            Validate.okIf false
+            Check.okIf false
             |> Flow.orElseFlow (Flow.read (fun env -> $"flow:{env}"))
             |> Flow.run "env"
 
         let asyncBridge =
-            Validate.okIf false
+            Check.okIf false
             |> AsyncFlow.orElseAsync (async.Return "async")
             |> Async.RunSynchronously
 
         let asyncFlowBridge =
-            Validate.okIf false
+            Check.okIf false
             |> AsyncFlow.orElseAsyncFlow (AsyncFlow.read (fun env -> $"async-flow:{env}"))
             |> AsyncFlow.run "env"
             |> Async.RunSynchronously
 
         let taskBridge =
-            Validate.okIf false
+            Check.okIf false
             |> TaskFlow.orElseTask (Task.FromResult "task")
             |> fun task -> task.GetAwaiter().GetResult()
 
         let taskAsyncBridge =
-            Validate.okIf false
+            Check.okIf false
             |> TaskFlow.orElseAsync (async.Return "task-async")
             |> fun task -> task.GetAwaiter().GetResult()
 
         let taskFlowBridge =
-            Validate.okIf false
+            Check.okIf false
             |> TaskFlow.orElseTaskFlow (TaskFlow.read (fun env -> $"task-flow:{env}"))
             |> TaskFlow.run "env" CancellationToken.None
             |> fun task -> task.GetAwaiter().GetResult()
 
         let taskAsyncFlowBridge =
-            Validate.okIf false
+            Check.okIf false
             |> TaskFlow.orElseAsyncFlow (AsyncFlow.read (fun env -> $"task-async-flow:{env}"))
             |> TaskFlow.run "env" CancellationToken.None
             |> fun task -> task.GetAwaiter().GetResult()

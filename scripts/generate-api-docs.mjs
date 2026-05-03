@@ -14,71 +14,129 @@ const pageSpecs = [
   {
     outPath: ['fsflow', 'flow.md'],
     title: 'Flow',
-    description: 'Source-documented synchronous and async workflow surface in FsFlow.',
+    description: 'Source-documented synchronous workflow surface in FsFlow.',
     intro:
-      "This page shows the source-documented `Flow` and `AsyncFlow` surface, with source links on every member so the reference stays tied to the code.",
+      "This page shows the source-documented `Flow` surface: the core type, the module functions, and the `flow { }` builder.",
     sourceFiles: ['src/FsFlow/Flow.fs'],
     sections: [
       {
-        title: 'Flow',
-        symbols: ['type:Flow', 'module:Flow', 'Flow.run', 'Flow.succeed', 'Flow.value', 'Flow.fail', 'Flow.fromResult', 'Flow.fromOption', 'Flow.fromValueOption', 'Flow.orElseFlow', 'Flow.env', 'Flow.read', 'Flow.map', 'Flow.bind', 'Flow.tap', 'Flow.tapError', 'Flow.mapError', 'Flow.catch', 'Flow.orElse', 'Flow.zip', 'Flow.map2', 'Flow.localEnv', 'Flow.delay', 'Flow.traverse', 'Flow.sequence'],
+        title: 'Core type',
+        symbols: ['type:Flow'],
       },
       {
-        title: 'AsyncFlow',
-        symbols: ['type:AsyncFlow', 'module:AsyncFlow', 'AsyncFlow.run', 'AsyncFlow.toAsync', 'AsyncFlow.succeed', 'AsyncFlow.fail', 'AsyncFlow.fromResult', 'AsyncFlow.fromOption', 'AsyncFlow.fromValueOption', 'AsyncFlow.orElseAsync', 'AsyncFlow.orElseAsyncFlow', 'AsyncFlow.fromFlow', 'AsyncFlow.fromAsync', 'AsyncFlow.fromAsyncResult', 'AsyncFlow.env', 'AsyncFlow.read', 'AsyncFlow.map', 'AsyncFlow.bind', 'AsyncFlow.tap', 'AsyncFlow.tapError', 'AsyncFlow.mapError', 'AsyncFlow.catch', 'AsyncFlow.orElse', 'AsyncFlow.zip', 'AsyncFlow.map2', 'AsyncFlow.localEnv', 'AsyncFlow.delay', 'AsyncFlow.traverse', 'AsyncFlow.sequence'],
+        title: 'Module functions',
+        symbols: ['module:Flow', 'Flow.run', 'Flow.succeed', 'Flow.value', 'Flow.fail', 'Flow.fromResult', 'Flow.fromOption', 'Flow.fromValueOption', 'Flow.orElseFlow', 'Flow.env', 'Flow.read', 'Flow.map', 'Flow.bind', 'Flow.tap', 'Flow.tapError', 'Flow.mapError', 'Flow.catch', 'Flow.orElse', 'Flow.zip', 'Flow.map2', 'Flow.localEnv', 'Flow.delay', 'Flow.traverse', 'Flow.sequence'],
       },
       {
-        title: 'Builder entry points',
-        manual:
-          'The builder entry points are the syntax layer on top of the module surface. Keep using the modules when you want the actual API members.',
-        symbols: ['Builders.result', 'Builders.flow', 'Builders.asyncFlow', 'Builders.validate'],
+        title: 'Builder',
+        symbols: ['Builders.flow'],
       },
     ],
   },
   {
-    outPath: ['fsflow', 'validate.md'],
-    title: 'Validate',
-    description: 'Source-documented check, result, and validation helpers for FsFlow.',
+    outPath: ['fsflow', 'asyncflow.md'],
+    title: 'AsyncFlow',
+    description: 'Source-documented async workflow surface in FsFlow.',
     intro:
-      'This page shows the source-documented validation surface: pure checks, fail-fast result helpers, and the accumulating validation graph, all with source links back to the implementation.',
-    sourceFiles: ['src/FsFlow/Validate.fs', 'src/FsFlow/Flow.fs'],
+      "This page shows the source-documented `AsyncFlow` surface: the core type, the module functions, and the `asyncFlow { }` builder.",
+    sourceFiles: ['src/FsFlow/Flow.fs'],
     sections: [
       {
-        title: 'Diagnostics graph',
-        symbols: ['type:PathSegment', 'type:Path', 'type:Diagnostic', 'type:Diagnostics', 'module:Diagnostics', 'Diagnostics.empty', 'Diagnostics.singleton', 'Diagnostics.merge', 'Diagnostics.flatten'],
+        title: 'Core type',
+        symbols: ['type:AsyncFlow'],
       },
       {
-        title: 'Fail-fast Result',
+        title: 'Module functions',
+        symbols: ['module:AsyncFlow', 'AsyncFlow.run', 'AsyncFlow.toAsync', 'AsyncFlow.succeed', 'AsyncFlow.fail', 'AsyncFlow.fromResult', 'AsyncFlow.fromOption', 'AsyncFlow.fromValueOption', 'AsyncFlow.orElseAsync', 'AsyncFlow.orElseAsyncFlow', 'AsyncFlow.fromFlow', 'AsyncFlow.fromAsync', 'AsyncFlow.fromAsyncResult', 'AsyncFlow.env', 'AsyncFlow.read', 'AsyncFlow.map', 'AsyncFlow.bind', 'AsyncFlow.tap', 'AsyncFlow.tapError', 'AsyncFlow.mapError', 'AsyncFlow.catch', 'AsyncFlow.orElse', 'AsyncFlow.zip', 'AsyncFlow.map2', 'AsyncFlow.localEnv', 'AsyncFlow.delay', 'AsyncFlow.traverse', 'AsyncFlow.sequence'],
+      },
+      {
+        title: 'Builder',
+        symbols: ['Builders.asyncFlow'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'check.md'],
+    title: 'Check',
+    description: 'Source-documented pure predicate helpers for FsFlow.',
+    intro:
+      'This page shows the source-documented `Check` surface: the unit-failure result type and the reusable predicate helpers.',
+    sourceFiles: ['src/FsFlow/Validate.fs'],
+    sections: [
+      {
+        title: 'Core type',
+        symbols: ['type:Check'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:Check', 'Check.fromPredicate', 'Check.not', 'Check.and', 'Check.or', 'Check.all', 'Check.any', 'Check.okIf', 'Check.failIf', 'Check.okIfSome', 'Check.okIfNone', 'Check.failIfSome', 'Check.failIfNone', 'Check.okIfValueSome', 'Check.okIfValueNone', 'Check.failIfValueSome', 'Check.failIfValueNone', 'Check.okIfNotNull', 'Check.okIfNull', 'Check.failIfNotNull', 'Check.failIfNull', 'Check.okIfNotEmpty', 'Check.okIfEmpty', 'Check.failIfNotEmpty', 'Check.failIfEmpty', 'Check.okIfEqual', 'Check.okIfNotEqual', 'Check.failIfEqual', 'Check.failIfNotEqual', 'Check.okIfNonEmptyStr', 'Check.okIfEmptyStr', 'Check.failIfNonEmptyStr', 'Check.failIfEmptyStr', 'Check.okIfNotBlank', 'Check.notBlank', 'Check.okIfBlank', 'Check.blank', 'Check.failIfNotBlank', 'Check.failIfBlank', 'Check.orElse', 'Check.orElseWith', 'Check.notNull', 'Check.notEmpty', 'Check.equal', 'Check.notEqual'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'diagnostics.md'],
+    title: 'Diagnostics',
+    description: 'Source-documented validation diagnostics graph for FsFlow.',
+    intro:
+      'This page shows the source-documented `Diagnostics` surface: the path-aware graph types and the merge/flatten helpers.',
+    sourceFiles: ['src/FsFlow/Validate.fs'],
+    sections: [
+      {
+        title: 'Graph types',
+        symbols: ['type:PathSegment', 'type:Path', 'type:Diagnostic', 'type:Diagnostics'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:Diagnostics', 'Diagnostics.empty', 'Diagnostics.singleton', 'Diagnostics.merge', 'Diagnostics.flatten'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'validation.md'],
+    title: 'Validation',
+    description: 'Source-documented accumulating validation for FsFlow.',
+    intro:
+      'This page shows the source-documented `Validation` surface: the accumulating result type, the module functions, and the `validate { }` builder.',
+    sourceFiles: ['src/FsFlow/Validate.fs'],
+    sections: [
+      {
+        title: 'Core type',
+        symbols: ['type:Validation'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:Validation', 'Validation.toResult', 'Validation.succeed', 'Validation.fail', 'Validation.fromResult', 'Validation.map', 'Validation.bind', 'Validation.mapError', 'Validation.map2', 'Validation.apply', 'Validation.collect', 'Validation.sequence', 'Validation.merge'],
+      },
+      {
+        title: 'Builder',
+        symbols: ['src/FsFlow/Flow.fs::Builders.validate'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'result.md'],
+    title: 'Result',
+    description: 'Source-documented fail-fast result helpers for FsFlow.',
+    intro:
+      'This page shows the source-documented `Result` surface: the module functions and the `result { }` builder.',
+    sourceFiles: ['src/FsFlow/Validate.fs'],
+    sections: [
+      {
+        title: 'Module functions',
         symbols: ['module:Result', 'Result.map', 'Result.bind', 'Result.mapError', 'Result.mapErrorTo', 'Result.sequence', 'Result.traverse'],
       },
       {
-        title: 'Accumulating Validation',
-        symbols: ['type:Validation', 'module:Validation', 'Validation.toResult', 'Validation.succeed', 'Validation.fail', 'Validation.fromResult', 'Validation.map', 'Validation.bind', 'Validation.mapError', 'Validation.map2', 'Validation.apply', 'Validation.collect', 'Validation.sequence', 'Validation.merge'],
-      },
-      {
-        title: 'Pure checks',
-        symbols: ['type:Check', 'module:Check', 'Check.fromPredicate', 'Check.not', 'Check.and', 'Check.or', 'Check.all', 'Check.any', 'Check.okIf', 'Check.failIf', 'Check.okIfSome', 'Check.okIfNone', 'Check.failIfSome', 'Check.failIfNone', 'Check.okIfValueSome', 'Check.okIfValueNone', 'Check.failIfValueSome', 'Check.failIfValueNone', 'Check.okIfNotNull', 'Check.okIfNull', 'Check.failIfNotNull', 'Check.failIfNull', 'Check.okIfNotEmpty', 'Check.okIfEmpty', 'Check.failIfNotEmpty', 'Check.failIfEmpty', 'Check.okIfEqual', 'Check.okIfNotEqual', 'Check.failIfEqual', 'Check.failIfNotEqual', 'Check.okIfNonEmptyStr', 'Check.okIfEmptyStr', 'Check.failIfNonEmptyStr', 'Check.failIfEmptyStr', 'Check.okIfNotBlank', 'Check.notBlank', 'Check.okIfBlank', 'Check.blank', 'Check.failIfNotBlank', 'Check.failIfBlank', 'Check.orElse', 'Check.orElseWith', 'Check.notNull', 'Check.notEmpty', 'Check.equal', 'Check.notEqual'],
-      },
-      {
-        title: 'Compatibility surface',
-        manual:
-          'The `Validate` module keeps the old names as aliases over `Check`, so existing call sites can move over without losing the source-level intent.',
-        symbols: ['module:Validate', 'Validate.not', 'Validate.and', 'Validate.or', 'Validate.all', 'Validate.any', 'Validate.fromPredicate', 'Validate.okIf', 'Validate.failIf', 'Validate.okIfSome', 'Validate.okIfNone', 'Validate.failIfSome', 'Validate.failIfNone', 'Validate.okIfValueSome', 'Validate.okIfValueNone', 'Validate.failIfValueSome', 'Validate.failIfValueNone', 'Validate.okIfNotNull', 'Validate.okIfNull', 'Validate.failIfNotNull', 'Validate.failIfNull', 'Validate.notNull', 'Validate.okIfNotEmpty', 'Validate.okIfEmpty', 'Validate.failIfNotEmpty', 'Validate.failIfEmpty', 'Validate.okIfEqual', 'Validate.okIfNotEqual', 'Validate.failIfEqual', 'Validate.failIfNotEqual', 'Validate.okIfNonEmptyStr', 'Validate.okIfEmptyStr', 'Validate.failIfNonEmptyStr', 'Validate.failIfEmptyStr', 'Validate.okIfNotBlank', 'Validate.okIfBlank', 'Validate.failIfNotBlank', 'Validate.failIfBlank', 'Validate.orElse', 'Validate.orElseWith'],
-      },
-      {
-        title: 'Entry points',
-        manual:
-          'The `result {}` and `validate {}` builders are the syntax layer over the helper surface, and they stay as entry points rather than headline API types.',
-        symbols: ['src/FsFlow/Flow.fs::Builders.result', 'src/FsFlow/Flow.fs::Builders.validate'],
+        title: 'Builder',
+        symbols: ['src/FsFlow/Flow.fs::Builders.result'],
       },
     ],
   },
   {
-    outPath: ['fsflow', 'support-types.md'],
-    title: 'Support Types',
-    description: 'Source-documented runtime support types in FsFlow.',
+    outPath: ['fsflow', 'runtime.md'],
+    title: 'Runtime',
+    description: 'Source-documented runtime support and helpers for FsFlow.',
     intro:
-      'This page shows the support types that stay close to the runtime helpers without taking over the main workflow story.',
+      'This page shows the source-documented runtime surface: logging, retry policies, and async operational helpers.',
     sourceFiles: ['src/FsFlow/Flow.fs'],
     sections: [
       {
@@ -89,6 +147,10 @@ const pageSpecs = [
         title: 'Retry policy',
         symbols: ['type:RetryPolicy', 'module:RetryPolicy', 'RetryPolicy.noDelay'],
       },
+      {
+        title: 'Async operational helpers',
+        symbols: ['module:AsyncFlow.Runtime', 'AsyncFlow.Runtime.cancellationToken', 'AsyncFlow.Runtime.catchCancellation', 'AsyncFlow.Runtime.ensureNotCanceled', 'AsyncFlow.Runtime.sleep', 'AsyncFlow.Runtime.log', 'AsyncFlow.Runtime.logWith', 'AsyncFlow.Runtime.useWithAcquireRelease', 'AsyncFlow.Runtime.timeout', 'AsyncFlow.Runtime.timeoutToOk', 'AsyncFlow.Runtime.timeoutToError', 'AsyncFlow.Runtime.timeoutWith', 'AsyncFlow.Runtime.retry'],
+      },
     ],
   },
   {
@@ -96,38 +158,74 @@ const pageSpecs = [
     title: 'TaskFlow',
     description: 'Source-documented task workflow surface in FsFlow.',
     intro:
-      'This page shows the source-documented task-oriented surface: the runtime context, cold task helper, task flow module, and the task-specific runtime helpers.',
-    sourceFiles: ['src/FsFlow/TaskFlow.fs', 'src/FsFlow/Runtime.fs'],
+      'This page shows the source-documented `TaskFlow` surface: the core type, the module functions, and the `taskFlow { }` builder.',
+    sourceFiles: ['src/FsFlow/TaskFlow.fs'],
+    sections: [
+      {
+        title: 'Core type',
+        symbols: ['type:TaskFlow'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:TaskFlow', 'TaskFlow.run', 'TaskFlow.runContext', 'TaskFlow.toTask', 'TaskFlow.succeed', 'TaskFlow.fail', 'TaskFlow.fromResult', 'TaskFlow.fromOption', 'TaskFlow.fromValueOption', 'TaskFlow.orElseTask', 'TaskFlow.orElseAsync', 'TaskFlow.orElseFlow', 'TaskFlow.orElseAsyncFlow', 'TaskFlow.orElseTaskFlow', 'TaskFlow.fromFlow', 'TaskFlow.fromAsyncFlow', 'TaskFlow.fromTask', 'TaskFlow.fromTaskResult', 'TaskFlow.env', 'TaskFlow.read', 'TaskFlow.readRuntime', 'TaskFlow.readEnvironment', 'TaskFlow.map', 'TaskFlow.bind', 'TaskFlow.tap', 'TaskFlow.tapError', 'TaskFlow.mapError', 'TaskFlow.catch', 'TaskFlow.orElse', 'TaskFlow.zip', 'TaskFlow.map2', 'TaskFlow.localEnv', 'TaskFlow.delay', 'TaskFlow.traverse', 'TaskFlow.sequence'],
+      },
+      {
+        title: 'Builder',
+        symbols: ['TaskBuilders.taskFlow'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'taskflow-runtime.md'],
+    title: 'TaskFlow Runtime',
+    description: 'Source-documented task runtime helpers for FsFlow.',
+    intro:
+      'This page shows the source-documented task runtime surface: the runtime context and the task-specific operational helpers.',
+    sourceFiles: ['src/FsFlow/Runtime.fs', 'src/FsFlow/TaskFlow.fs'],
     sections: [
       {
         title: 'Runtime context',
-        symbols: ['src/FsFlow/Runtime.fs::type:RuntimeContext', 'src/FsFlow/Runtime.fs::module:RuntimeContext', 'src/FsFlow/Runtime.fs::RuntimeContext.create', 'src/FsFlow/Runtime.fs::RuntimeContext.runtime', 'src/FsFlow/Runtime.fs::RuntimeContext.environment', 'src/FsFlow/Runtime.fs::RuntimeContext.cancellationToken', 'src/FsFlow/Runtime.fs::RuntimeContext.mapRuntime', 'src/FsFlow/Runtime.fs::RuntimeContext.mapEnvironment', 'src/FsFlow/Runtime.fs::RuntimeContext.withRuntime', 'src/FsFlow/Runtime.fs::RuntimeContext.withEnvironment'],
+        symbols: ['type:RuntimeContext', 'module:RuntimeContext', 'RuntimeContext.create', 'RuntimeContext.runtime', 'RuntimeContext.environment', 'RuntimeContext.cancellationToken', 'RuntimeContext.mapRuntime', 'RuntimeContext.mapEnvironment', 'RuntimeContext.withRuntime', 'RuntimeContext.withEnvironment'],
       },
       {
-        title: 'ColdTask',
-        symbols: ['type:ColdTask', 'module:ColdTask', 'ColdTask.run', 'ColdTask.create', 'ColdTask.fromTaskFactory', 'ColdTask.fromTask', 'ColdTask.fromValueTaskFactory', 'ColdTask.fromValueTaskFactoryWithoutCancellation', 'ColdTask.fromValueTask'],
+        title: 'Runtime helpers',
+        symbols: ['src/FsFlow/TaskFlow.fs::module:TaskFlow.Runtime', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.cancellationToken', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.catchCancellation', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.ensureNotCanceled', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.sleep', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.log', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.logWith', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.useWithAcquireRelease', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.timeout', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.timeoutToOk', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.timeoutToError', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.timeoutWith', 'src/FsFlow/TaskFlow.fs::TaskFlow.Runtime.retry'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'taskflow-spec.md'],
+    title: 'TaskFlowSpec',
+    description: 'Source-documented task workflow specification for FsFlow.',
+    intro:
+      'This page shows the source-documented `TaskFlowSpec` surface, used for defining and running task workflows with explicit configurations.',
+    sourceFiles: ['src/FsFlow/TaskFlow.fs'],
+    sections: [
+      {
+        title: 'Core type',
+        symbols: ['type:TaskFlowSpec'],
       },
       {
-        title: 'TaskFlow',
-        symbols: ['type:TaskFlow', 'module:TaskFlow', 'TaskFlow.run', 'TaskFlow.runContext', 'TaskFlow.toTask', 'TaskFlow.succeed', 'TaskFlow.fail', 'TaskFlow.fromResult', 'TaskFlow.fromOption', 'TaskFlow.fromValueOption', 'TaskFlow.orElseTask', 'TaskFlow.orElseAsync', 'TaskFlow.orElseFlow', 'TaskFlow.orElseAsyncFlow', 'TaskFlow.orElseTaskFlow', 'TaskFlow.fromFlow', 'TaskFlow.fromAsyncFlow', 'TaskFlow.fromTask', 'TaskFlow.fromTaskResult', 'TaskFlow.env', 'TaskFlow.read', 'TaskFlow.readRuntime', 'TaskFlow.readEnvironment', 'TaskFlow.map', 'TaskFlow.bind', 'TaskFlow.tap', 'TaskFlow.tapError', 'TaskFlow.mapError', 'TaskFlow.catch', 'TaskFlow.orElse', 'TaskFlow.zip', 'TaskFlow.map2', 'TaskFlow.localEnv', 'TaskFlow.delay', 'TaskFlow.traverse', 'TaskFlow.sequence'],
+        title: 'Module functions',
+        symbols: ['module:TaskFlowSpec', 'TaskFlowSpec.create', 'TaskFlowSpec.run'],
+      },
+    ],
+  },
+  {
+    outPath: ['fsflow', 'capability.md'],
+    title: 'Capability',
+    description: 'Source-documented capabilities and layers for FsFlow.',
+    intro:
+      'This page shows the source-documented capability and layer surface, used for dependency injection and environment management in task workflows.',
+    sourceFiles: ['src/FsFlow/TaskFlow.fs'],
+    sections: [
+      {
+        title: 'Capabilities',
+        symbols: ['module:Capability', 'Capability.MissingCapability', 'Capability.service', 'Capability.runtime', 'Capability.environment', 'Capability.serviceFromProvider'],
       },
       {
-        title: 'Task runtime helpers',
-        symbols: ['module:TaskFlow.Runtime', 'TaskFlow.Runtime.cancellationToken', 'TaskFlow.Runtime.catchCancellation', 'TaskFlow.Runtime.ensureNotCanceled', 'TaskFlow.Runtime.sleep', 'TaskFlow.Runtime.log', 'TaskFlow.Runtime.logWith', 'TaskFlow.Runtime.useWithAcquireRelease', 'TaskFlow.Runtime.timeout', 'TaskFlow.Runtime.timeoutToOk', 'TaskFlow.Runtime.timeoutToError', 'TaskFlow.Runtime.timeoutWith', 'TaskFlow.Runtime.retry'],
-      },
-      {
-        title: 'TaskFlowSpec',
-        symbols: ['type:TaskFlowSpec', 'module:TaskFlowSpec', 'TaskFlowSpec.create', 'TaskFlowSpec.run'],
-      },
-      {
-        title: 'Capabilities and layers',
-        symbols: ['module:Capability', 'Capability.MissingCapability', 'Capability.service', 'Capability.runtime', 'Capability.environment', 'Capability.serviceFromProvider', 'type:Layer'],
-      },
-      {
-        title: 'Entry points',
-        manual:
-          'The task-specific builder entry points stay as syntax on top of the module surface, while the extension modules handle the extra task and async interop shapes.',
-        symbols: ['TaskBuilders.taskFlow', 'module:TaskFlowBuilderExtensions', 'module:AsyncFlowBuilderExtensions'],
+        title: 'Layers',
+        symbols: ['type:Layer'],
       },
     ],
   },
@@ -136,16 +234,16 @@ const pageSpecs = [
     title: 'ColdTask',
     description: 'Source-documented delayed task helpers used by FsFlow.',
     intro:
-      'This page shows the delayed task helper surface used by `TaskFlow`, with source links so the cold/hot distinction stays anchored to the implementation.',
+      'This page shows the source-documented `ColdTask` surface: the delayed task helper used to anchor execution to the runtime context.',
     sourceFiles: ['src/FsFlow/TaskFlow.fs'],
     sections: [
       {
-        title: 'Core shape',
-        symbols: ['type:ColdTask', 'module:ColdTask', 'ColdTask.run'],
+        title: 'Core type',
+        symbols: ['type:ColdTask'],
       },
       {
-        title: 'Creation helpers',
-        symbols: ['ColdTask.create', 'ColdTask.fromTaskFactory', 'ColdTask.fromTask', 'ColdTask.fromValueTaskFactory', 'ColdTask.fromValueTaskFactoryWithoutCancellation', 'ColdTask.fromValueTask'],
+        title: 'Module functions',
+        symbols: ['module:ColdTask', 'ColdTask.run', 'ColdTask.create', 'ColdTask.fromTaskFactory', 'ColdTask.fromTask', 'ColdTask.fromValueTaskFactory', 'ColdTask.fromValueTaskFactoryWithoutCancellation', 'ColdTask.fromValueTask'],
       },
     ],
   },
@@ -154,7 +252,7 @@ const pageSpecs = [
     title: 'Interop',
     description: 'Source-documented task and async interop helpers for FsFlow.',
     intro:
-      'This page shows the interop helpers that bridge task-based boundaries to sync and async boundaries when that is the honest runtime shape.',
+      'This page shows the interop helpers that bridge task, async, and synchronous boundaries in FsFlow.',
     sourceFiles: ['src/FsFlow/TaskFlow.fs'],
     sections: [
       {
@@ -163,8 +261,6 @@ const pageSpecs = [
       },
       {
         title: 'Builder extensions',
-        manual:
-          'The builder extension modules are the supported customization surface. The builder types themselves stay out of the narrative.',
         symbols: ['module:TaskFlowBuilderExtensions', 'module:AsyncFlowBuilderExtensions'],
       },
     ],

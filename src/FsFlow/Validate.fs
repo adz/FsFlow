@@ -489,60 +489,6 @@ module Check =
         okIfNotEqual expected actual
 
 /// <summary>
-/// Backward-compatible aliases for the old validation module name.
-/// </summary>
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module Validate =
-    let not = Check.not
-    let (``and``) = Check.``and``
-    let (``or``) = Check.``or``
-    let all = Check.all
-    let any = Check.any
-    let fromPredicate = Check.fromPredicate
-    let okIf = Check.okIf
-    let failIf = Check.failIf
-    let okIfSome = Check.okIfSome
-    let okIfNone = Check.okIfNone
-    let failIfSome = Check.failIfSome
-    let failIfNone = Check.failIfNone
-    let okIfValueSome = Check.okIfValueSome
-    let okIfValueNone = Check.okIfValueNone
-    let failIfValueSome = Check.failIfValueSome
-    let failIfValueNone = Check.failIfValueNone
-    let okIfNotNull = Check.okIfNotNull
-    let okIfNull = Check.okIfNull
-    let failIfNotNull = Check.failIfNotNull
-    let failIfNull = Check.failIfNull
-    let notNull = Check.notNull
-    let okIfNotEmpty = Check.okIfNotEmpty
-    let okIfEmpty = Check.okIfEmpty
-    let failIfNotEmpty = Check.failIfNotEmpty
-    let failIfEmpty = Check.failIfEmpty
-    let notEmpty = Check.notEmpty
-    let okIfEqual = Check.okIfEqual
-    let okIfNotEqual = Check.okIfNotEqual
-    let failIfEqual = Check.failIfEqual
-    let failIfNotEqual = Check.failIfNotEqual
-    let equal = Check.equal
-    let notEqual = Check.notEqual
-    let okIfNonEmptyStr = Check.okIfNonEmptyStr
-    let okIfEmptyStr = Check.okIfEmptyStr
-    let failIfNonEmptyStr = Check.failIfNonEmptyStr
-    let failIfEmptyStr = Check.failIfEmptyStr
-    let okIfNotBlank = Check.okIfNotBlank
-    let okIfBlank = Check.okIfBlank
-    let failIfNotBlank = Check.failIfNotBlank
-    let failIfBlank = Check.failIfBlank
-    let notBlank = Check.notBlank
-    let blank = Check.blank
-    [<Obsolete("Use Result.mapErrorTo instead.")>]
-    let orElse (error: 'e) (result: Check<'value>) : Result<'value, 'e> =
-        Result.mapErrorTo error result
-    [<Obsolete("Use Result.mapError instead.")>]
-    let orElseWith (errorFn: unit -> 'e) (result: Check<'value>) : Result<'value, 'e> =
-        Result.mapError (fun () -> errorFn ()) result
-
-/// <summary>
 /// Computation expression builder for fail-fast <see cref="T:System.Result`2" /> workflows.
 /// </summary>
 /// <exclude/>

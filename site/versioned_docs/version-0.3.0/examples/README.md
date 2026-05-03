@@ -24,7 +24,7 @@ dotnet run --project examples/FsFlow.Examples/FsFlow.Examples.fsproj --nologo
 
 Source:
 
-- [Program.fs](https://github.com/adz/FsFlow/blob/main/examples/FsFlow.Examples/Program.fs)
+- [Program.fs](https://github.com/adz/FsFlow/blob/v0.3.0/examples/FsFlow.Examples/Program.fs)
 
 Source code:
 
@@ -130,7 +130,7 @@ dotnet run --project examples/FsFlow.Playground/FsFlow.Playground.fsproj --nolog
 
 Source:
 
-- [Program.fs](https://github.com/adz/FsFlow/blob/main/examples/FsFlow.Playground/Program.fs)
+- [Program.fs](https://github.com/adz/FsFlow/blob/v0.3.0/examples/FsFlow.Playground/Program.fs)
 
 Source code:
 
@@ -211,7 +211,7 @@ dotnet run --project examples/FsFlow.MaintenanceExamples/FsFlow.MaintenanceExamp
 
 Source:
 
-- [Program.fs](https://github.com/adz/FsFlow/blob/main/examples/FsFlow.MaintenanceExamples/Program.fs)
+- [Program.fs](https://github.com/adz/FsFlow/blob/v0.3.0/examples/FsFlow.MaintenanceExamples/Program.fs)
 
 Source code:
 

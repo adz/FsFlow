@@ -15,19 +15,19 @@
   --ifm-background-color: #f7f4ee;
   --ifm-navbar-background-color: rgba(251, 249, 245, 0.92);
   --ifm-menu-color-active: var(--ifm-color-primary);
-  --fsflow-secondary-text: rgba(42, 41, 37, 0.72);
-  --fsflow-border-color: rgba(42, 41, 37, 0.12);
-  --fsflow-sidebar-bg: rgba(249, 247, 242, 0.8);
-  --fsflow-card-bg: rgba(255, 255, 255, 0.86);
+  --fsflow-secondary-text: rgba(42, 41, 37, 0.88);
+  --fsflow-border-color: rgba(42, 41, 37, 0.15);
+  --fsflow-sidebar-bg: rgba(249, 247, 242, 0.94);
+  --fsflow-card-bg: rgba(255, 255, 255, 0.92);
 }
 
 [data-theme='dark'] {
   --ifm-background-color: #1e1c19;
   --ifm-navbar-background-color: rgba(30, 28, 25, 0.92);
-  --fsflow-secondary-text: rgba(235, 230, 220, 0.72);
-  --fsflow-border-color: rgba(235, 230, 220, 0.12);
-  --fsflow-sidebar-bg: rgba(35, 33, 30, 0.8);
-  --fsflow-card-bg: rgba(45, 43, 40, 0.86);
+  --fsflow-secondary-text: rgba(235, 230, 220, 0.88);
+  --fsflow-border-color: rgba(235, 230, 220, 0.15);
+  --fsflow-sidebar-bg: rgba(35, 33, 30, 0.94);
+  --fsflow-card-bg: rgba(45, 43, 40, 0.92);
 }
 
 html {
@@ -68,7 +68,7 @@ body {
 }
 
 .table-of-contents {
-  opacity: 0.7;
+  opacity: 0.85;
   transition: opacity 160ms ease;
 }
 

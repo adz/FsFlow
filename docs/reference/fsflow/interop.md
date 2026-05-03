@@ -5,7 +5,7 @@ description: Source-documented task and async interop helpers for FsFlow.
 
 # Interop
 
-This page shows the interop helpers that bridge task-based boundaries to sync and async boundaries when that is the honest runtime shape.
+This page shows the interop helpers that bridge task, async, and synchronous boundaries in FsFlow.
 
 ## TaskFlow bridges
 
@@ -19,10 +19,8 @@ This page shows the interop helpers that bridge task-based boundaries to sync an
 
 ## Builder extensions
 
-The builder extension modules are the supported customization surface. The builder types themselves stay out of the narrative.
-
 - module `TaskFlowBuilderExtensions` [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L907)
-- module `AsyncFlowBuilderExtensions` [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L1034)
+- module `AsyncFlowBuilderExtensions`: [omit] [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L981)
 
 ## Source
 

@@ -21,11 +21,12 @@ The reference shape is:
 - one explaining example on each page
 - one source link on each page
 
-The documentation should follow a FsToolkit-style hierarchy:
+Documentation rules:
 
-- package hub
-- surface page
-- focused member sections where the surface is still large
+- **Source-driven:** Lift the reference page content from the XML doc comments so the rendered docs and IDE experience stay in sync.
+- **FsToolkit-style:** Keep each page focused: short summary, explaining example, member map, and source link.
+- **Validation story:** Lead with `Check`, `Diagnostics`, `Validation`, and applicative `validate {}`.
+- **Zero legacy:** Remove `Validate`-as-primary or `Validate`-as-compatibility language from narrative docs. Compatibility aliases are removed before 1.0.
 
 Versioning rules:
 

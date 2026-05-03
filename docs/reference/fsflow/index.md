@@ -71,9 +71,9 @@ The builder types themselves stay below the surface. The families and their modu
 <span class="label">Check</span>
 <h2>Pure validation</h2>
 <p>`FsFlow.Check` gives pure `Result&lt;_, unit&gt;` checks for booleans, options, value options, nulls, collections, equality, and strings.</p>
-<p>`FsFlow.Result` and `FsFlow.Validation` cover the fail-fast and accumulating sides, and the next page expands the full helper family and the bridges that turn unit failures into application errors.</p>
+<p>The `Check` page expands the full member map and the bridges that turn unit failures into application errors.</p>
 <div class="docs-card-links">
-<a href="validate">Open the validation page</a>
+<a href="check">Open the check page</a>
 </div>
 </section>
 
@@ -82,18 +82,18 @@ The builder types themselves stay below the surface. The families and their modu
 <div class="docs-stack">
 
 <section class="docs-card">
-<span class="label">Support types</span>
-<h3>Supporting types</h3>
-<p>These types are useful but narrower in scope: `LogEntry`, `LogLevel`, and `RetryPolicy`.</p>
+<span class="label">Runtime</span>
+<h3>Operational support</h3>
+<p>These types and modules handle the "how" of execution: `LogEntry`, `LogLevel`, `RetryPolicy`, and the `AsyncFlow.Runtime` helpers for timeouts and sleep.</p>
 <div class="docs-card-links">
-<a href="support-types">Open the support types page</a>
+<a href="runtime">Open the runtime page</a>
 </div>
 </section>
 
 <section class="docs-card">
 <span class="label">Entry points</span>
 <h3>Workflow builders</h3>
-<p>The `flow {}`, `asyncFlow {}`, and `taskFlow {}` entry points are available, but the builder types themselves are treated as plumbing rather than headline API.</p>
+<p>The `flow {}`, `asyncFlow {}`, `taskFlow {}`, `result {}`, and `validate {}` entry points are available, but the builder types themselves are treated as plumbing rather than headline API.</p>
 <p>Use the builders for readable orchestration, and use the modules for the actual API surface.</p>
 </section>
 
@@ -136,19 +136,31 @@ The builder types themselves stay below the surface. The families and their modu
 <section class="docs-card">
 <span class="label">TaskFlow</span>
 <h3><a href="taskflow">Task boundaries</a></h3>
-<p>The task family surface, including cold task helpers, task-native runtime helpers, and async bridges.</p>
+<p>The task family surface, including task-native runtime helpers and async bridges.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Check</span>
-<h3><a href="validate">Validation helpers</a></h3>
-<p>Pure predicates, fail-fast result helpers, accumulating validation, and the bridge to effectful error creation.</p>
+<h3><a href="check">Pure checks</a></h3>
+<p>Pure predicates and the bridge to effectful error creation.</p>
 </section>
 
 <section class="docs-card">
-<span class="label">Support types</span>
-<h3><a href="support-types">Supporting types</a></h3>
-<p>Logging and retry helpers that support the core boundary model without taking over the page.</p>
+<span class="label">Validation</span>
+<h3><a href="validation">Accumulating validation</a></h3>
+<p>The `Validation` type and `validate {}` builder for collecting diagnostics into a structured graph.</p>
+</section>
+
+<section class="docs-card">
+<span class="label">Result</span>
+<h3><a href="result">Fail-fast results</a></h3>
+<p>The `Result` module and `result {}` builder for short-circuiting workflows.</p>
+</section>
+
+<section class="docs-card">
+<span class="label">Runtime</span>
+<h3><a href="runtime">Operational support</a></h3>
+<p>Logging, retry helpers, and async runtime operations like timeouts and sleep.</p>
 </section>
 
 </div>

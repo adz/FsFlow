@@ -161,5 +161,5 @@ Most fixes are one of:
 
 Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the workflow-family overview,
 [`docs/TASK_ASYNC_INTEROP.md`](./TASK_ASYNC_INTEROP.md) for the binding surface,
-and [`examples/FsFlow.MaintenanceExamples/Program.fs`](https://github.com/adz/FsFlow/blob/main/examples/FsFlow.MaintenanceExamples/Program.fs)
+and [`examples/FsFlow.MaintenanceExamples/Program.fs`](https://github.com/adz/FsFlow/blob/v0.3.0/examples/FsFlow.MaintenanceExamples/Program.fs)
 for runnable versions of these shapes.

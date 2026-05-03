@@ -217,6 +217,6 @@ The test suite currently verifies:
 
 Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the computation-family overview,
 [`docs/TASK_ASYNC_INTEROP.md`](./TASK_ASYNC_INTEROP.md) for the direct binding surface,
-or [`src/FsFlow/Flow.fs`](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs) and
-[`src/FsFlow.Net/TaskFlow.fs`](https://github.com/adz/FsFlow/blob/main/src/FsFlow.Net/TaskFlow.fs)
+or [`src/FsFlow/Flow.fs`](https://github.com/adz/FsFlow/blob/v0.3.0/src/FsFlow/Flow.fs) and
+[`src/FsFlow.Net/TaskFlow.fs`](https://github.com/adz/FsFlow/blob/v0.3.0/src/FsFlow.Net/TaskFlow.fs)
 for the full API surface.

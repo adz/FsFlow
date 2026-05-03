@@ -1,104 +1,68 @@
 ---
 title: Validate and Result
-description: The validation-first path from Check and Result into Validation, Flow, AsyncFlow, and TaskFlow.
+description: The graph-based model for pure checks, fail-fast results, and accumulating validation in FsFlow.
 ---
 
 # Validate and Result
 
-This page shows how `Check`, `Result`, and `Validation` fit into the main FsFlow story and how plain
-`Result` logic carries forward unchanged into `Flow`, `AsyncFlow`, and `TaskFlow`.
+FsFlow uses a graph-based model for validation that scales from simple boolean checks to complex,
+nested diagnostics.
 
-## Main Idea
+## The Model
 
-`Check` is the reusable predicate layer.
-`Result` is the fail-fast carrier.
-`Validation` is the accumulating carrier.
+The validation model is built on three pillars:
 
-Those are the first steps in the main progression:
+- **`Check`**: Pure, reusable predicates that return `Result<'value, unit>`.
+- **`Diagnostics`**: A structured graph that carries paths and typed errors.
+- **`Validation`**: An accumulating result type that merges diagnostics during composition.
 
-```text
-Check -> Result -> Validation -> Flow -> AsyncFlow -> TaskFlow
-```
+## Diagnostics Graph
 
-`Check` produces plain `Result` values with a unit error.
-`Result.mapErrorTo` turns those unit failures into application errors.
-`Validation` keeps the structured diagnostics graph visible when multiple sibling failures should be merged.
-Because the flow builders bind `Result` directly, the same validation functions lift unchanged into every workflow family.
-
-## Key Shapes
-
-Some validation helpers return a value:
+Unlike traditional validation that uses a flat list of strings, FsFlow uses a `Diagnostics<'error>`
+graph. This preserves the structure of your data and allows you to pinpoint exactly where an error
+occurred.
 
 ```fsharp
-Check.notBlank : string -> Result<string, unit>
-Check.notNull : 'a -> Result<'a, unit>
+type PathSegment =
+    | Key of string
+    | Index of int
+    | Name of string
+
+type Path = PathSegment list
+
+type Diagnostic<'error> = { Path: Path; Error: 'error }
+
+type Diagnostics<'error> =
+    { Local: Diagnostic<'error> list
+      Children: Map<PathSegment, Diagnostics<'error>> }
 ```
 
-Some validation helpers return `unit`:
+This graph is automatically merged when using the `validate {}` builder or `Validation.map2`.
 
-```fsharp
-Check.okIf : bool -> Result<unit, unit>
-Check.okIfEmpty : seq<'a> -> Result<unit, unit>
-```
+## Pure Checks
 
-Use `Result.mapErrorTo` to attach the application error you actually want:
-
-```fsharp
-Result.mapErrorTo : 'error -> Result<'value, unit> -> Result<'value, 'error>
-```
-
-The accumulated carrier keeps the graph visible:
-
-```fsharp
-type Validation<'value, 'error> = Result<'value, Diagnostics<'error>>
-```
-
-The `Validate` module remains as a backward-compatible alias for the older name, but `Check` and
-`Validation` are the canonical terms in the current docs.
-
-## Main Pattern
-
-The primary pattern is to keep the validated value.
-This allows you to bind the result and use the "clean" value in subsequent steps.
+The `Check` module provides pure predicates. These are "half-baked" results that use `unit` for
+failure. You bridge them into your application errors using `Result.mapErrorTo`:
 
 ```fsharp
 open FsFlow
 
-type RegistrationError =
-    | NameRequired
-    | EmailRequired
+type AppError = | Required | InvalidEmail
 
-let requireName (name: string) : Result<string, RegistrationError> =
-    name
-    |> Check.notBlank
-    |> Result.mapErrorTo NameRequired
+let requireName name =
+    name |> Check.notBlank |> Result.mapErrorTo Required
 
-let requireEmail (email: string) : Result<string, RegistrationError> =
-    email
-    |> Check.notBlank
-    |> Result.mapErrorTo EmailRequired
+let requireEmail email =
+    email |> Check.notBlank |> Result.mapErrorTo InvalidEmail
 ```
 
-When you only need a check and do not need the value, you can still return `Result<unit, 'error>` by ignoring the value:
+## Fail-fast with `result {}`
+
+When you want to stop at the first error, use the `result {}` builder. This works with standard
+`Result<'v, 'e>` types:
 
 ```fsharp
-let validateName (name: string) : Result<unit, RegistrationError> =
-    requireName name |> Result.map ignore
-
-let validateEmail (email: string) : Result<unit, RegistrationError> =
-    requireEmail email |> Result.map ignore
-```
-
-## In Plain Result Code
-
-You do not need to enter a flow early just to keep the code readable.
-
-```fsharp
-type RegisterUser =
-    { Name: string
-      Email: string }
-
-let validateCommand (cmd: RegisterUser) : Result<RegisterUser, RegistrationError> =
+let validateUser cmd =
     result {
         let! name = requireName cmd.Name
         let! email = requireEmail cmd.Email
@@ -106,12 +70,13 @@ let validateCommand (cmd: RegisterUser) : Result<RegisterUser, RegistrationError
     }
 ```
 
-This stays plain `Result` code because the problem is still fail-fast validation.
+## Accumulating with `validate {}`
 
-If the checks are independent and should all report back, switch to `validate {}`:
+When you want to collect all errors across sibling fields, use the `validate {}` builder with the
+`and!` keyword. This builder works with the `Validation<'v, 'e>` type:
 
 ```fsharp
-let validateCommandAllAtOnce (cmd: RegisterUser) : Validation<RegisterUser, RegistrationError> =
+let validateUserAccumulated cmd =
     validate {
         let! name = requireName cmd.Name
         and! email = requireEmail cmd.Email
@@ -119,67 +84,34 @@ let validateCommandAllAtOnce (cmd: RegisterUser) : Validation<RegisterUser, Regi
     }
 ```
 
-## In Flow Code
+The `and!` syntax triggers the applicative merging of the `Diagnostics` graph.
 
-The same functions lift unchanged into every workflow family:
+## Bridging into Workflows
+
+Every workflow family (`Flow`, `AsyncFlow`, `TaskFlow`) can bind `Result` directly. This means your
+pure validation logic lifts unchanged into your effectful code:
 
 ```fsharp
-let registerUser userId : TaskFlow<AppEnv, RegistrationError, User> =
+let registerUser userId =
     taskFlow {
-        let! loadUser = TaskFlow.read _.LoadUser
         let! user = loadUser userId
-
-        do! validateName user.Name
-        do! validateEmail user.Email
-
-        return user
+        let! validName = requireName user.Name
+        // ... rest of the flow
     }
 ```
 
-There is no need to wrap those validations in `TaskFlow.fromResult` inside the computation expression.
-`taskFlow {}` already binds `Result` directly.
+## Diagnostics Helpers
 
-The same style works in `flow {}` and `asyncFlow {}`:
+The `Diagnostics` module provides helpers for working with the graph:
 
-```fsharp
-let greet name : Flow<AppEnv, RegistrationError, string> =
-    flow {
-        let! validName = requireName name
-        let! prefix = Flow.read _.Prefix
-        return $"{prefix} {validName}"
-    }
-```
+- `Diagnostics.empty`: Create an empty graph.
+- `Diagnostics.singleton`: Create a graph with a single error at the root.
+- `Diagnostics.merge`: Merge two graphs together.
+- `Diagnostics.flatten`: Turn the graph into a flat `Diagnostic<'error> list`.
 
-## `do!` Versus `let!`
+## Summary
 
-Use `do!` when the validation returns `Result<unit, 'error>`:
-
-```fsharp
-do! validateName user.Name
-do! validateEmail user.Email
-```
-
-Use `let!` when the validation produces a value:
-
-```fsharp
-let! validName = requireName user.Name
-```
-
-That is the main rule.
-It keeps the validation functions small and avoids unnecessary helper shapes.
-
-## What Validate And Result Are Not
-
-`Check` is for reusable predicates.
-`Result` is for fail-fast workflows.
-`Validation` is for accumulated sibling failures.
-
-They are not all the same thing with a hidden list on the error side.
-When you need structured accumulation, use `Validation` and `validate {}` explicitly.
-When you need short-circuiting, keep the code on `Result` or a flow builder.
-
-## Next
-
-Read [`docs/GETTING_STARTED.md`](./GETTING_STARTED.md) for the computation-family overview,
-[`docs/TASK_ASYNC_INTEROP.md`](./TASK_ASYNC_INTEROP.md) for direct binding rules, and
-[`docs/INTEGRATIONS_VALIDUS.md`](./INTEGRATIONS_VALIDUS.md) when the validation problem is richer than plain short-circuiting guards.
+- Use `Check` for reusable, pure predicates.
+- Use `Result` and `result {}` for fail-fast logic.
+- Use `Validation` and `validate {}` for structured error accumulation.
+- Bind them directly into `Flow`, `AsyncFlow`, or `TaskFlow` as needed.

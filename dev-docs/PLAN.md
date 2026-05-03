@@ -31,22 +31,14 @@ These items are no longer live design questions and are tracked in the decision 
 - [Option and ValueOption binding](decisions/option-valueoption-binding.md): keep implicit binding only for `unit` error workflows and use explicit conversion helpers for typed errors
 - [Logging ergonomics](decisions/logging-ergonomics.md): keep the core logging abstraction generic and treat `ILogger` as an adapter
 
-## Live Docs Direction
+## Live Direction
 
-The remaining product-shape work is the documentation surface, not the core architecture:
+The current focus is on finalizing the granular API reference and ensuring the docs site navigation mirrors the public surface exactly.
 
-- every public API gets a dedicated reference page
-- the reference pages are lifted from the XML doc comments so the rendered docs match the IDE experience
-- each page uses the same FsToolkit-style structure: summary, explanation, example, member map, and source link
-- package hubs stay concise and point readers into the member pages
-- validation docs lead with `Check`, `Diagnostics`, `Validation`, and applicative `validate {}`
-- released docs point at the versioned source snapshot
-- next/unreleased docs point at `main`
-
-## Open Questions
-
-- whether any legacy `Validate` mentions should remain outside compatibility notes in the narrative docs
-- whether the docs site navigation wants any extra grouping once every public API has its own page
+- every public API has its own dedicated page
+- side-menu entries are visible for every page
+- narrative guides stay aligned with the granular page structure
+- legacy aliases and terminology are removed in favor of the graph-based model
 
 ## Done Means
 

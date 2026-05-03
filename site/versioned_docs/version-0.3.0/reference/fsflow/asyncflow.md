@@ -137,4 +137,4 @@ The source comments on `AsyncFlow` stay terse on purpose. The useful ones are:
 
 ## Source
 
-- [Flow.fs](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs)
+- [Flow.fs](https://github.com/adz/FsFlow/blob/v0.3.0/src/FsFlow/Flow.fs)
