@@ -18,7 +18,7 @@ let run (environment: 'env) (Flow operation: Flow<'env, 'error, 'value>) : Resul
 ## Information
 
 - **Module**: `Flow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L160)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L174)
 
 ## Examples
 

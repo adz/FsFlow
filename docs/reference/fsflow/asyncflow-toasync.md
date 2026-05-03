@@ -18,5 +18,5 @@ let toAsync (environment: 'env) (flow: AsyncFlow<'env, 'error, 'value>) : Async<
 ## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L457)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L471)
 

@@ -21,5 +21,5 @@ This observes the runtime token; it does not translate cancellation into a typed
 ## Information
 
 - **Module**: `AsyncFlow.Runtime`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L717)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L731)
 

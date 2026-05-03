@@ -907,6 +907,105 @@ type TaskFlowBuilder() =
         | ValueSome value -> binder value
         | ValueNone -> TaskFlow.fail ()
 
+    member _.Bind
+        (
+            tuple: 'value option * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let value, error = tuple
+        match value with
+        | Some innerValue -> binder innerValue
+        | None -> TaskFlow.fail error
+
+    member _.Bind
+        (
+            tuple: 'value voption * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let value, error = tuple
+        match value with
+        | ValueSome innerValue -> binder innerValue
+        | ValueNone -> TaskFlow.fail error
+
+    member _.Bind
+        (
+            tuple: bool * 'error,
+            binder: unit -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let cond, error = tuple
+        if cond then binder () else TaskFlow.fail error
+
+    member _.Bind
+        (
+            tuple: Result<'value, unit> * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let result, error = tuple
+        result
+        |> Result.mapError (fun () -> error)
+        |> TaskFlow.fromResult
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: Task<'value option> * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let sourceTask, error = tuple
+        TaskFlow(fun _ _ ->
+            task {
+                let! value = sourceTask
+                return match value with
+                       | Some v -> Ok v
+                       | None -> Error error
+            })
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: Task<'value voption> * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let sourceTask, error = tuple
+        TaskFlow(fun _ _ ->
+            task {
+                let! value = sourceTask
+                return match value with
+                       | ValueSome v -> Ok v
+                       | ValueNone -> Error error
+            })
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: ValueTask<'value option> * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let sourceTask, error = tuple
+        TaskFlow(fun _ _ ->
+            task {
+                let! value = sourceTask
+                return match value with
+                       | Some v -> Ok v
+                       | None -> Error error
+            })
+        |> TaskFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: ValueTask<'value voption> * 'error,
+            binder: 'value -> TaskFlow<'env, 'error, 'next>
+        ) : TaskFlow<'env, 'error, 'next> =
+        let sourceTask, error = tuple
+        TaskFlow(fun _ _ ->
+            task {
+                let! value = sourceTask
+                return match value with
+                       | ValueSome v -> Ok v
+                       | ValueNone -> Error error
+            })
+        |> TaskFlow.bind binder
+
     member _.Delay(factory: unit -> TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value> =
         TaskFlow.delay factory
 

@@ -18,7 +18,7 @@ let fromOption (error: 'error) (value: 'value option) : Flow<'env, 'error, 'valu
 ## Information
 
 - **Module**: `Flow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L211)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L225)
 
 ## Examples
 

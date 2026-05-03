@@ -20,5 +20,5 @@ placeholder unit failures into application errors. [source](https://github.com/a
 
 ## Builder
 
-- [`Builders.result`](./builders-result.md): The fail-fast `result { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1314)
+- [`Builders.result`](./builders-result.md): The fail-fast `result { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1414)
 

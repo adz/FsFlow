@@ -31,5 +31,5 @@ A `Flow` representing the combined workflow.
 ## Information
 
 - **Module**: `Flow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L287)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L301)
 

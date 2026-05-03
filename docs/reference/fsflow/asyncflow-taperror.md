@@ -18,5 +18,5 @@ let tapError (binder: 'error -> AsyncFlow<'env, 'error, unit>) (flow: AsyncFlow<
 ## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L586)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L600)
 

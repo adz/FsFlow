@@ -18,5 +18,5 @@ let bind (binder: 'value -> AsyncFlow<'env, 'error, 'next>) (flow: AsyncFlow<'en
 ## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L555)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L569)
 

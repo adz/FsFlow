@@ -1255,7 +1255,7 @@ let probe : TaskFlow<unit, string, int> =
         test <@ publicMethods |> Array.contains "Yield" @>
         test <@ publicMethods |> Array.contains "YieldFrom" @>
         test <@ publicMethods |> Array.contains "ReturnFrom" @>
-        test <@ argumentTypeNames = [| "FSharpFunc`2"; "FSharpOption`1"; "FSharpResult`2"; "FSharpValueOption`1"; "Flow`3" |] @>
+        test <@ argumentTypeNames = [| "FSharpFunc`2"; "FSharpOption`1"; "FSharpResult`2"; "FSharpValueOption`1"; "Flow`3"; "Tuple`2" |] @>
 
     [<Fact>]
     let ``flow builders directly bind Result and Result unit values`` () =
@@ -1939,6 +1939,64 @@ let probe : Flow<unit, string, int> =
         test <@ coldTaskReturnFromValueResult = Ok 42 @>
         test <@ coldTaskReturnFromResultResult = Ok 42 @>
         test <@ seen.Value = cts.Token @>
+
+    [<Fact>]
+    let ``Tuple-based smart binds work in all flow families`` () =
+        let flowTest =
+            flow {
+                let! x = Some 42, orFailTo "missing-option"
+                let! y = ValueSome 10, orFailTo "missing-voption"
+                do! true, orFailTo "bool-false"
+                do! Check.okIf true, orFailTo "check-fail"
+                return x + y
+            }
+
+        let asyncFlowTest =
+            asyncFlow {
+                let! x = Some 42, orFailTo "missing-option"
+                let! y = ValueSome 10, orFailTo "missing-voption"
+                do! true, orFailTo "bool-false"
+                do! Check.okIf true, orFailTo "check-fail"
+                return x + y
+            }
+
+        let taskFlowTest =
+            taskFlow {
+                let! x = Some 42, orFailTo "missing-option"
+                let! y = ValueSome 10, orFailTo "missing-voption"
+                do! true, orFailTo "bool-false"
+                do! Check.okIf true, orFailTo "check-fail"
+                let! z = Task.FromResult(Some 5), orFailTo "task-missing"
+                let! w = ValueTask.FromResult(ValueSome 3), orFailTo "vtask-missing"
+                return x + y + z + w
+            }
+
+        let flowResult = Flow.run () flowTest
+        let asyncFlowResult = AsyncFlow.run () asyncFlowTest |> Async.RunSynchronously
+        let taskFlowResult = TaskFlow.run () CancellationToken.None taskFlowTest |> fun t -> t.GetAwaiter().GetResult()
+
+        test <@ flowResult = Ok 52 @>
+        test <@ asyncFlowResult = Ok 52 @>
+        test <@ taskFlowResult = Ok 60 @>
+
+    [<Fact>]
+    let ``Tuple-based smart binds fail correctly with orFailTo`` () =
+        let flowFail = flow {
+            let! _ = None, orFailTo "failed"
+            return ()
+        }
+        let asyncFlowFail = asyncFlow {
+            let! _ = ValueNone, orFailTo "failed"
+            return ()
+        }
+        let taskFlowFail = taskFlow {
+            do! false, orFailTo "failed"
+            return ()
+        }
+
+        test <@ Flow.run () flowFail = Error "failed" @>
+        test <@ AsyncFlow.run () asyncFlowFail |> Async.RunSynchronously = Error "failed" @>
+        test <@ TaskFlow.run () CancellationToken.None taskFlowFail |> fun t -> t.GetAwaiter().GetResult() = Error "failed" @>
 
 module Program =
     [<EntryPoint>]

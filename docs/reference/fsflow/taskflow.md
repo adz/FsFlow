@@ -52,5 +52,5 @@ returns a typed result, and is executed explicitly through `TaskFlow.run`. [sour
 
 ## Builder
 
-- [`TaskBuilders.taskFlow`](./taskbuilders-taskflow.md): The .NET `taskFlow { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L1152)
+- [`TaskBuilders.taskFlow`](./taskbuilders-taskflow.md): The .NET `taskFlow { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L1251)
 

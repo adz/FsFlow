@@ -32,5 +32,5 @@ A `Flow` that preserves the original success value after the side effect.
 ## Information
 
 - **Module**: `Flow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L311)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L325)
 

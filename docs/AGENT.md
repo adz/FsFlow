@@ -15,25 +15,27 @@ If you are an AI assistant, prioritize the patterns in the **Rosetta Stone** and
 
 When using FsFlow, follow these "Golden Path" patterns for the best results.
 
-### 1. Handling Failures (Current Idiomatic Way)
-FsFlow prioritizes explicit type lifting and mapping over "require" jargon.
+### 1. Handling Failures (Idiomatic Way)
+FsFlow provides **Smart Binds** that allow you to unwrap values or fail with a domain error using a simple tuple syntax. Use the `orFailTo` label for clarity.
 
 | Source Type | Idiomatic Pattern |
 | :--- | :--- |
-| `Option<'T>` | `let! x = opt |> AsyncFlow.fromOption e` |
-| `bool` | `do! cond |> Check.okIf |> Result.mapErrorTo e` |
-| `Result<'T, unit>` | `do! check |> Result.mapErrorTo e` |
+| `Option<'T>` | `let! x = opt, orFailTo e` |
+| `voption<'T>` | `let! x = vopt, orFailTo e` |
+| `bool` | `do! cond, orFailTo e` |
+| `Result<'T, unit>` | `let! x = check, orFailTo e` |
+| `Task<Option<'T>>` | `let! x = tOpt, orFailTo e` |
 
 ### 2. Rosetta Stone
-Translate common patterns from other libraries into current FsFlow.
+Translate common patterns from other libraries into idiomatic FsFlow.
 
 | If you use... | Do this in FsFlow |
 | :--- | :--- |
-| `FsToolkit: AsyncResult.requireSome` | `let! x = asyncOpt` then `let! v = v |> AsyncFlow.fromOption e` |
-| `FsToolkit: Result.requireTrue` | `do! cond |> Check.okIf |> Result.mapErrorTo e` |
-| `ZIO: getOrFail` | `let! x = opt |> AsyncFlow.fromOption e` |
+| `FsToolkit: AsyncResult.requireSome` | `let! x = opt, orFailTo e` |
+| `FsToolkit: Result.requireTrue` | `do! cond, orFailTo e` |
+| `ZIO: getOrFail` | `let! x = opt, orFailTo e` |
 | `ZIO: serviceWith` | `let! s = Flow.read _.Service` |
-| `Manual: match x with Some v...` | `let! v = x |> AsyncFlow.fromOption e` |
+| `Manual: match x with Some v...` | `let! v = x, orFailTo e` |
 
 ## Hierarchy of Effects
 

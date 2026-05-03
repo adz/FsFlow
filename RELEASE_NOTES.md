@@ -1,5 +1,16 @@
 # Release Notes
 
+## 0.4.0 - 2026-05-03
+
+- Introduced **Tuple-Based Smart Binds** in `flow {}`, `asyncFlow {}`, and `taskFlow {}` for a concise "unwrap or fail" DX
+- Added `orFailTo` semantic label to clarify domain error attachment in smart binds
+- Expanded `TaskFlow` smart binds to support `Task<Option<_>>`, `Task<ValueOption<_>>`, `ValueTask<Option<_>>`, and `ValueTask<ValueOption<_>>`
+- Major documentation overhaul with **function-level granularity** mirroring FsToolkit.ErrorHandling
+- Enriched every public API member with detailed XML documentation (summary, remarks, parameters, returns)
+- Added **expected output demonstrations** to validation and diagnostics guides
+- New **"For AI Agents"** guide and machine-optimized `llms.txt` for better LLM assistance
+- Improved site accessibility with better contrast and verified all documentation links
+
 ## 0.3.0 - 2026-05-02
 
 - Major architectural shift to a workflow family: `Flow`, `AsyncFlow`, and `TaskFlow`

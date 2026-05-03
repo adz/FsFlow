@@ -18,5 +18,5 @@ let orElseAsync (errorAsync: Async<'error>) (result: Result<'value, unit>) : Asy
 ## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L485)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L499)
 

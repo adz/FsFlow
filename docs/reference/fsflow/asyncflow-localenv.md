@@ -18,5 +18,5 @@ let localEnv (mapping: 'outerEnvironment -> 'innerEnvironment) (flow: AsyncFlow<
 ## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L668)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L682)
 

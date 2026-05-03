@@ -8,17 +8,19 @@ FsFlow is a cold, environment-aware effect system for F# that unifies `Result`, 
 Data flows from left to right. Later stages can bind earlier stages directly.
 `Check` (unit error) -> `Result` (typed error) -> `Flow` (sync + env) -> `AsyncFlow` (async + env) -> `TaskFlow` (task + env)
 
-## Core Patterns (Current State)
-The preferred way to handle "unwrap or fail" is via explicit module lifting:
+## Core Patterns (Idiomatic Way)
+The preferred way to handle "unwrap or fail" is via **Smart Binds** (tuple syntax):
 
-- `Option<'T>` -> `let! x = opt |> AsyncFlow.fromOption error`
-- `bool` -> `do! cond |> Check.okIf |> Result.mapErrorTo error`
-- `Result<'T, unit>` -> `do! check |> Result.mapErrorTo error`
+- `Option<'T>` -> `let! x = opt, orFailTo error`
+- `voption<'T>` -> `let! x = vopt, orFailTo error`
+- `bool` -> `do! cond, orFailTo error`
+- `Result<'T, unit>` -> `let! x = check, orFailTo error`
+- `Task<Option<'T>>` -> `let! x = tOpt, orFailTo error`
 
 ## Rosetta Stone (Mappings)
-- **FsToolkit**: `AsyncResult.requireSome e` -> `let! x = opt |> AsyncFlow.fromOption e`
-- **ZIO**: `option.getOrFail(e)` -> `let! x = opt |> AsyncFlow.fromOption e`
-- **Manual**: `match x with Some v -> Ok v | None -> Error e` -> `let! v = x |> AsyncFlow.fromOption e`
+- **FsToolkit**: `AsyncResult.requireSome e` -> `let! x = opt, orFailTo e`
+- **ZIO**: `option.getOrFail(e)` -> `let! x = opt, orFailTo e`
+- **Manual**: `match x with Some v -> Ok v | None -> Error e` -> `let! v = x, orFailTo e`
 
 ## Golden Path API
 - `run env flow`: Execute a flow.

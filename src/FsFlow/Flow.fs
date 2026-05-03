@@ -3,6 +3,20 @@ namespace FsFlow
 open System
 open System.Threading.Tasks
 
+[<AutoOpen>]
+module FsFlowLabels =
+    /// <summary>
+    /// Semantic label for the second element of a smart-bind tuple.
+    /// </summary>
+    /// <param name="error">The error of type <c>'error</c> to return on failure.</param>
+    /// <returns>The same error value.</returns>
+    /// <example>
+    /// <code>
+    /// let! user = tryGetUser username, orFailTo InvalidUser
+    /// </code>
+    /// </example>
+    let inline orFailTo (error: 'error) : 'error = error
+
 /// <summary>
 /// Represents a cold synchronous workflow that reads an environment, returns a typed result,
 /// and is executed explicitly through <c>Flow.run</c>.
@@ -1030,6 +1044,49 @@ type FlowBuilder() =
         |> Flow.fromResult
         |> Flow.bind binder
 
+    member _.Bind
+        (
+            tuple: 'value option * 'error,
+            binder: 'value -> Flow<'env, 'error, 'next>
+        ) : Flow<'env, 'error, 'next> =
+        let value, error = tuple
+        value
+        |> OptionFlow.toResult error
+        |> Flow.fromResult
+        |> Flow.bind binder
+
+    member _.Bind
+        (
+            tuple: 'value voption * 'error,
+            binder: 'value -> Flow<'env, 'error, 'next>
+        ) : Flow<'env, 'error, 'next> =
+        let value, error = tuple
+        value
+        |> OptionFlow.toResultValueOption error
+        |> Flow.fromResult
+        |> Flow.bind binder
+
+    member _.Bind
+        (
+            tuple: bool * 'error,
+            binder: unit -> Flow<'env, 'error, 'next>
+        ) : Flow<'env, 'error, 'next> =
+        let cond, error = tuple
+        if cond then Ok () else Error error
+        |> Flow.fromResult
+        |> Flow.bind binder
+
+    member _.Bind
+        (
+            tuple: Result<'value, unit> * 'error,
+            binder: 'value -> Flow<'env, 'error, 'next>
+        ) : Flow<'env, 'error, 'next> =
+        let result, error = tuple
+        result
+        |> Result.mapError (fun () -> error)
+        |> Flow.fromResult
+        |> Flow.bind binder
+
     member _.Delay(factory: unit -> Flow<'env, 'error, 'value>) : Flow<'env, 'error, 'value> =
         Flow.delay factory
 
@@ -1230,6 +1287,49 @@ type AsyncFlowBuilder() =
         ) : AsyncFlow<'env, unit, 'next> =
         option
         |> OptionFlow.toUnitResultValueOption
+        |> AsyncFlow.fromResult
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: 'value option * 'error,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        let value, error = tuple
+        value
+        |> OptionFlow.toResult error
+        |> AsyncFlow.fromResult
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: 'value voption * 'error,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        let value, error = tuple
+        value
+        |> OptionFlow.toResultValueOption error
+        |> AsyncFlow.fromResult
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: bool * 'error,
+            binder: unit -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        let cond, error = tuple
+        if cond then Ok () else Error error
+        |> AsyncFlow.fromResult
+        |> AsyncFlow.bind binder
+
+    member _.Bind
+        (
+            tuple: Result<'value, unit> * 'error,
+            binder: 'value -> AsyncFlow<'env, 'error, 'next>
+        ) : AsyncFlow<'env, 'error, 'next> =
+        let result, error = tuple
+        result
+        |> Result.mapError (fun () -> error)
         |> AsyncFlow.fromResult
         |> AsyncFlow.bind binder
 
