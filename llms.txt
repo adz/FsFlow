@@ -1,0 +1,31 @@
+# FsFlow: LLM Context & Reference
+> This file is optimized for AI agents (Claude, Gemini, Codex).
+
+## Overview
+FsFlow is a cold, environment-aware effect system for F# that unifies `Result`, `Flow`, `AsyncFlow`, and `TaskFlow`.
+
+## The Flow Hierarchy
+Data flows from left to right. Later stages can bind earlier stages directly.
+`Check` (unit error) -> `Result` (typed error) -> `Flow` (sync + env) -> `AsyncFlow` (async + env) -> `TaskFlow` (task + env)
+
+## Core Patterns (Current State)
+The preferred way to handle "unwrap or fail" is via explicit module lifting:
+
+- `Option<'T>` -> `let! x = opt |> AsyncFlow.fromOption error`
+- `bool` -> `do! cond |> Check.okIf |> Result.mapErrorTo error`
+- `Result<'T, unit>` -> `do! check |> Result.mapErrorTo error`
+
+## Rosetta Stone (Mappings)
+- **FsToolkit**: `AsyncResult.requireSome e` -> `let! x = opt |> AsyncFlow.fromOption e`
+- **ZIO**: `option.getOrFail(e)` -> `let! x = opt |> AsyncFlow.fromOption e`
+- **Manual**: `match x with Some v -> Ok v | None -> Error e` -> `let! v = x |> AsyncFlow.fromOption e`
+
+## Golden Path API
+- `run env flow`: Execute a flow.
+- `env`: Get the full environment.
+- `read (env -> 'v)`: Project value from env.
+- `map`, `mapError`, `bind`, `tap`, `tapError`: Core combinators.
+- `catch`: Handle exceptions.
+
+## Usage in Prompting
+Users should point agents to `https://adz.github.io/FsFlow/llms.txt` for the full context.

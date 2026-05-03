@@ -8,8 +8,14 @@ description: API reference for Flow.run
 Executes a synchronous flow with the provided environment.
 
 
+```fsharp
+let run (environment: 'env) (Flow operation: Flow<'env, 'error, 'value>) : Result<'value, 'error>
+```
 
-## Flow.run
+
+
+
+## Information
 
 - **Module**: `Flow`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L160)

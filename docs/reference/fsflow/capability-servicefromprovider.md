@@ -8,9 +8,15 @@ description: API reference for Capability.serviceFromProvider
 Reads a service from `IServiceProvider` and fails when it is not registered.
 
 
+```fsharp
+let serviceFromProvider<'service> : TaskFlow<IServiceProvider, MissingCapability, 'service>
+```
 
-## Capability.serviceFromProvider
+
+
+
+## Information
 
 - **Module**: `Capability`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L658)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L735)
 

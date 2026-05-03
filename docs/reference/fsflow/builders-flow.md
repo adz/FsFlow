@@ -8,9 +8,15 @@ description: API reference for Builders.flow
 The sync-only `flow { }` computation expression.
 
 
+```fsharp
+let flow
+```
 
-## Builders.flow
+
+
+
+## Information
 
 - **Module**: `Builders`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1253)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1319)
 

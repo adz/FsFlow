@@ -71,9 +71,11 @@ For a new docs version:
 - Avoid justifying why a section exists.
 - Avoid promises about future features as an excuse for current gaps.
 
-## Done means
+## LLM and Agent Optimization
 
-- The reader can build a working flow without opening the source code.
-- The reader knows why they would choose this library over FsToolkit.
-- The docs feel like a maintained product, not a design notebook.
-- The change appears in Next and any relevant versioned snapshots.
+We maintain specific files to optimize the experience for AI agents (Claude, Gemini, Codex) used by our library users.
+
+- `llms.txt`: A machine-readable, high-density reference served at the site root. Optimized for "Agentic SEO" and crawlers.
+- `docs/AGENT.md`: A user-facing guide titled "For AI Agents" that provides high-signal patterns and a Rosetta Stone for prompt injection.
+
+When the public API changes, ensure both of these files are updated to reflect the current idiomatic "Golden Path."

@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.mapError
 Maps the error value of an async flow.
 
 
+```fsharp
+let mapError (mapper: 'error -> 'nextError) (flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'nextError, 'value>
+```
 
-## AsyncFlow.mapError
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L539)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L605)
 

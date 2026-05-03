@@ -8,9 +8,15 @@ description: API reference for Builders.result
 The fail-fast `result { }` computation expression.
 
 
+```fsharp
+let result
+```
 
-## Builders.result
+
+
+
+## Information
 
 - **Module**: `Builders`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1248)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1314)
 

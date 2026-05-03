@@ -18,3 +18,10 @@ Refer to [`dev-docs/PLAN.md`](dev-docs/PLAN.md) for architectural direction and 
 - **Before 1.0:** Bravely iterate. Remove old APIs and "old ways" immediately when a better alternative is established. Do not maintain compatibility aliases or stale patterns.
 - **Post 1.0:** Standard semantic versioning applies. Maintain compatibility and use deprecation cycles for breaking changes.
 
+## Documentation Integrity
+
+- **Always Validate:** Every change to the codebase or documentation must be followed by a full documentation build to ensure no broken links or rendering crashes.
+- **Build and Preview:** Run `./scripts/generate-api-docs.sh` and then verify the site build (e.g., `npm run build` inside the `site` directory).
+- **Broken Link Check:** Docusaurus will fail the build on broken links. Do not ignore these errors.
+- **MDX Safety:** Ensure all code examples are wrapped in triple-backticks with language hints to prevent MDX execution crashes.
+

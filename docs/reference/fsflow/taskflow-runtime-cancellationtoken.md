@@ -8,9 +8,15 @@ description: API reference for TaskFlow.Runtime.cancellationToken
 Reads the current runtime cancellation token.
 
 
+```fsharp
+let cancellationToken<'env, 'error> : TaskFlow<'env, 'error, CancellationToken>
+```
 
-## TaskFlow.Runtime.cancellationToken
+
+
+
+## Information
 
 - **Module**: `TaskFlow.Runtime`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L408)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L485)
 

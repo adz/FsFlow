@@ -8,9 +8,20 @@ description: API reference for AsyncFlow.Runtime.retry
 Retries a flow according to the specified policy.
 
 
+```fsharp
+let retry (policy: RetryPolicy<'error>) (flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.Runtime.retry
+
+
+
+## Parameters
+
+- `policy`: The retry policy.
+- `flow`: The flow to retry.
+
+## Information
 
 - **Module**: `AsyncFlow.Runtime`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L867)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L933)
 

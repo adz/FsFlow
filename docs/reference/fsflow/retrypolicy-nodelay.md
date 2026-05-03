@@ -8,8 +8,14 @@ description: API reference for RetryPolicy.noDelay
 
 
 
+```fsharp
+let noDelay (maxAttempts: int) : RetryPolicy<'error>
+```
 
-## RetryPolicy.noDelay
+
+
+
+## Information
 
 - **Module**: `RetryPolicy`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L65)

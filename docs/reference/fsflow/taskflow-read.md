@@ -8,9 +8,15 @@ description: API reference for TaskFlow.read
 
 
 
+```fsharp
+let read (projection: 'env -> 'value) : TaskFlow<'env, 'error, 'value>
+```
 
-## TaskFlow.read
+
+
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L199)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L232)
 

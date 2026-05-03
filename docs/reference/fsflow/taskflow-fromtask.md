@@ -8,9 +8,15 @@ description: API reference for TaskFlow.fromTask
 
 
 
+```fsharp
+let fromTask (coldTask: ColdTask<'value>) : TaskFlow<'env, 'error, 'value>
+```
 
-## TaskFlow.fromTask
+
+
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L184)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L217)
 

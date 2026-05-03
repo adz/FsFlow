@@ -10,15 +10,15 @@ This page shows the source-documented `Diagnostics` surface: the path-aware grap
 ## Graph types
 
 - type `PathSegment`: Location markers used to describe where a diagnostic belongs in a validation graph. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L7)
-- type `Path`: A path through a validation graph. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L13)
-- type `Diagnostic`: A single failure item attached to a path in a validation graph. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L16)
-- type `Diagnostics`: A mergeable validation graph that carries local diagnostics and nested child branches. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L25)
+- type `Path`: A path through a validation graph, represented as a list of `PathSegment`. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L16)
+- type `Diagnostic`: A single failure item attached to a path in a validation graph. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L19)
+- type `Diagnostics`: A mergeable validation graph that carries local diagnostics and nested child branches. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L34)
 
 ## Module functions
 
-- module `Diagnostics`: Helpers for building, merging, and flattening validation diagnostics graphs. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L41)
-- [`Diagnostics.empty`](./diagnostics-empty.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L42)
-- [`Diagnostics.singleton`](./diagnostics-singleton.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L48)
-- [`Diagnostics.merge`](./diagnostics-merge.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L54)
-- [`Diagnostics.flatten`](./diagnostics-flatten.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L65)
+- module `Diagnostics`: Helpers for building, merging, and flattening validation diagnostics graphs. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L57)
+- [`Diagnostics.empty`](./diagnostics-empty.md): Creates an empty diagnostics graph with no errors. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L60)
+- [`Diagnostics.singleton`](./diagnostics-singleton.md): Creates a diagnostics graph containing exactly one diagnostic item at the root. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L69)
+- [`Diagnostics.merge`](./diagnostics-merge.md): Recursively merges two diagnostics graphs, combining shared branches and local errors. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L83)
+- [`Diagnostics.flatten`](./diagnostics-flatten.md): Flattens the structured diagnostics graph into a linear list of diagnostics. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L101)
 

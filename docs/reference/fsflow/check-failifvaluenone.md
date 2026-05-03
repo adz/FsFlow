@@ -8,9 +8,23 @@ description: API reference for Check.failIfValueNone
 Returns the value when the value option is `ValueSome`.
 
 
+```fsharp
+let failIfValueNone (opt: 'a voption) : Check<'a>
+```
 
-## Check.failIfValueNone
+
+
+
+## Parameters
+
+- `opt`: The value option to check.
+
+## Returns
+
+A `Check` containing the value if present.
+
+## Information
 
 - **Module**: `Check`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L372)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L541)
 

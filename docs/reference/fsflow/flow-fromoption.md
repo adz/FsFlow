@@ -8,8 +8,14 @@ description: API reference for Flow.fromOption
 Lifts an option into a synchronous flow with the supplied error.
 
 
+```fsharp
+let fromOption (error: 'error) (value: 'value option) : Flow<'env, 'error, 'value>
+```
 
-## Flow.fromOption
+
+
+
+## Information
 
 - **Module**: `Flow`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L211)

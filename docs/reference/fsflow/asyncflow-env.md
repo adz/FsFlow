@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.env
 Reads the current environment as the flow value.
 
 
+```fsharp
+let env<'env, 'error> : AsyncFlow<'env, 'error, 'env>
+```
 
-## AsyncFlow.env
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L465)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L531)
 

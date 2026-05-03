@@ -9,25 +9,25 @@ This page shows the source-documented `Validation` surface: the accumulating res
 
 ## Core type
 
-- type `Validation`: An accumulating validation result that keeps the structured diagnostics graph visible. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L34)
+- type `Validation`: An accumulating validation result that keeps the structured diagnostics graph visible. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L50)
 
 ## Module functions
 
-- module `Validation`: Helpers for accumulating validation results with mergeable diagnostics. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L161)
-- [`Validation.toResult`](./validation-toresult.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L164)
-- [`Validation.succeed`](./validation-succeed.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L167)
-- [`Validation.fail`](./validation-fail.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L170)
-- [`Validation.fromResult`](./validation-fromresult.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L173)
-- [`Validation.map`](./validation-map.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L178)
-- [`Validation.bind`](./validation-bind.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L184)
-- [`Validation.mapError`](./validation-maperror.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L192)
-- [`Validation.map2`](./validation-map2.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L212)
-- [`Validation.apply`](./validation-apply.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L225)
-- [`Validation.collect`](./validation-collect.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L231)
-- [`Validation.sequence`](./validation-sequence.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L239)
-- [`Validation.merge`](./validation-merge.md) [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L242)
+- module `Validation`: Helpers for accumulating validation results with mergeable diagnostics. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L214)
+- [`Validation.toResult`](./validation-toresult.md): Converts a `Validation` into a standard `Result`. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L220)
+- [`Validation.succeed`](./validation-succeed.md): Creates a successful validation result. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L226)
+- [`Validation.fail`](./validation-fail.md): Creates a failing validation result with the provided diagnostics. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L232)
+- [`Validation.fromResult`](./validation-fromresult.md): Lifts a standard `Result` into the `Validation` context. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L241)
+- [`Validation.map`](./validation-map.md): Maps the successful value of a validation. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L250)
+- [`Validation.bind`](./validation-bind.md): Sequences a validation-producing continuation. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L265)
+- [`Validation.mapError`](./validation-maperror.md): Maps the error type of a validation graph. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L277)
+- [`Validation.map2`](./validation-map2.md): Combines two validations, accumulating errors if both fail. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L306)
+- [`Validation.apply`](./validation-apply.md): Applies a validation-wrapped function to a validation-wrapped value. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L323)
+- [`Validation.collect`](./validation-collect.md): Collects a sequence of validations into a single validation of a list. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L335)
+- [`Validation.sequence`](./validation-sequence.md): Transforms a sequence of validations into a validation of a list. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L346)
+- [`Validation.merge`](./validation-merge.md): Merges two validations into a validation of a tuple. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L353)
 
 ## Builder
 
-- [`Builders.validate`](./builders-validate.md): The accumulating `validate { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1263)
+- [`Builders.validate`](./builders-validate.md): The accumulating `validate { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1329)
 

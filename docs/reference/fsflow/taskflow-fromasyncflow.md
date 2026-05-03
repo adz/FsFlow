@@ -8,9 +8,15 @@ description: API reference for TaskFlow.fromAsyncFlow
 
 
 
+```fsharp
+let fromAsyncFlow (flow: AsyncFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value>
+```
 
-## TaskFlow.fromAsyncFlow
+
+
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L179)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L212)
 

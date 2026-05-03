@@ -8,8 +8,14 @@ description: API reference for ColdTask.run
 
 
 
+```fsharp
+let run (cancellationToken: CancellationToken) (ColdTask operation: ColdTask<'value>) : Task<'value>
+```
 
-## ColdTask.run
+
+
+
+## Information
 
 - **Module**: `ColdTask`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L55)

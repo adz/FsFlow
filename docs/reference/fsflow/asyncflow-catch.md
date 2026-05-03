@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.catch
 Catches exceptions raised during execution and maps them to a typed error.
 
 
+```fsharp
+let catch (handler: exn -> 'error) (flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.catch
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L555)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L621)
 

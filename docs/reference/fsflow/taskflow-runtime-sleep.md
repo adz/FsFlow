@@ -8,9 +8,15 @@ description: API reference for TaskFlow.Runtime.sleep
 Suspends the flow for the specified duration while observing cancellation.
 
 
+```fsharp
+let sleep<'env, 'error> (delay: TimeSpan) : TaskFlow<'env, 'error, unit>
+```
 
-## TaskFlow.Runtime.sleep
+
+
+
+## Information
 
 - **Module**: `TaskFlow.Runtime`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L433)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L510)
 

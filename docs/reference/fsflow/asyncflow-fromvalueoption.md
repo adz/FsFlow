@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.fromValueOption
 Lifts a value option into an async flow with the supplied error.
 
 
+```fsharp
+let fromValueOption (error: 'error) (value: 'value voption) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.fromValueOption
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L413)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L479)
 

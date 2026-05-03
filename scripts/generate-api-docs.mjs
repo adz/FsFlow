@@ -310,6 +310,17 @@ function extractFromXml(commentLines, tag) {
   return cleanXmlDocText(content);
 }
 
+function extractParams(commentLines) {
+  if (commentLines.length === 0) return [];
+  const raw = commentLines.map(l => l.replace(/^\s*\/\/\/\s?/, '')).join('\n');
+  const matches = [...raw.matchAll(/<param name="([^"]+)">([\s\S]*?)<\/param>/gi)];
+  return matches.map(m => ({ name: m[1], description: cleanXmlDocText(m[2]) }));
+}
+
+function extractReturns(commentLines) {
+  return extractFromXml(commentLines, 'returns');
+}
+
 function extractSummary(commentLines) {
   return extractFromXml(commentLines, 'summary');
 }
@@ -345,6 +356,25 @@ function extractLetName(line) {
   return null;
 }
 
+function extractSignature(lines, startIndex) {
+  let signature = '';
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line === '' || line.startsWith('///')) continue;
+    
+    // Stop at common ending characters for a signature in F#
+    const endsWithAssignment = line.includes('=');
+    const endsWithCe = line.includes('{');
+    
+    const cleanLine = lines[i].trim();
+    signature += (signature ? ' ' : '') + cleanLine;
+    
+    if (endsWithAssignment || endsWithCe) break;
+    if (i > startIndex + 10) break; // Safety break
+  }
+  return signature.split('=')[0].split('{')[0].trim();
+}
+
 function extractSymbols(filePath) {
   const lines = readLines(filePath);
   const symbols = new Map();
@@ -360,7 +390,7 @@ function extractSymbols(filePath) {
 
   const currentPrefix = () => moduleStack.map((entry) => entry.name).join('.');
 
-  const record = (name, kind, lineNumber) => {
+  const record = (name, kind, lineNumber, signature) => {
     if (sawExclude) {
       pendingComments = [];
       sawExclude = false;
@@ -370,6 +400,8 @@ function extractSymbols(filePath) {
     const summary = extractSummary(pendingComments);
     const remarks = extractRemarks(pendingComments);
     const examples = extractExamples(pendingComments);
+    const params = extractParams(pendingComments);
+    const returns = extractReturns(pendingComments);
     const fullName = currentPrefix() ? `${currentPrefix()}.${name}` : name;
     const existing = symbols.get(fullName) ?? [];
     existing.push({
@@ -378,6 +410,9 @@ function extractSymbols(filePath) {
       summary,
       remarks,
       examples,
+      params,
+      returns,
+      signature,
       filePath,
     });
     symbols.set(fullName, existing);
@@ -412,14 +447,14 @@ function extractSymbols(filePath) {
     if (moduleMatch) {
       const moduleIndent = moduleMatch[1].length;
       popForIndent(moduleIndent);
-      record(moduleMatch[2], 'module', index + 1);
+      record(moduleMatch[2], 'module', index + 1, extractSignature(lines, index));
       moduleStack.push({ name: moduleMatch[2], indent: moduleIndent });
       continue;
     }
 
     const typeMatch = line.match(/^(\s*)type\s+([A-Za-z_][A-Za-z0-9_']*)/);
     if (typeMatch) {
-      record(typeMatch[2], 'type', index + 1);
+      record(typeMatch[2], 'type', index + 1, extractSignature(lines, index));
       continue;
     }
 
@@ -427,7 +462,7 @@ function extractSymbols(filePath) {
     const currentModuleIndent = moduleStack.length ? moduleStack[moduleStack.length - 1].indent : -4;
     if (letName && (pendingComments.length > 0 || indent <= currentModuleIndent + 4)) {
       const name = letName;
-      record(name, 'let', index + 1);
+      record(name, 'let', index + 1, extractSignature(lines, index));
       continue;
     }
 
@@ -493,9 +528,25 @@ description: API reference for ${qualifiedName}
 
 ${doc.summary || ''}
 
+${doc.signature ? `\n\`\`\`fsharp\n${doc.signature}\n\`\`\`\n` : ''}
+
 ${doc.remarks ? `## Remarks\n\n${doc.remarks}\n` : ''}
 
-## ${qualifiedName}
+`;
+
+  if (doc.params && doc.params.length > 0) {
+    content += `## Parameters\n\n`;
+    for (const p of doc.params) {
+      content += `- \`${p.name}\`: ${p.description}\n`;
+    }
+    content += '\n';
+  }
+
+  if (doc.returns) {
+    content += `## Returns\n\n${doc.returns}\n\n`;
+  }
+
+  content += `## Information
 
 - **Module**: ${parentName ? `\`${parentName}\`` : 'Global'}
 - **Source**: [source](${makeSourceLink(doc.filePath, doc.line)})
@@ -521,10 +572,13 @@ function renderItem(symbols, sourcePath, symbolRef, pagePath) {
     throw new Error(`Missing symbol doc for ${symbolRef} in ${sourcePath}`);
   }
 
-  const shortName = qualifiedName.split('.').pop();
   const functionPageName = qualifiedName.toLowerCase().split('.').join('-');
   
-  const label = kindHint && !qualifiedName.includes('.') ? `${kindHint} \`${qualifiedName}\`` : `[\`${qualifiedName}\`](./${functionPageName}.md)`;
+  const isLinkable = doc.kind === 'let';
+  const label = isLinkable 
+    ? `[\`${qualifiedName}\`](./${functionPageName}.md)`
+    : `${doc.kind} \`${qualifiedName}\``;
+    
   const summary = doc.summary ? `: ${doc.summary}` : '';
   return `- ${label}${summary} [source](${makeSourceLink(sourcePath, doc.line)})`;
 }
@@ -566,7 +620,7 @@ ${spec.intro}
         }
       }
       if (!found) {
-        throw new Error(`Could not find doc for ${symbolRef} in any source file of page ${spec.title}`);
+        throw new Error(`Could find doc for ${symbolRef} in any source file of page ${spec.title}`);
       }
     }
     content += '\n';

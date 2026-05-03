@@ -8,9 +8,15 @@ description: API reference for TaskFlow.Runtime.timeoutToOk
 Returns the supplied success value when the flow times out.
 
 
+```fsharp
+let timeoutToOk (after: TimeSpan) (value: 'value) (flow: TaskFlow<'env, 'error, 'value>) : TaskFlow<'env, 'error, 'value>
+```
 
-## TaskFlow.Runtime.timeoutToOk
+
+
+
+## Information
 
 - **Module**: `TaskFlow.Runtime`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L514)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L591)
 

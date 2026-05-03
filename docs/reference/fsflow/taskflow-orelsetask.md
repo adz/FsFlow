@@ -8,9 +8,15 @@ description: API reference for TaskFlow.orElseTask
 
 
 
+```fsharp
+let orElseTask (errorTask: Task<'error>) (result: Result<'value, unit>) : Task<Result<'value, 'error>>
+```
 
-## TaskFlow.orElseTask
+
+
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L104)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L137)
 

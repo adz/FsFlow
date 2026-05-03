@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.run
 Executes an async flow with the provided environment.
 
 
+```fsharp
+let run (environment: 'env) (AsyncFlow operation: AsyncFlow<'env, 'error, 'value>) : Async<Result<'value, 'error>>
+```
 
-## AsyncFlow.run
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L384)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L450)
 

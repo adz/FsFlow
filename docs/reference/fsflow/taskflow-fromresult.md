@@ -5,12 +5,26 @@ description: API reference for TaskFlow.fromResult
 
 # fromResult
 
+Lifts a standard `Result` into a task flow.
+
+
+```fsharp
+let fromResult (result: Result<'value, 'error>) : TaskFlow<'env, 'error, 'value>
+```
 
 
 
 
-## TaskFlow.fromResult
+## Parameters
+
+- `result`: The result to lift.
+
+## Returns
+
+A task flow mirroring the result.
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L91)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L116)
 

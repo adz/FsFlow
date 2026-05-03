@@ -8,9 +8,15 @@ description: API reference for TaskFlow.orElseAsyncFlow
 
 
 
+```fsharp
+let orElseAsyncFlow (errorFlow: AsyncFlow<'env, 'error, 'error>) (result: Result<'value, unit>) : TaskFlow<'env, 'error, 'value>
+```
 
-## TaskFlow.orElseAsyncFlow
+
+
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L142)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L175)
 

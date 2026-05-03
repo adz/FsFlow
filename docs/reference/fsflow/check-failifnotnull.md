@@ -8,9 +8,23 @@ description: API reference for Check.failIfNotNull
 Returns success when the value is null.
 
 
+```fsharp
+let failIfNotNull (value: 'a when 'a : null) : Check<unit>
+```
 
-## Check.failIfNotNull
+
+
+
+## Parameters
+
+- `value`: The value to check.
+
+## Returns
+
+A `Check` that succeeds if the value is null.
+
+## Information
 
 - **Module**: `Check`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L386)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L561)
 

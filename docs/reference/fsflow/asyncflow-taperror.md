@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.tapError
 Runs an async side effect on failure and preserves the original error.
 
 
+```fsharp
+let tapError (binder: 'error -> AsyncFlow<'env, 'error, unit>) (flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.tapError
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L520)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L586)
 

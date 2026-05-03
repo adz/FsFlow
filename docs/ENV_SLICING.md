@@ -82,7 +82,12 @@ Use this shape when operational concerns and app dependencies deserve different 
 
 ## Interface-Based Capability Environments
 
-Another option is to describe capabilities through interfaces:
+Another option is to describe capabilities through interfaces. This is particularly 
+useful when the environment needs to satisfy multiple contracts simultaneously.
+
+In F#, when an argument must implement multiple interfaces, you use **explicit generic 
+constraints** on the type parameter list. Accessing members from these interfaces 
+often requires an explicit upcast or a small inline helper.
 
 ```fsharp
 type IHasGateway =
@@ -94,22 +99,43 @@ type IHasAttempts =
 type IHasLog =
     abstract Log: string -> unit
 
-let fetchResponse
+// Use explicit constraints on the 'env type parameter
+let fetchResponse<'env
+    when 'env :> IHasGateway
+     and 'env :> IHasAttempts
+     and 'env :> IHasLog>
     (plan: RequestPlan)
-    (env: #IHasGateway & #IHasAttempts & #IHasLog)
+    (env: 'env)
     =
     task {
-        let gateway = env.Gateway
-        let attempts = env.AttemptCount
-        let log = env.Log
+        // Upcast to access specific interface members
+        let gateway = (env :> IHasGateway).Gateway
+        let attempts = (env :> IHasAttempts).AttemptCount
+        let log = (env :> IHasLog).Log
 
         log (sprintf "gateway call attempt=%d url=%s" (attempts.Value + 1) plan.Url)
         return! gateway.Ping(plan, CancellationToken.None)
     }
 ```
 
-This style can work well when several different environment carriers should satisfy the same
-capability contract.
+Or, more concisely, you can use **inline helpers** to project the capabilities:
+
+```fsharp
+let inline gateway (env: #IHasGateway) = env.Gateway
+let inline attempts (env: #IHasAttempts) = env.AttemptCount
+let inline log (env: #IHasLog) = env.Log
+
+let fetchResponse plan env =
+    task {
+        let g = gateway env
+        let a = attempts env
+        let l = log env
+        // ...
+    }
+```
+
+This style allows you to pass any object (including a custom record or a class) 
+that implements all required interfaces.
 
 ## Where Interface Slicing Helps
 
@@ -128,35 +154,69 @@ Record-based slicing is useful when:
 - most flows live inside one application and only need projection from a larger env
 - `localEnv` already gives you the composition step cleanly
 
-## Recommended Default For This Repo
+## Capabilities and Service Discovery
 
-Prefer small record environments plus `localEnv`.
+For complex applications, FsFlow provides a structured way to manage dependencies through
+the `Capability` module. This allows you to define required services without hardcoding
+to a specific environment record shape.
 
-That matches the rest of the library better:
+```fsharp
+type ILogger = abstract Log : string -> unit
 
-- the signatures stay explicit
-- the code stays easy to read
-- tests only need the fields a flow actually reads
-- composition stays obvious at the call site
+let log message =
+    TaskFlow.read (Capability.service<ILogger>)
+    |> TaskFlow.map (fun logger -> logger.Log message)
+```
 
-Use interface-based slicing only when there is a real need for shared capability contracts
-across multiple environment carriers.
+The `Capability.service<'t>` helper creates a projection that looks for the type `'t`
+inside the environment. This works automatically if the environment is a `Layer` or
+implements the necessary discovery logic.
 
-## A Note On Effects
+## Layering and Composition
 
-In this library, explicit effects usually mean explicit required capabilities in `'env`, not a
-separate effect algebra.
+Layers allow you to build up environments modularly. A `Layer<'env, 'provider>` describes how
+to produce an environment segment `'provider` given a base environment `'env`.
 
-For example:
+```fsharp
+type Layer<'env, 'provider> = 'env -> 'provider
+```
 
-- gateway I/O is explicit through `Gateway` in the environment
-- persistence is explicit through `AuditStore`
-- logging is explicit through `Log`
-- task runtime services are explicit through `RuntimeContext<'runtime, 'env>`
-- task-oriented cancellation is explicit through `TaskFlow.toTask`
+You can compose layers to create the final application environment:
 
-Small environment slices already make those requirements visible without adding another layer
-of abstraction.
+```fsharp
+let loggerLayer : Layer<unit, ILogger> = 
+    fun () -> ConsoleLogger() :> ILogger
+
+let databaseLayer : Layer<ILogger, IDatabase> = 
+    fun logger -> SqlDatabase(logger) :> IDatabase
+
+// Compose layers
+let appLayer = 
+    Layer.compose loggerLayer databaseLayer
+```
+
+This "onion" style of environment construction ensures that each component only sees the 
+dependencies it needs, and the order of construction is explicit and type-safe.
+
+## Runtime Context vs. Application Environment
+
+In `TaskFlow`, we distinguish between:
+
+1.  **Runtime Context (`'runtime`)**: Low-level operational services like logging, 
+    cancellation, and retry policies. These are usually provided by the infrastructure.
+2.  **Application Environment (`'env`)**: High-level domain services like repositories,
+    gateways, and business logic dependencies.
+
+The `RuntimeContext<'runtime, 'env>` type carries both, allowing you to use 
+`TaskFlow.readRuntime` and `TaskFlow.read` to access the appropriate half.
+
+## Why Layering?
+
+- **Testability**: You can swap out a single layer with a mock without changing the rest 
+  of the environment.
+- **Modularity**: Components can define their own environment requirements independently.
+- **Explicit Dependencies**: The type signature of a `Layer` tells you exactly what it 
+  needs to start and what it provides to the rest of the app.
 
 ## Next
 

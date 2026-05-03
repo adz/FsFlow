@@ -5,12 +5,26 @@ description: API reference for Validation.fail
 
 # fail
 
+Creates a failing validation result with the provided diagnostics.
+
+
+```fsharp
+let fail (diagnostics: Diagnostics<'error>) : Validation<'value, 'error>
+```
 
 
 
 
-## Validation.fail
+## Parameters
+
+- `diagnostics`: The `Diagnostics` graph.
+
+## Returns
+
+A failing `Validation`.
+
+## Information
 
 - **Module**: `Validation`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L170)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L232)
 

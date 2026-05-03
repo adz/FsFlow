@@ -8,9 +8,15 @@ description: API reference for Capability.MissingCapability
 Describes a missing service-provider capability.
 
 
+```fsharp
+type MissingCapability
+```
 
-## Capability.MissingCapability
+
+
+
+## Information
 
 - **Module**: `Capability`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L635)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L712)
 

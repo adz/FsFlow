@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.toAsync
 Converts an async flow into its raw async result shape.
 
 
+```fsharp
+let toAsync (environment: 'env) (flow: AsyncFlow<'env, 'error, 'value>) : Async<Result<'value, 'error>>
+```
 
-## AsyncFlow.toAsync
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L391)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L457)
 

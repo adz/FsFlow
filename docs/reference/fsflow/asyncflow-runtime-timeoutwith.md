@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.Runtime.timeoutWith
 Transitions to a fallback workflow on timeout.
 
 
+```fsharp
+let timeoutWith (after: TimeSpan) (fallback: unit -> AsyncFlow<'env, 'error, 'value>) (flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.Runtime.timeoutWith
+
+
+
+## Information
 
 - **Module**: `AsyncFlow.Runtime`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L841)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L907)
 

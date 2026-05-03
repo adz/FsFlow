@@ -8,9 +8,15 @@ description: API reference for Flow.zip
 Combines two flows into a tuple of their values.
 
 
+```fsharp
+let zip (left: Flow<'env, 'error, 'left>) (right: Flow<'env, 'error, 'right>) : Flow<'env, 'error, 'left * 'right>
+```
 
-## Flow.zip
+
+
+
+## Information
 
 - **Module**: `Flow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L324)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L390)
 

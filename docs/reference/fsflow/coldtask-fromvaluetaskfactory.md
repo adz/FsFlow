@@ -8,8 +8,14 @@ description: API reference for ColdTask.fromValueTaskFactory
 
 
 
+```fsharp
+let fromValueTaskFactory (factory: CancellationToken -> ValueTask<'value>) : ColdTask<'value>
+```
 
-## ColdTask.fromValueTaskFactory
+
+
+
+## Information
 
 - **Module**: `ColdTask`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L41)

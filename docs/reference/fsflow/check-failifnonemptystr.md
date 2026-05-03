@@ -8,9 +8,23 @@ description: API reference for Check.failIfNonEmptyStr
 Returns success when the string is null or empty.
 
 
+```fsharp
+let failIfNonEmptyStr (str: string) : Check<unit>
+```
 
-## Check.failIfNonEmptyStr
+
+
+
+## Parameters
+
+- `str`: The string to check.
+
+## Returns
+
+A `Check` that succeeds if the string is null or empty.
+
+## Information
 
 - **Module**: `Check`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L434)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L637)
 

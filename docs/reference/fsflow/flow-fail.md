@@ -8,8 +8,14 @@ description: API reference for Flow.fail
 Creates a failing synchronous flow.
 
 
+```fsharp
+let fail (error: 'error) : Flow<'env, 'error, 'value>
+```
 
-## Flow.fail
+
+
+
+## Information
 
 - **Module**: `Flow`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L191)

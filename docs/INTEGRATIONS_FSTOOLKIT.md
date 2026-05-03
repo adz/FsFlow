@@ -1,182 +1,79 @@
 ---
-title: Replacing FsToolkit.ErrorHandling
-description: How FsFlow replaces the common FsToolkit.ErrorHandling workflow path.
+title: FsToolkit.ErrorHandling
+description: Comparing FsFlow and FsToolkit.ErrorHandling models and how they work together.
 ---
 
-# Replacing FsToolkit.ErrorHandling
+# FsToolkit.ErrorHandling
 
-This page shows how FsFlow replaces the common `Result` plus `AsyncResult` plus `TaskResult` workflow path while staying narrower than `FsToolkit.ErrorHandling` as a whole.
+If you are coming from `FsToolkit.ErrorHandling`, you will find that FsFlow is orthogonal rather
+than a direct replacement. While both libraries help with result-based programming, FsFlow
+focuses on a unified execution model that carries environments and runtime policies.
 
-If you already have a codebase built around `Result`, `Async<Result<_,_>>`, or `Task<Result<_,_>>`, FsFlow does not need to force a rewrite of the pure parts.
-It can take over the orchestration layer while leaving existing pure helpers alone.
+## The Model Difference
 
-`FsToolkit.ErrorHandling` remains a broad helper toolbox.
-FsFlow is a smaller, coherent execution model.
+`FsToolkit.ErrorHandling` provides a broad toolbox of helpers for working with `Result`, 
+`AsyncResult`, and `TaskResult` as separate, wrapped types.
 
-## Main Difference
-
-FsToolkit often means separate worlds:
-
-```text
-Result
-Async<Result>
-Task<Result>
-```
-
-FsFlow presents one path:
+FsFlow provides a single, scalable progression:
 
 ```text
 Check -> Result -> Validation -> Flow -> AsyncFlow -> TaskFlow
 ```
 
-That means:
+In FsFlow, the environment and runtime concerns are baked into the computation, allowing you to
+write orchestration logic that remains agnostic of whether the underlying work is sync or async
+until it hits the application boundary.
 
-- the same validation helpers can stay plain `Result`
-- `let!` and `do!` can lift those results directly into flows
-- the runtime gets richer without forcing a new validation vocabulary per wrapper shape
+## How Things Map
 
-## Comparison
+If you use these FsToolkit patterns, here is how they correspond to FsFlow:
 
 | FsToolkit.ErrorHandling | FsFlow |
 | --- | --- |
 | `Result.requireTrue` | `Check.okIf |> Result.mapErrorTo` |
 | `Result.requireSome` | `Check.okIfSome |> Result.mapErrorTo` |
-| `asyncResult {}` | `asyncFlow {}` |
-| `taskResult {}` | `taskFlow {}` |
-| Separate APIs per wrapper shape | Plain `Result` lifts into flows |
-| No env model | `Flow.read`, `AsyncFlow.read`, `TaskFlow.read` |
-| No runtime policy model | Runtime helpers for retry, timeout, cancellation, logging |
-| Accumulated validation helpers | `Validation` and `validate {}` |
+| `asyncResult { }` | `asyncFlow { }` |
+| `taskResult { }` | `taskFlow { }` |
+| `Validation` helpers | `Validation` and `validate { }` |
 
-## Keep The Pure Pieces Pure
+## New Things You Get
 
-Existing `Result` helpers can stay `Result` helpers.
+By using FsFlow for your orchestration layer, you gain several capabilities not present in 
+standard result wrappers:
 
-That means:
+1.  **Unified Environment**: Every flow has access to an explicit `'env`, removing the need
+    to manually thread dependencies through every function.
+2.  **Runtime Policies**: Retries, timeouts, and logging are first-class citizens in the 
+    `AsyncFlow.Runtime` and `TaskFlow.Runtime` modules.
+3.  **Task Temperature**: Built-in support for `ColdTask`, ensuring tasks only start when 
+    the flow is actually executed.
+4.  **Diagnostics Graph**: A structured, path-aware error graph for complex validation that
+    goes beyond a flat list of errors.
 
-- pure validation stays pure
-- transformation helpers stay pure
-- effectful orchestration moves into `Flow`, `AsyncFlow`, or `TaskFlow`
-- sibling validation can move into `Validation` when accumulation matters
+## Getting the Most Benefit
 
-That is the migration sweet spot: move orchestration, not every helper.
+You will get the most benefit from FsFlow by using it at your **application boundaries** (e.g., 
+API handlers, background jobs) while keeping your **pure domain logic** in plain `Result` 
+functions.
 
-## What Usually Moves
-
-- the boundary code that chooses between sync, async, and task runtime shapes
-- the environment or request context that needs to flow through the boundary
-- the final error-provisioning step when the error itself needs effectful work
-
-## What Usually Stays
-
-- existing `Result` and `Async<Result<_,_>>` helpers
-- module functions that already work well on the current types
-- existing computation-expression builders when they are already readable in the codebase
-
-## Move The Boundary, Not The Whole Codebase
-
-If a function currently returns `Async<Result<'value, 'error>>`, the most direct FsFlow migration is usually `AsyncFlow<'env, 'error, 'value>`.
-
-If a function is already task-based, `TaskFlow<'env, 'error, 'value>` is the natural endpoint.
-
-Use the same migration rule in either case:
-
-1. keep pure validation and mapping in plain functions
-2. lift the honest runtime boundary into FsFlow
-3. keep the result shape unchanged until you have a reason to rename it
-
-## Bridge Patterns
-
-Typical bridges look like this:
-
-- `Result<'value, unit>` validation helpers become `FsFlow.Check` calls
-- `Async<Result<'value, 'error>>` binds directly in `asyncFlow {}`
-- `Task<Result<'value, 'error>>` binds directly in `taskFlow {}`
-- `Async<Result<'value, unit>>` or `Result<'value, unit>` can use `orElse*` bridges when error creation itself needs environment or runtime work
-
-## Example
-
-The first bridge keeps validation pure and only moves the boundary:
-
-```fsharp
-type AppError =
-    | NameRequired
-    | UserInactive
-    | LoadFailed
-
-let validateName name =
-    name
-    |> Check.notBlank
-    |> Result.mapErrorTo NameRequired
-
-let validateActive user =
-    user.IsActive
-    |> Check.okIf
-    |> Result.mapErrorTo UserInactive
-```
-
-These validations stay reusable as plain `Result` logic.
-They lift unchanged into `flow {}`, `asyncFlow {}`, and `taskFlow {}`.
-
-The next bridge takes an `Async<Result<_,_>>` boundary and keeps the async shape intact:
-
-```fsharp
-type AppEnv =
-    { Prefix: string
-      LoadUser: int -> Async<Result<User, AppError>>
-      LoadGreeting: int -> Task<Result<string, AppError>> }
-
-let loadGreeting : AsyncFlow<AppEnv, AppError, string> =
-    asyncFlow {
-        let! env = AsyncFlow.env
-        let! loadUser = AsyncFlow.read _.LoadUser
-        let! user = loadUser 42
-        do! validateActive user
-        return $"{env.Prefix} {user.Name}"
-    }
-```
-
-Use this shape when the legacy code already returns `Async<Result<_,_>>` and FsFlow should only own the environment and boundary.
-
-The task-shaped version follows the same rule:
-
-```fsharp
-let publishGreeting : TaskFlow<AppEnv, string, string> =
-    taskFlow {
-        let! env = TaskFlow.env
-        let! name = env.LoadGreeting 42
-        return $"{env.Prefix} {name}"
-    }
-```
-
-The `TaskFlow` builder can bind `Task<Result<_,_>>` directly, so you can keep the task boundary honest while moving the orchestration into FsFlow.
-
-## Keep Started Work Started
-
-If the code already has a started task, keep it as a task and bind it directly:
-
-```fsharp
-let started = Task.FromResult (Ok "Ada")
-
-let alreadyRunning : TaskFlow<unit, string, string> =
-    taskFlow {
-        let! name = started
-        return name
-    }
-```
-
-Use the explicit bridge helpers in non-builder pipelines when you need them, but keep the normal docs path focused on direct binds inside the computation expression.
+- **Keep existing pure helpers**: If you have a library of `Result` transformation helpers
+  from FsToolkit, keep using them! FsFlow's `flow {}` builders bind `Result` directly.
+- **Move orchestration**: Use `TaskFlow` or `AsyncFlow` when you need to combine those pure 
+  functions with I/O, configuration, or operational policies.
 
 ## Semantic Boundary
 
-FsFlow flows are short-circuiting.
-They are not a replacement for accumulated validation helpers.
+FsFlow flows are short-circuiting by default. If your current FsToolkit usage leans on
+independent validation that should report multiple errors, use `Validation` and `validate {}`
+to maintain that explicit concern.
 
-If your current `FsToolkit.ErrorHandling` usage leans on independent validation that should report multiple errors,
-keep that concern explicit with `Validation` and `validate {}` instead of trying to hide it inside `flow {}` or `taskFlow {}`.
+```fsharp
+let validateUser cmd =
+    validate {
+        let! name = requireName cmd.Name
+        and! email = requireEmail cmd.Email
+        return { cmd with Name = name; Email = email }
+    }
+```
 
-## When FsToolkit Still Wins
-
-Keep `FsToolkit.ErrorHandling` where its existing combinators already make the code clearer.
-
-FsFlow is not trying to delete that ecosystem. It is trying to make the boundary explicit when the runtime and environment shape matter.
+This ensures that the "accumulating" vs "fail-fast" semantics remain clear in your code.

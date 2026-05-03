@@ -8,9 +8,15 @@ description: API reference for TaskFlow.readEnvironment
 Reads the application environment half of a runtime-context environment.
 
 
+```fsharp
+let readEnvironment (projection: 'env -> 'value) : TaskFlow<RuntimeContext<'runtime, 'env>, 'error, 'value>
+```
 
-## TaskFlow.readEnvironment
+
+
+
+## Information
 
 - **Module**: `TaskFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L209)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L242)
 

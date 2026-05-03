@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.read
 Projects a value from the current environment.
 
 
+```fsharp
+let read (projection: 'env -> 'value) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.read
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L469)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L535)
 

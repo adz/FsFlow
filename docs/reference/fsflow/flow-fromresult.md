@@ -8,8 +8,14 @@ description: API reference for Flow.fromResult
 Lifts a `Result` into a synchronous flow.
 
 
+```fsharp
+let fromResult (result: Result<'value, 'error>) : Flow<'env, 'error, 'value>
+```
 
-## Flow.fromResult
+
+
+
+## Information
 
 - **Module**: `Flow`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L201)

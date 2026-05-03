@@ -214,12 +214,23 @@ module Flow =
         |> fromResult
 
     /// <summary>Lifts a value option into a synchronous flow with the supplied error.</summary>
+    /// <param name="error">The error to return if the value option is <see cref="T:Microsoft.FSharp.Core.FSharpValueOption`1.ValueNone" />.</param>
+    /// <param name="value">The value option to lift.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> that succeeds with the option's value or fails with the provided error.</returns>
     let fromValueOption (error: 'error) (value: 'value voption) : Flow<'env, 'error, 'value> =
         value
         |> OptionFlow.toResultValueOption error
         |> fromResult
 
     /// <summary>Turns a pure validation result into a synchronous flow with environment-provided failure.</summary>
+    /// <remarks>
+    /// This helper bridges the gap between pure validation (which often uses <see cref="T:System.Result`2" /> or <see cref="T:FsFlow.Check`1" />)
+    /// and the <see cref="T:FsFlow.Flow`3" /> environment model. If the result is an error, the provided <paramref name="errorFlow" />
+    /// is executed to produce the final application error.
+    /// </remarks>
+    /// <param name="errorFlow">A flow that reads the environment to produce an error value.</param>
+    /// <param name="result">The pure result to bridge.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> that mirrors the success of the result or fails with the outcome of the error flow.</returns>
     let orElseFlow
         (errorFlow: Flow<'env, 'error, 'error>)
         (result: Result<'value, unit>)
@@ -233,14 +244,32 @@ module Flow =
                 | Error error -> Error error)
 
     /// <summary>Reads the current environment as the flow value.</summary>
+    /// <remarks>
+    /// Use this when the entire environment object is needed for the next step of the workflow.
+    /// For projecting specific properties, <see cref="read" /> is generally more ergonomic.
+    /// </remarks>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> whose successful value is the current environment.</returns>
     let env<'env, 'error> : Flow<'env, 'error, 'env> =
         Flow(fun environment -> Ok environment)
 
     /// <summary>Projects a value from the current environment.</summary>
+    /// <remarks>
+    /// This is the primary way to access dependencies or configuration stored in the environment.
+    /// The <paramref name="projection" /> function is applied to the environment at execution time.
+    /// </remarks>
+    /// <param name="projection">A function that extracts a value from the environment.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> containing the projected value.</returns>
     let read (projection: 'env -> 'value) : Flow<'env, 'error, 'value> =
         Flow(fun environment -> Ok(projection environment))
 
     /// <summary>Maps the successful value of a synchronous flow.</summary>
+    /// <remarks>
+    /// If the source <paramref name="flow" /> fails, the <paramref name="mapper" /> is not executed,
+    /// and the error is preserved. This allows for safe transformation of data within the flow.
+    /// </remarks>
+    /// <param name="mapper">A function of type <c>'value -> 'next</c> to transform the successful value.</param>
+    /// <param name="flow">The source flow of type <see cref="T:FsFlow.Flow`3" /> to transform.</param>
+    /// <returns>A new <see cref="T:FsFlow.Flow`3" /> with the transformed success value of type <c>'next</c>.</returns>
     let map
         (mapper: 'value -> 'next)
         (flow: Flow<'env, 'error, 'value>)
@@ -248,6 +277,13 @@ module Flow =
         Flow(InternalCombinatorCore.mapWith (fun mapOutcome outcome -> mapOutcome outcome) mapper (fun environment -> run environment flow))
 
     /// <summary>Sequences a synchronous continuation after a successful value.</summary>
+    /// <remarks>
+    /// This is the "flatmap" operation for <see cref="T:FsFlow.Flow`3" />. It allows for dependent
+    /// steps where the second flow depends on the value produced by the first.
+    /// </remarks>
+    /// <param name="binder">A function that takes the successful value and returns a new flow.</param>
+    /// <param name="flow">The source flow to sequence.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> representing the combined workflow.</returns>
     let bind
         (binder: 'value -> Flow<'env, 'error, 'next>)
         (flow: Flow<'env, 'error, 'value>)
@@ -264,6 +300,14 @@ module Flow =
         )
 
     /// <summary>Runs a synchronous side effect on success and preserves the original value.</summary>
+    /// <remarks>
+    /// Use this for logging, telemetry, or other "fire and forget" operations that should not
+    /// alter the primary value path. If the <paramref name="binder" /> flow fails, the entire
+    /// flow fails with that error.
+    /// </remarks>
+    /// <param name="binder">A function that produces a side-effect flow from the successful value.</param>
+    /// <param name="flow">The source flow.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> that preserves the original success value after the side effect.</returns>
     let tap
         (binder: 'value -> Flow<'env, 'error, unit>)
         (flow: Flow<'env, 'error, 'value>)
@@ -275,6 +319,14 @@ module Flow =
             flow
 
     /// <summary>Runs a synchronous side effect on failure and preserves the original error.</summary>
+    /// <remarks>
+    /// Use this for error logging or cleanup actions that depend on the environment.
+    /// If the <paramref name="binder" /> side-effect flow itself fails, its error will
+    /// overwrite the original error.
+    /// </remarks>
+    /// <param name="binder">A function that produces a side-effect flow from the error value.</param>
+    /// <param name="flow">The source flow.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> that preserves the original error after the side effect.</returns>
     let tapError
         (binder: 'error -> Flow<'env, 'error, unit>)
         (flow: Flow<'env, 'error, 'value>)
@@ -288,6 +340,13 @@ module Flow =
                 | Error nextError -> Error nextError)
 
     /// <summary>Maps the error value of a synchronous flow.</summary>
+    /// <remarks>
+    /// Transforms the error type of the flow while leaving successful values untouched.
+    /// Useful for mapping internal errors into public-facing domain errors.
+    /// </remarks>
+    /// <param name="mapper">The function to transform the error value.</param>
+    /// <param name="flow">The source flow.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> with the transformed error type.</returns>
     let mapError
         (mapper: 'error -> 'nextError)
         (flow: Flow<'env, 'error, 'value>)
@@ -300,6 +359,13 @@ module Flow =
         )
 
     /// <summary>Catches exceptions raised during execution and maps them to a typed error.</summary>
+    /// <remarks>
+    /// Exceptions that are not caught by this helper will bubble up to the caller of <see cref="run" />.
+    /// This ensures that known exceptions can be handled within the flow context.
+    /// </remarks>
+    /// <param name="handler">A function of type <c>exn -> 'error</c> to map the exception.</param>
+    /// <param name="flow">The source flow of type <see cref="T:FsFlow.Flow`3" /> to monitor.</param>
+    /// <returns>A <see cref="T:FsFlow.Flow`3" /> that converts exceptions into success-path errors.</returns>
     let catch
         (handler: exn -> 'error)
         (flow: Flow<'env, 'error, 'value>)

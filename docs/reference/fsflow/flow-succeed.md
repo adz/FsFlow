@@ -8,8 +8,14 @@ description: API reference for Flow.succeed
 Creates a successful synchronous flow.
 
 
+```fsharp
+let succeed (value: 'value) : Flow<'env, 'error, 'value>
+```
 
-## Flow.succeed
+
+
+
+## Information
 
 - **Module**: `Flow`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L171)

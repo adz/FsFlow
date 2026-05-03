@@ -8,9 +8,15 @@ description: API reference for Builders.asyncFlow
 The core `asyncFlow { }` computation expression.
 
 
+```fsharp
+let asyncFlow
+```
 
-## Builders.asyncFlow
+
+
+
+## Information
 
 - **Module**: `Builders`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1258)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1324)
 

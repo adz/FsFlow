@@ -8,8 +8,14 @@ description: API reference for ColdTask.fromTask
 
 
 
+```fsharp
+let fromTask (startedTask: Task<'value>) : ColdTask<'value>
+```
 
-## ColdTask.fromTask
+
+
+
+## Information
 
 - **Module**: `ColdTask`
 - **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L38)

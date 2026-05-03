@@ -8,9 +8,15 @@ description: API reference for Builders.validate
 The accumulating `validate { }` computation expression.
 
 
+```fsharp
+let validate
+```
 
-## Builders.validate
+
+
+
+## Information
 
 - **Module**: `Builders`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1263)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L1329)
 

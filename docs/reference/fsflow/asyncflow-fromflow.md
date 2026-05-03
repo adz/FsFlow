@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.fromFlow
 Lifts a synchronous flow into an async flow.
 
 
+```fsharp
+let fromFlow (flow: Flow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.fromFlow
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L449)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L515)
 

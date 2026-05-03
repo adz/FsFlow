@@ -34,7 +34,7 @@ module.exports = {
       type: 'category',
       label: 'Ecosystem',
       items: [
-        { type: 'doc', id: 'INTEGRATIONS_FSTOOLKIT', label: 'Replacing FsToolkit.ErrorHandling' },
+        { type: 'doc', id: 'INTEGRATIONS_FSTOOLKIT', label: 'FsToolkit.ErrorHandling' },
         { type: 'doc', id: 'INTEGRATIONS_VALIDUS', label: 'Validus Integration' },
         { type: 'doc', id: 'INTEGRATIONS_ICEDTASKS', label: 'IcedTasks Integration' },
         { type: 'doc', id: 'INTEGRATIONS_FSHARPPLUS', label: 'FSharpPlus Integration' },

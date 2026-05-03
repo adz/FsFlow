@@ -8,9 +8,15 @@ description: API reference for AsyncFlow.tap
 Runs an async side effect on success and preserves the original value.
 
 
+```fsharp
+let tap (binder: 'value -> AsyncFlow<'env, 'error, unit>) (flow: AsyncFlow<'env, 'error, 'value>) : AsyncFlow<'env, 'error, 'value>
+```
 
-## AsyncFlow.tap
+
+
+
+## Information
 
 - **Module**: `AsyncFlow`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L509)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Flow.fs#L575)
 

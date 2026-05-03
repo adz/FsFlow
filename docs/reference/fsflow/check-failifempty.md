@@ -8,9 +8,23 @@ description: API reference for Check.failIfEmpty
 Returns the sequence when it is not empty.
 
 
+```fsharp
+let failIfEmpty (coll: seq<'a>) : Check<seq<'a>>
+```
 
-## Check.failIfEmpty
+
+
+
+## Parameters
+
+- `coll`: The sequence to check.
+
+## Returns
+
+A `Check` containing the non-empty sequence.
+
+## Information
 
 - **Module**: `Check`
-- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L406)
+- **Source**: [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/Validate.fs#L591)
 
