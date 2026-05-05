@@ -27,7 +27,7 @@ Write validation and typed-error logic once. Keep it as plain `Result` while the
 
 <aside class="docs-home-panel">
 <section class="docs-home-panel-card">
-<span class="label"><a href="reference/fsflow/validate">Validate First</a></span>
+<span class="label"><a href="./reference/fsflow/validate">Validate First</a></span>
 <strong>Start with plain `Result`, then lift the same checks directly into flows with `let!` and `do!`.</strong>
 </section>
 
@@ -279,19 +279,19 @@ registerUser 42
 
 <section class="docs-card">
 <span class="label">Reference</span>
-<h2><a href="reference/">API Reference</a></h2>
-<p>The package-level API landing page for `FsFlow` and `FsFlow.Net`.</p>
+<h2><a href="./reference/fsflow/">API Reference</a></h2>
+<p>The API landing page for the main `FsFlow` package and its task surface.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Reference</span>
-<h2><a href="reference/fsflow/">FsFlow</a></h2>
+<h2><a href="./reference/fsflow/">FsFlow</a></h2>
 <p>The core package hub, including `Flow`, `AsyncFlow`, `Validate`, and support types.</p>
 </section>
 
 <section class="docs-card">
 <span class="label">Reference</span>
-<h2><a href="reference/fsflow-net/">FsFlow.Net</a></h2>
+<h2><a href="./reference/fsflow-net/">FsFlow.Net</a></h2>
 <p>The task-oriented package hub, including `TaskFlow`, `ColdTask`, and interop helpers.</p>
 </section>
 

@@ -1248,4 +1248,39 @@ module TaskBuilders =
     /// <summary>
     /// The .NET <c>taskFlow { }</c> computation expression.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This builder enables using <c>let!</c>, <c>do!</c>, and other standard computation expression 
+    /// features with <see cref="T:FsFlow.TaskFlow`3" />.
+    /// </para>
+    /// <para>
+    /// It supports seamless binding to many types:
+    /// <list type="bullet">
+    /// <item><description><see cref="T:FsFlow.TaskFlow`3" /> (standard flow)</description></item>
+    /// <item><description><see cref="T:FsFlow.AsyncFlow`3" /> (lifts to task-based flow)</description></item>
+    /// <item><description><see cref="T:FsFlow.Flow`3" /> (lifts synchronous to task-based)</description></item>
+    /// <item><description><see cref="T:System.Threading.Tasks.Task`1" /> and <see cref="T:System.Threading.Tasks.Task" /> (auto-wraps in Ok)</description></item>
+    /// <item><description><see cref="T:System.Threading.Tasks.ValueTask`1" /> and <see cref="T:System.Threading.Tasks.ValueTask" /> (auto-wraps in Ok)</description></item>
+    /// <item><description><see cref="T:System.Result`2" /> (lifts pure result to task-based flow)</description></item>
+    /// <item><description><see cref="T:Microsoft.FSharp.Control.FSharpAsync`1" /> (auto-wraps in Ok)</description></item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// It also supports "smart binds" using tuples for inline error mapping or failing options:
+    /// <list type="bullet">
+    /// <item><description><c>let! x = (source, error)</c> - Fails with <c>error</c> if <c>source</c> is None/Error.</description></item>
+    /// <item><description><c>let! x = (source, mapper)</c> - Maps the error of <c>source</c> using <c>mapper</c>.</description></item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// ```fsharp
+    /// let getUser (id: int) = taskFlow {
+    ///     let! db = TaskFlow.read (fun env -> env.Db)
+    ///     let! user = (db.FindUserAsync(id), UserNotFound id) // Smart bind to Option
+    ///     do! Task.Delay(100) // Bind to Task
+    ///     return user
+    /// }
+    /// ```
+    /// </example>
     let taskFlow = TaskFlowBuilder()

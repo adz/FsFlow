@@ -1411,19 +1411,98 @@ module Builders =
     /// <summary>
     /// The fail-fast <c>result { }</c> computation expression.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this builder when the happy path should short-circuit on the first error
+    /// and you want to keep the workflow in <c>Result</c> shape all the way through.
+    /// </para>
+    /// <para>
+    /// It works well for parsing, validation, and other boundaries where failure is expected
+    /// to stop the flow immediately instead of accumulating diagnostics.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// ```fsharp
+    /// let parsedUser =
+    ///     result {
+    ///         let! age = parseAge input
+    ///         let! name = parseName input
+    ///         return { Age = age; Name = name }
+    ///     }
+    /// ```
+    /// </example>
     let result = ResultBuilder()
 
     /// <summary>
     /// The sync-only <c>flow { }</c> computation expression.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this builder when the boundary is synchronous and you want explicit environment
+    /// reads without introducing async or task scheduling.
+    /// </para>
+    /// <para>
+    /// It is the simplest builder in the library and is a good default for pure composition
+    /// and deterministic orchestration.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// ```fsharp
+    /// let greeting =
+    ///     flow {
+    ///         let! name = Flow.read (fun env -> env.Name)
+    ///         return $"Hello, {name}"
+    ///     }
+    /// ```
+    /// </example>
     let flow = FlowBuilder()
 
     /// <summary>
     /// The core <c>asyncFlow { }</c> computation expression.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this builder when the runtime boundary is async-first and you need to compose
+    /// <c>Async</c> work with the same explicit environment model as <c>Flow</c>.
+    /// </para>
+    /// <para>
+    /// It is the right landing point for async orchestration that still wants typed failures
+    /// instead of exceptions.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// ```fsharp
+    /// let fetchProfile =
+    ///     asyncFlow {
+    ///         let! api = AsyncFlow.read (fun env -> env.Api)
+    ///         let! profile = api.LoadProfile()
+    ///         return profile
+    ///     }
+    /// ```
+    /// </example>
     let asyncFlow = AsyncFlowBuilder()
 
     /// <summary>
     /// The accumulating <c>validate { }</c> computation expression.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this builder when you want to collect all validation failures instead of stopping
+    /// at the first one.
+    /// </para>
+    /// <para>
+    /// It is intended for forms, configuration checks, and other input-heavy boundaries where
+    /// the user benefits from seeing every problem at once.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// ```fsharp
+    /// let validatedUser =
+    ///     validate {
+    ///         let! name = Check.notBlank input.Name
+    ///         let! age = Check.okIf (input.Age > 0) "Age must be positive"
+    ///         return { Name = name; Age = age }
+    ///     }
+    /// ```
+    /// </example>
     let validate = ValidateBuilder()

@@ -12,6 +12,10 @@ This page shows the source-documented `TaskFlow` surface: the core type, the mod
 - type `TaskFlow`: Represents a cold task-based workflow that reads an environment, observes a runtime cancellation token,
 returns a typed result, and is executed explicitly through `TaskFlow.run`. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L15)
 
+## Builder
+
+- [`TaskBuilders.taskFlow`](./taskbuilders-taskflow.md): The .NET `taskFlow { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L1286)
+
 ## Module functions
 
 - module `TaskFlow`: Core functions for creating, composing, executing, and adapting task flows. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L63)
@@ -49,8 +53,4 @@ returns a typed result, and is executed explicitly through `TaskFlow.run`. [sour
 - [`TaskFlow.delay`](./taskflow-delay.md): Defers task flow construction until execution time. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L426)
 - [`TaskFlow.traverse`](./taskflow-traverse.md): Transforms a sequence of values into a task flow and stops at the first failure. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L437)
 - [`TaskFlow.sequence`](./taskflow-sequence.md): Transforms a sequence of task flows into a task flow of a sequence and stops at the first failure. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L462)
-
-## Builder
-
-- [`TaskBuilders.taskFlow`](./taskbuilders-taskflow.md): The .NET `taskFlow { }` computation expression. [source](https://github.com/adz/FsFlow/blob/main/src/FsFlow/TaskFlow.fs#L1251)
 

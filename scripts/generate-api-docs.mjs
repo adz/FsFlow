@@ -19,17 +19,18 @@ const pageSpecs = [
       "This page shows the source-documented `Flow` surface: the core type, the module functions, and the `flow { }` builder.",
     sourceFiles: ['src/FsFlow/Flow.fs'],
     sections: [
+      
       {
         title: 'Core type',
         symbols: ['type:Flow'],
       },
       {
-        title: 'Module functions',
-        symbols: ['module:Flow', 'Flow.run', 'Flow.succeed', 'Flow.value', 'Flow.fail', 'Flow.fromResult', 'Flow.fromOption', 'Flow.fromValueOption', 'Flow.orElseFlow', 'Flow.env', 'Flow.read', 'Flow.map', 'Flow.bind', 'Flow.tap', 'Flow.tapError', 'Flow.mapError', 'Flow.catch', 'Flow.orElse', 'Flow.zip', 'Flow.map2', 'Flow.localEnv', 'Flow.delay', 'Flow.traverse', 'Flow.sequence'],
-      },
-      {
         title: 'Builder',
         symbols: ['Builders.flow'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:Flow', 'Flow.run', 'Flow.succeed', 'Flow.value', 'Flow.fail', 'Flow.fromResult', 'Flow.fromOption', 'Flow.fromValueOption', 'Flow.orElseFlow', 'Flow.env', 'Flow.read', 'Flow.map', 'Flow.bind', 'Flow.tap', 'Flow.tapError', 'Flow.mapError', 'Flow.catch', 'Flow.orElse', 'Flow.zip', 'Flow.map2', 'Flow.localEnv', 'Flow.delay', 'Flow.traverse', 'Flow.sequence'],
       },
     ],
   },
@@ -41,17 +42,18 @@ const pageSpecs = [
       "This page shows the source-documented `AsyncFlow` surface: the core type, the module functions, and the `asyncFlow { }` builder.",
     sourceFiles: ['src/FsFlow/Flow.fs'],
     sections: [
+      
       {
         title: 'Core type',
         symbols: ['type:AsyncFlow'],
       },
       {
-        title: 'Module functions',
-        symbols: ['module:AsyncFlow', 'AsyncFlow.run', 'AsyncFlow.toAsync', 'AsyncFlow.succeed', 'AsyncFlow.fail', 'AsyncFlow.fromResult', 'AsyncFlow.fromOption', 'AsyncFlow.fromValueOption', 'AsyncFlow.orElseAsync', 'AsyncFlow.orElseAsyncFlow', 'AsyncFlow.fromFlow', 'AsyncFlow.fromAsync', 'AsyncFlow.fromAsyncResult', 'AsyncFlow.env', 'AsyncFlow.read', 'AsyncFlow.map', 'AsyncFlow.bind', 'AsyncFlow.tap', 'AsyncFlow.tapError', 'AsyncFlow.mapError', 'AsyncFlow.catch', 'AsyncFlow.orElse', 'AsyncFlow.zip', 'AsyncFlow.map2', 'AsyncFlow.localEnv', 'AsyncFlow.delay', 'AsyncFlow.traverse', 'AsyncFlow.sequence'],
-      },
-      {
         title: 'Builder',
         symbols: ['Builders.asyncFlow'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:AsyncFlow', 'AsyncFlow.run', 'AsyncFlow.toAsync', 'AsyncFlow.succeed', 'AsyncFlow.fail', 'AsyncFlow.fromResult', 'AsyncFlow.fromOption', 'AsyncFlow.fromValueOption', 'AsyncFlow.orElseAsync', 'AsyncFlow.orElseAsyncFlow', 'AsyncFlow.fromFlow', 'AsyncFlow.fromAsync', 'AsyncFlow.fromAsyncResult', 'AsyncFlow.env', 'AsyncFlow.read', 'AsyncFlow.map', 'AsyncFlow.bind', 'AsyncFlow.tap', 'AsyncFlow.tapError', 'AsyncFlow.mapError', 'AsyncFlow.catch', 'AsyncFlow.orElse', 'AsyncFlow.zip', 'AsyncFlow.map2', 'AsyncFlow.localEnv', 'AsyncFlow.delay', 'AsyncFlow.traverse', 'AsyncFlow.sequence'],
       },
     ],
   },
@@ -99,17 +101,18 @@ const pageSpecs = [
       'This page shows the source-documented `Validation` surface: the accumulating result type, the module functions, and the `validate { }` builder.',
     sourceFiles: ['src/FsFlow/Validate.fs'],
     sections: [
+      
       {
         title: 'Core type',
         symbols: ['type:Validation'],
       },
       {
-        title: 'Module functions',
-        symbols: ['module:Validation', 'Validation.toResult', 'Validation.succeed', 'Validation.fail', 'Validation.fromResult', 'Validation.map', 'Validation.bind', 'Validation.mapError', 'Validation.map2', 'Validation.apply', 'Validation.collect', 'Validation.sequence', 'Validation.merge'],
-      },
-      {
         title: 'Builder',
         symbols: ['src/FsFlow/Flow.fs::Builders.validate'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:Validation', 'Validation.toResult', 'Validation.succeed', 'Validation.fail', 'Validation.fromResult', 'Validation.map', 'Validation.bind', 'Validation.mapError', 'Validation.map2', 'Validation.apply', 'Validation.collect', 'Validation.sequence', 'Validation.merge'],
       },
     ],
   },
@@ -122,21 +125,22 @@ const pageSpecs = [
     sourceFiles: ['src/FsFlow/Validate.fs'],
     sections: [
       {
-        title: 'Module functions',
-        symbols: ['module:Result', 'Result.map', 'Result.bind', 'Result.mapError', 'Result.mapErrorTo', 'Result.sequence', 'Result.traverse'],
-      },
-      {
         title: 'Builder',
         symbols: ['src/FsFlow/Flow.fs::Builders.result'],
+      },
+      
+      {
+        title: 'Module functions',
+        symbols: ['module:Result', 'Result.map', 'Result.bind', 'Result.mapError', 'Result.mapErrorTo', 'Result.sequence', 'Result.traverse'],
       },
     ],
   },
   {
     outPath: ['fsflow', 'runtime.md'],
-    title: 'Runtime',
-    description: 'Source-documented runtime support and helpers for FsFlow.',
+    title: 'AsyncFlow.Runtime',
+    description: 'Source-documented async runtime support and helpers for FsFlow.',
     intro:
-      'This page shows the source-documented runtime surface: logging, retry policies, and async operational helpers.',
+      'This page shows the source-documented `AsyncFlow.Runtime` surface: logging, retry policies, and async operational helpers.',
     sourceFiles: ['src/FsFlow/Flow.fs'],
     sections: [
       {
@@ -161,17 +165,18 @@ const pageSpecs = [
       'This page shows the source-documented `TaskFlow` surface: the core type, the module functions, and the `taskFlow { }` builder.',
     sourceFiles: ['src/FsFlow/TaskFlow.fs'],
     sections: [
+      
       {
         title: 'Core type',
         symbols: ['type:TaskFlow'],
       },
       {
-        title: 'Module functions',
-        symbols: ['module:TaskFlow', 'TaskFlow.run', 'TaskFlow.runContext', 'TaskFlow.toTask', 'TaskFlow.succeed', 'TaskFlow.fail', 'TaskFlow.fromResult', 'TaskFlow.fromOption', 'TaskFlow.fromValueOption', 'TaskFlow.orElseTask', 'TaskFlow.orElseAsync', 'TaskFlow.orElseFlow', 'TaskFlow.orElseAsyncFlow', 'TaskFlow.orElseTaskFlow', 'TaskFlow.fromFlow', 'TaskFlow.fromAsyncFlow', 'TaskFlow.fromTask', 'TaskFlow.fromTaskResult', 'TaskFlow.env', 'TaskFlow.read', 'TaskFlow.readRuntime', 'TaskFlow.readEnvironment', 'TaskFlow.map', 'TaskFlow.bind', 'TaskFlow.tap', 'TaskFlow.tapError', 'TaskFlow.mapError', 'TaskFlow.catch', 'TaskFlow.orElse', 'TaskFlow.zip', 'TaskFlow.map2', 'TaskFlow.localEnv', 'TaskFlow.delay', 'TaskFlow.traverse', 'TaskFlow.sequence'],
-      },
-      {
         title: 'Builder',
         symbols: ['TaskBuilders.taskFlow'],
+      },
+      {
+        title: 'Module functions',
+        symbols: ['module:TaskFlow', 'TaskFlow.run', 'TaskFlow.runContext', 'TaskFlow.toTask', 'TaskFlow.succeed', 'TaskFlow.fail', 'TaskFlow.fromResult', 'TaskFlow.fromOption', 'TaskFlow.fromValueOption', 'TaskFlow.orElseTask', 'TaskFlow.orElseAsync', 'TaskFlow.orElseFlow', 'TaskFlow.orElseAsyncFlow', 'TaskFlow.orElseTaskFlow', 'TaskFlow.fromFlow', 'TaskFlow.fromAsyncFlow', 'TaskFlow.fromTask', 'TaskFlow.fromTaskResult', 'TaskFlow.env', 'TaskFlow.read', 'TaskFlow.readRuntime', 'TaskFlow.readEnvironment', 'TaskFlow.map', 'TaskFlow.bind', 'TaskFlow.tap', 'TaskFlow.tapError', 'TaskFlow.mapError', 'TaskFlow.catch', 'TaskFlow.orElse', 'TaskFlow.zip', 'TaskFlow.map2', 'TaskFlow.localEnv', 'TaskFlow.delay', 'TaskFlow.traverse', 'TaskFlow.sequence'],
       },
     ],
   },

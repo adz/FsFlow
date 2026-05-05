@@ -1,0 +1,79 @@
+---
+title: FsToolkit.ErrorHandling
+description: Comparing FsFlow and FsToolkit.ErrorHandling models and how they work together.
+---
+
+# FsToolkit.ErrorHandling
+
+If you are coming from `FsToolkit.ErrorHandling`, you will find that FsFlow is orthogonal rather
+than a direct replacement. While both libraries help with result-based programming, FsFlow
+focuses on a unified execution model that carries environments and runtime policies.
+
+## The Model Difference
+
+`FsToolkit.ErrorHandling` provides a broad toolbox of helpers for working with `Result`, 
+`AsyncResult`, and `TaskResult` as separate, wrapped types.
+
+FsFlow provides a single, scalable progression:
+
+```text
+Check -> Result -> Validation -> Flow -> AsyncFlow -> TaskFlow
+```
+
+In FsFlow, the environment and runtime concerns are baked into the computation, allowing you to
+write orchestration logic that remains agnostic of whether the underlying work is sync or async
+until it hits the application boundary.
+
+## How Things Map
+
+If you use these FsToolkit patterns, here is how they correspond to FsFlow:
+
+| FsToolkit.ErrorHandling | FsFlow |
+| --- | --- |
+| `Result.requireTrue` | `Check.okIf |> Result.mapErrorTo` |
+| `Result.requireSome` | `Check.okIfSome |> Result.mapErrorTo` |
+| `asyncResult { }` | `asyncFlow { }` |
+| `taskResult { }` | `taskFlow { }` |
+| `Validation` helpers | `Validation` and `validate { }` |
+
+## New Things You Get
+
+By using FsFlow for your orchestration layer, you gain several capabilities not present in 
+standard result wrappers:
+
+1.  **Unified Environment**: Every flow has access to an explicit `'env`, removing the need
+    to manually thread dependencies through every function.
+2.  **Runtime Policies**: Retries, timeouts, and logging are first-class citizens in the 
+    `AsyncFlow.Runtime` and `TaskFlow.Runtime` modules.
+3.  **Task Temperature**: Built-in support for `ColdTask`, ensuring tasks only start when 
+    the flow is actually executed.
+4.  **Diagnostics Graph**: A structured, path-aware error graph for complex validation that
+    goes beyond a flat list of errors.
+
+## Getting the Most Benefit
+
+You will get the most benefit from FsFlow by using it at your **application boundaries** (e.g., 
+API handlers, background jobs) while keeping your **pure domain logic** in plain `Result` 
+functions.
+
+- **Keep existing pure helpers**: If you have a library of `Result` transformation helpers
+  from FsToolkit, keep using them! FsFlow's `flow {}` builders bind `Result` directly.
+- **Move orchestration**: Use `TaskFlow` or `AsyncFlow` when you need to combine those pure 
+  functions with I/O, configuration, or operational policies.
+
+## Semantic Boundary
+
+FsFlow flows are short-circuiting by default. If your current FsToolkit usage leans on
+independent validation that should report multiple errors, use `Validation` and `validate {}`
+to maintain that explicit concern.
+
+```fsharp
+let validateUser cmd =
+    validate {
+        let! name = requireName cmd.Name
+        and! email = requireEmail cmd.Email
+        return { cmd with Name = name; Email = email }
+    }
+```
+
+This ensures that the "accumulating" vs "fail-fast" semantics remain clear in your code.
