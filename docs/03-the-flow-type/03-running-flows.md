@@ -50,7 +50,7 @@ Direct execution is useful at interop boundaries. A complete application normall
 
 ## Go Further
 
-- [App reference](/api.html) covers root application execution and lifecycle handles.
-- [Exit reference](/api.html) covers completed outcomes and boundary conversions.
+- [App reference](/api/) covers root application execution and lifecycle handles.
+- [Exit reference](/api/) covers completed outcomes and boundary conversions.
 - [Runtime operations tutorial](/platforms-and-hosting/runtime-operations.html) adds timeout, retry,
   cancellation, and annotations around an execution.

@@ -142,4 +142,4 @@ workflow that must run on both .NET and Fable should depend on its own narrow ou
 ## Related
 
 - [Service contracts](/dependencies/service-contracts.html) — why the dependency is in the type.
-- [Processes](processes/index.html) — the process service uses a console for stream wiring.
+- [Processes](/process/) — the process service uses a console for stream wiring.

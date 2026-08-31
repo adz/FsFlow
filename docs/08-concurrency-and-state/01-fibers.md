@@ -7,7 +7,7 @@ description: Lightweight logical threads and structured concurrency in Axial.
 
 Fibers represent running child workflows.
 
-In Axial, a **Fiber** is a handle to a running [**`Flow`**](/api.html). A flow is a cold description of work. A fiber is the hot execution that exists after that work has been started in the background.
+In Axial, a **Fiber** is a handle to a running [**`Flow`**](/api/). A flow is a cold description of work. A fiber is the hot execution that exists after that work has been started in the background.
 
 ## The Mental Model
 
@@ -33,10 +33,10 @@ Fibers are the foundation of **Structured Concurrency** in Axial. Unlike "fire-a
 
 The primary operations for managing fibers are:
 
-- [**`Flow.fork`**](/api.html): starts a flow in the background and returns a `Fiber<'error, 'value>` handle.
-- [**`Flow.join`**](/api.html): waits for the fiber and resumes with its successful value or typed failure.
-- [**`Flow.interrupt`**](/api.html): asks the fiber to stop, then waits for the child workflow to report its final `Exit`.
-- [**`Flow.forkDetached`**](/api.html): starts deliberate fire-and-forget work whose defects are never reported as unobserved.
+- [**`Flow.fork`**](/api/): starts a flow in the background and returns a `Fiber<'error, 'value>` handle.
+- [**`Flow.join`**](/api/): waits for the fiber and resumes with its successful value or typed failure.
+- [**`Flow.interrupt`**](/api/): asks the fiber to stop, then waits for the child workflow to report its final `Exit`.
+- [**`Flow.forkDetached`**](/api/): starts deliberate fire-and-forget work whose defects are never reported as unobserved.
 - `Flow.forkNamed`: forks with a diagnostic name that carries into dumps and telemetry fiber spans, so long-lived background fibers are recognizable instead of bare ids.
 - `Fiber.dump`: returns a diagnostic snapshot of one fiber handle.
 

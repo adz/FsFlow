@@ -66,16 +66,13 @@ Flow also carries concurrency, scheduling, streams, and structured child fibers 
 dotnet add package Axial
 ```
 
-## Packages
+## Package family
 
-The core is independent. Add service and hosting packages only when the workflow uses them.
+- [`Axial`](https://www.nuget.org/packages/Axial) — the core workflow model: typed failures, dependencies, concurrency, resources, schedules, streams, and layers.
+- [`Axial.Process`](https://www.nuget.org/packages/Axial.Process) — external process composition, pipelines, streaming output, typed failures, cancellation, and cleanup.
+- [`Axial.HttpClient`](https://www.nuget.org/packages/Axial.HttpClient) — typed HTTP requests, response handling, and reliability policies.
 
-- `Axial` — workflows, typed failures, dependencies, concurrency, schedules, streams, and layers
-- `Axial.PlatformService` — explicit clock, logging, randomness, GUID, and environment services
-- `Axial.Console`, `Axial.FileSystem`, `Axial.HttpClient`, `Axial.Process` — mockable operational services
-- `Axial.Hosting`, `Axial.Hosting.Node`, `Axial.Hosting.Browser` — application lifecycle integrations
-- `Axial.Telemetry` — tracing and runtime observability
-- `Axial.Hosting.AspNetCore`, `Axial.Hosting.GenHttp` — optional adapters for serving Reified HTTP contracts
+Supporting packages provide platform services, console and file-system access, hosting, and telemetry. The [package catalogue](https://adz.github.io/Axial/packages/) links the first-class libraries and the complete compatibility matrix.
 
 ## Documentation and examples
 
@@ -84,7 +81,8 @@ The core is independent. Add service and hosting packages only when the workflow
 - [Failures and defects](docs/04-error-handling/_index.md)
 - [Dependencies and services](docs/05-dependencies/_index.md)
 - [Concurrency](docs/08-concurrency-and-state/_index.md)
-- [HTTP client](docs/06-services/05-http/_index.md)
+- [Process](docs/process/_index.md)
+- [HTTP client](docs/http/_index.md)
 - [Runnable examples](docs/13-testing/02-runnable-examples.md)
 - [Integration reference application](examples/Axial.ReferenceApp/README.md)
 

@@ -8,12 +8,12 @@
     <RootNamespace>Axial.Process</RootNamespace>
     <PackageId>Axial.Process</PackageId>
     <Authors>Adam Davies</Authors>
-    <Description>Standard external process service for Axial workflows.</Description>
+    <Description>Composable external processes for F# workflows, with pipelines, streaming, typed failures, cancellation and safe cleanup.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/adz/Axial</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <PackageTags>fsharp;axial;flow;process;shell;platform</PackageTags>
+    <PackageTags>fsharp;axial;flow;process;shell;pipeline</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

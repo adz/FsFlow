@@ -50,7 +50,7 @@ adapter), and interruption. ZIO correspondence: environment services, typed erro
 
 ## 2. Resilient HTTP call with a retry budget
 
-Fetch an exchange rate through [`Axial.HttpClient`](/services/http/index.html): retry only transient
+Fetch an exchange rate through [`Axial.HttpClient`](/http/): retry only transient
 transport failures, back off exponentially, stop after three attempts, and turn a two-second deadline into
 `RateError.TimedOut`. Never retry malformed successful responses.
 
@@ -175,7 +175,7 @@ producer keeps writing) is one forgotten `linked.Cancel()` away.
 
 A `FlowStream` is cold and pull-based: when persistence fails, the stream is simply never pulled again. The test
 streams from an instrumented infinite sequence and asserts almost nothing was produced past the failing element.
-The process variant uses [`Process.stream`](/services/processes/index.html) — typed `ProcessEvent`s from a live
+The process variant uses [`Process.stream`](/process/) — typed `ProcessEvent`s from a live
 process through the same pipeline shape:
 
 ```fsharp no-check reason="Application-specific fixtures are described in the surrounding prose"

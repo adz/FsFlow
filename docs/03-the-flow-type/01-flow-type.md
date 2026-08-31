@@ -55,7 +55,7 @@ Start by reading the full shape. Use an alias when it makes a real signature sho
 
 ## Go Further
 
-- [Flow API reference](/api.html) maps the construction, environment, composition,
+- [Flow API reference](/api/) maps the construction, environment, composition,
   execution, resource, and concurrency functions.
 - [Troubleshooting Types](/the-flow-type/troubleshooting-types.html) explains the compiler errors
   produced when environment or error channels do not line up.

@@ -41,7 +41,7 @@ model and differ only in how the code reads.
 
 ## Go Further
 
-- [Composition reference](/api.html) lists mapping, binding, recovery,
+- [Composition reference](/api/) lists mapping, binding, recovery,
   traversal, and sequential combination functions.
 - [Fibers](/concurrency-and-state/fibers.html) introduces explicit child workflows.
 - [Schedules](/scheduling-and-retries/index.html) adds retry and repetition policies without changing the

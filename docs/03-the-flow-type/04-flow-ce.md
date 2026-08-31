@@ -48,7 +48,7 @@ Normal F# `if`, `match`, `for`, and `while` expressions work inside the computat
 
 ## Go Further
 
-- [Flow builder reference](/api.html) lists the values accepted by each
+- [Flow builder reference](/api/) lists the values accepted by each
   computation-expression operation.
 - [Bind](/error-handling/bind.html) covers bind-site error assignment and mapping when the source
   error does not already match the workflow.

@@ -53,6 +53,23 @@ title: Axial
 <p class="docs-home-note">Axial is pre-1.0. Its API can change before the first stable release.</p>
 </div>
 </div>
+
+## Built on Axial
+
+### Process
+
+Compose external commands and pipelines, stream output, and handle cancellation and failures through `Flow`.
+
+[Read the Process documentation →](/process/)
+
+### HTTP
+
+Build typed requests, handle responses, and apply reliability policies through the same workflow model.
+
+[Read the HTTP documentation →](/http/)
+
+[View all packages →](/packages/)
+
 <div class="docs-home-meta">
 <a class="docs-chip" href="getting-started/index.html">Documentation</a>
 <a class="docs-chip" href="https://github.com/adz/Axial">GitHub</a>

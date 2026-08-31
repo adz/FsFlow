@@ -43,5 +43,5 @@ combined causes should be represented.
 - [Bind](/error-handling/bind.html) explains how to assign or map an error at a `flow { }` bind site.
 - [Policy and verification](/error-handling/policy.html) explains reusable verification rules and `Flow.verify`.
 - [Defects](/error-handling/defects.html) covers exception capture and intentional recovery in detail.
-- [Cause reference](/api.html) lists cause transformations and rendering.
+- [Cause reference](/api/) lists cause transformations and rendering.
 - [Supervision](/concurrency-and-state/supervision.html) explains how unjoined child defects are reported.

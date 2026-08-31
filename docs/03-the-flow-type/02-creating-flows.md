@@ -46,7 +46,7 @@ all supported carriers.
 
 ## Go Further
 
-- [Flow construction reference](/api.html) lists every constructor and
+- [Flow construction reference](/api/) lists every constructor and
   conversion.
 - [Defects](/error-handling/defects.html) explains when an exception should remain a defect and
   when an attempt constructor is appropriate.
